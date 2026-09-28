@@ -1,0 +1,1548 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0B1017">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="format-detection" content="telephone=no">
+<title>通信ラボ ── モバイル記事の仕込み台</title>
+<style>
+:root{
+  --bg:#0B1017; --surface:#141B26; --surface2:#1B2431; --line:#243040;
+  --ink:#E9EFF7; --dim:#9BABC2; --faint:#66768C;
+  --signal:#3DDC97; --signal-soft:rgba(61,220,151,.12);
+  --link:#5AA9FF; --link-soft:rgba(90,169,255,.12);
+  --warn:#F5A623; --warn-soft:rgba(245,166,35,.12);
+  --stop:#FF6B6B; --stop-soft:rgba(255,107,107,.12);
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --r:12px;
+}
+*{box-sizing:border-box}
+html{margin:0;padding:0;-webkit-text-size-adjust:100%}
+body{margin:0;padding:0}
+body{
+  background:var(--bg); color:var(--ink); line-height:1.8; font-size:15px;
+  font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP","Yu Gothic UI",sans-serif;
+}
+button,input,textarea,select{font:inherit;color:inherit}
+a{color:var(--link)}
+.wrap{max-width:1280px;margin:0 auto;padding:16px 16px 80px}
+
+/* ── 上部バー ── */
+.top{position:sticky;top:0;z-index:20;background:rgba(11,16,23,.92);backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--line);padding:12px 16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:9px;font-weight:700;letter-spacing:.02em}
+.brand i{width:10px;height:10px;border-radius:3px;background:var(--signal);display:block;
+  box-shadow:0 0 12px var(--signal)}
+.brand small{display:block;font-weight:400;font-size:11px;color:var(--faint);letter-spacing:.06em}
+.spacer{flex:1}
+.status{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--dim);font-family:var(--mono)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--faint)}
+.dot.on{background:var(--signal);box-shadow:0 0 8px var(--signal)}
+.dot.off{background:var(--stop)}
+
+.btn{background:var(--surface2);border:1px solid var(--line);border-radius:9px;padding:8px 13px;
+  cursor:pointer;transition:.15s;font-size:13.5px;white-space:nowrap}
+.btn:hover{border-color:var(--signal);color:var(--signal)}
+.btn.primary{background:var(--signal);border-color:var(--signal);color:#06120C;font-weight:700}
+.btn.primary:hover{filter:brightness(1.08);color:#06120C}
+.btn.sm{padding:6px 10px;font-size:12.5px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+
+/* ── パネル ── */
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);margin:14px 0;overflow:hidden}
+.ph{padding:12px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.ph h2{margin:0;font-size:15.5px;font-weight:700}
+.ph .n{font-family:var(--mono);font-size:12px;color:var(--signal);border:1px solid var(--line);
+  border-radius:6px;padding:1px 7px;background:var(--signal-soft)}
+.ph p{margin:0;font-size:12.5px;color:var(--faint)}
+.pb{padding:15px 16px}
+.f{display:block;margin:0 0 12px}
+.f>span{display:block;font-size:12.5px;color:var(--dim);margin-bottom:5px}
+input,textarea,select{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:9px;
+  padding:10px 12px;font-size:14px;line-height:1.7}
+textarea{resize:vertical;font-family:var(--mono);font-size:13px}
+input:focus,textarea:focus,select:focus{outline:none;border-color:var(--signal)}
+.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:10px}
+.hint{background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:11px 13px;
+  font-size:12.5px;color:var(--dim);margin:10px 0;white-space:pre-wrap;line-height:1.75}
+.note{border-left:3px solid var(--signal);background:var(--signal-soft);padding:11px 14px;
+  border-radius:0 9px 9px 0;margin:12px 0;font-size:13.5px}
+.warnb{border-left:3px solid var(--warn);background:var(--warn-soft);padding:11px 14px;
+  border-radius:0 9px 9px 0;margin:12px 0;font-size:13.5px}
+.stopb{border-left:3px solid var(--stop);background:var(--stop-soft);padding:11px 14px;
+  border-radius:0 9px 9px 0;margin:12px 0;font-size:13.5px}
+code{background:var(--surface2);padding:1px 6px;border-radius:5px;font-family:var(--mono);font-size:12.5px}
+
+/* ── ネタカード ── */
+.cands{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:11px;margin-top:12px}
+.cand{background:var(--bg);border:1px solid var(--line);border-radius:11px;padding:13px 14px;display:flex;flex-direction:column;gap:8px}
+.cand .r1{display:flex;gap:8px;align-items:baseline}
+.cand .rank{font-family:var(--mono);font-size:12px;color:var(--signal);border:1px solid var(--line);
+  border-radius:5px;padding:1px 6px;flex:0 0 auto;background:var(--signal-soft)}
+.cand .tt{font-weight:700;font-size:14.5px;line-height:1.6}
+.cand .sum{font-size:13px;color:var(--dim);margin:0}
+.cand .tags{display:flex;gap:6px;flex-wrap:wrap;font-size:11.5px}
+.cand .tags span{border:1px solid var(--line);border-radius:20px;padding:1px 9px;color:var(--dim)}
+.cand .tags span.sig{color:var(--signal);border-color:var(--signal);background:var(--signal-soft)}
+.cand .src{font-size:11.5px;color:var(--faint);font-family:var(--mono)}
+.cand .acts{display:flex;gap:7px;margin-top:auto;padding-top:6px}
+
+/* ── 作業台 ── */
+.desk{display:grid;grid-template-columns:290px 1fr;gap:14px;align-items:start}
+@media (max-width:900px){.desk{grid-template-columns:1fr}}
+.col{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.col .ch{padding:11px 14px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;
+  align-items:center;gap:8px}
+.col .ch b{font-size:14px}
+.col .cb{padding:10px;max-height:520px;overflow:auto}
+.col .cb.tall{max-height:820px}
+.run{display:block;width:100%;text-align:left;background:var(--bg);border:1px solid var(--line);
+  border-radius:9px;padding:9px 11px;margin:0 0 8px;cursor:pointer;transition:.15s}
+.run:hover{border-color:var(--signal)}
+.run[aria-current="true"]{border-color:var(--signal);background:var(--signal-soft)}
+.run .r1{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.run .ttl{font-weight:700;font-size:13.5px;line-height:1.5}
+.run .meta{display:flex;gap:9px;flex-wrap:wrap;font-size:11px;color:var(--faint);font-family:var(--mono);margin-top:5px}
+.chip{font-size:10.5px;border:1px solid var(--line);border-radius:20px;padding:1px 8px;font-family:var(--mono);flex:0 0 auto}
+.chip.wait{color:var(--warn);border-color:var(--warn);background:var(--warn-soft)}
+.chip.appr{color:var(--signal);border-color:var(--signal);background:var(--signal-soft)}
+.chip.rej{color:var(--stop);border-color:var(--stop);background:var(--stop-soft)}
+.empty{padding:26px 16px;text-align:center;color:var(--faint);font-size:13px}
+
+/* ── 工程ボード ── */
+.stations{display:flex;gap:7px;flex-wrap:wrap;padding:11px 13px;border-bottom:1px solid var(--line)}
+.station{flex:1 1 90px;min-width:88px;background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:7px 8px;transition:.2s}
+.station .nm{font-size:11px;color:var(--dim);display:block;line-height:1.4}
+.station .st{font-size:10.5px;font-family:var(--mono);color:var(--faint)}
+.station[data-s=run]{border-color:var(--warn);background:var(--warn-soft)}
+.station[data-s=run] .st{color:var(--warn)}
+.station[data-s=done]{border-color:var(--signal);background:var(--signal-soft)}
+.station[data-s=done] .st{color:var(--signal)}
+.station[data-s=rev]{border-color:var(--stop);background:var(--stop-soft)}
+.station[data-s=rev] .st{color:var(--stop)}
+.station[data-s=skip]{opacity:.5}
+
+.log{font-family:var(--mono);font-size:12px;line-height:1.75;background:var(--bg);border:1px solid var(--line);
+  border-radius:9px;padding:10px 12px;max-height:230px;overflow:auto;white-space:pre-wrap;color:var(--dim);margin:11px 13px}
+.log b{color:var(--signal)}
+
+.verdicts{display:flex;gap:8px;flex-wrap:wrap;padding:11px 13px}
+.v{background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:6px 11px;font-size:11.5px;color:var(--dim)}
+.v b{display:block;font-size:15px;font-family:var(--mono);color:var(--ink)}
+.v b.pass{color:var(--signal)}
+.v b.fail{color:var(--warn)}
+.issues{padding:0 13px 11px}
+.issue{background:var(--bg);border:1px solid var(--line);border-left-width:3px;border-radius:0 8px 8px 0;padding:8px 11px;margin:7px 0}
+.issue.ERROR{border-left-color:var(--stop)}
+.issue.WARN{border-left-color:var(--warn)}
+.issue .ih{font-size:12.5px;font-weight:700;font-family:var(--mono)}
+.issue.ERROR .ih{color:var(--stop)}
+.issue.WARN .ih{color:var(--warn)}
+.issue .ib{font-size:12.5px;color:var(--dim)}
+.eyebrow{font-size:11.5px;color:var(--faint);letter-spacing:.06em;text-transform:uppercase;font-family:var(--mono)}
+
+.tabs{display:flex;gap:6px;flex-wrap:wrap;padding:11px 13px 0}
+.tab{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:6px 11px;font-size:12.5px;cursor:pointer}
+.tab[aria-selected="true"]{border-color:var(--signal);color:var(--signal);background:var(--signal-soft)}
+.doc{background:var(--bg);border:1px solid var(--line);border-radius:9px;margin:11px 13px;padding:16px 18px;
+  max-height:460px;overflow:auto;line-height:1.95;font-size:14.5px}
+.doc h1{font-size:19px;margin:14px 0 8px}
+.doc h2{font-size:16px;margin:18px 0 7px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+.doc h3{font-size:14.5px;margin:14px 0 5px;color:var(--signal)}
+.doc p{margin:9px 0}
+.doc ul,.doc ol{padding-left:22px;margin:8px 0}
+.doc li{margin:4px 0}
+.doc pre{background:var(--surface2);border:1px solid var(--line);border-radius:8px;padding:10px 12px;overflow:auto;font-size:12.5px}
+.doc blockquote{border-left:3px solid var(--line);margin:10px 0;padding:2px 12px;color:var(--dim)}
+.doc table{border-collapse:collapse;width:100%;font-size:13px;margin:10px 0}
+.doc th,.doc td{border:1px solid var(--line);padding:7px 9px;text-align:left}
+.doc th{background:var(--surface2)}
+
+.editwrap{padding:0 13px 13px}
+.edlbl{font-size:12.5px;color:var(--dim);margin:0 0 7px}
+.decide{display:flex;gap:9px;flex-wrap:wrap;padding:0 13px 14px;align-items:flex-start}
+.decide .f{flex:1 1 240px;margin:0}
+
+/* ── トースト・バナー ── */
+/* ============================================================
+   スマホ最適化（画面幅760px以下）
+   ============================================================ */
+@media (max-width:760px){
+  .wrap{padding:10px 12px 130px}
+  .top{padding:9px 12px;gap:7px}
+  .brand{font-size:14px}
+  .top .btn{padding:9px 12px;font-size:13px;min-height:40px}
+  .status{font-size:11.5px}
+  .ph{padding:11px 13px;gap:7px}
+  .ph p{display:block;width:100%;font-size:12px}
+  .pb{padding:13px}
+  input,textarea,select{padding:12px;font-size:16px}   /* iOSの自動ズームを防ぐ */
+  .btn{padding:11px 14px;font-size:14px;min-height:44px}
+  .btn.sm{padding:9px 12px;font-size:13px;min-height:40px}
+  .actions .btn{flex:1 1 auto}
+  .desk{grid-template-columns:1fr;gap:12px}
+  .col .cb{max-height:none}
+  .col .cb.tall{max-height:60vh}
+  .cands{grid-template-columns:1fr}
+  .cand .acts .btn{flex:1}
+  .stations{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:10px 11px}
+  .station{min-width:0;padding:6px 6px}
+  .station .nm{font-size:10.5px}
+  .log{max-height:190px;margin:10px 11px;font-size:11.5px}
+  .doc{margin:10px 11px;padding:13px 14px;max-height:none;font-size:15px;line-height:1.95}
+  .doc table{font-size:12.5px}
+  .doc th,.doc td{padding:6px 7px}
+  .tabs{overflow-x:auto;flex-wrap:nowrap;padding:10px 11px 0;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .tabs::-webkit-scrollbar{display:none}
+  .tab{flex:0 0 auto;min-height:38px}
+  .verdicts{padding:10px 11px;gap:7px}
+  .v{flex:1 1 28%;padding:6px 9px;font-size:11px}
+  .issues{padding:0 11px 10px}
+  .editwrap{padding:0 11px 11px}
+  #edText{min-height:300px}
+  .decide{padding:0 11px 11px}
+  .decide .f{flex:1 1 100%}
+  .hint{font-size:12px}
+  #resume{left:10px;right:10px;bottom:74px;max-width:none}
+}
+@media (max-width:430px){
+  .brand small{display:none}
+  .stations{grid-template-columns:repeat(2,1fr)}
+  .v{flex:1 1 45%}
+  .cand .tt{font-size:14px}
+}
+/* 画面下に固定する操作バー（スマホのみ表示） */
+.mbar{display:none}
+@media (max-width:760px){
+  .mbar{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:40;gap:7px;
+    padding:9px 11px calc(9px + env(safe-area-inset-bottom));
+    background:rgba(11,16,23,.96);backdrop-filter:blur(10px);border-top:1px solid var(--line)}
+  .mbar .btn{flex:1;min-height:46px;font-size:13.5px;padding:10px 8px}
+  .mbar .btn.mini{flex:0 0 auto;min-width:52px;font-size:12.5px}
+}
+@media (min-width:761px){.mbar{display:none !important}}
+@supports(padding:max(0px)){
+  .top{padding-top:max(12px, env(safe-area-inset-top))}
+}
+/* 眠らないようにする案内 */
+.awake{padding:8px 12px;background:var(--warn-soft);border-left:3px solid var(--warn);
+  border-radius:0 9px 9px 0;margin:10px 11px;font-size:12.5px;color:var(--ink);display:none}
+
+/* ============================================================
+   全画面エディタ（スマホの入力を楽にする）
+   ============================================================ */
+.btn.wide{width:100%;margin-top:8px}
+.eov{position:fixed;inset:0;z-index:70;background:var(--bg);display:none;flex-direction:column;
+  padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+.eov.on{display:flex}
+.eov .eh{display:flex;align-items:center;gap:9px;padding:11px 13px;border-bottom:1px solid var(--line)}
+.eov .eh b{font-size:15px}
+.eov .eh .sp{flex:1}
+.eov .etools{display:flex;gap:6px;overflow-x:auto;padding:9px 13px;border-bottom:1px solid var(--line);
+  -webkit-overflow-scrolling:touch;scrollbar-width:none;flex-wrap:nowrap}
+.eov .etools::-webkit-scrollbar{display:none}
+.eov .etools .btn{flex:0 0 auto;min-height:38px;font-size:12.5px}
+.eov .ebody{flex:1;display:flex;flex-direction:column;padding:12px 13px 0;min-height:0}
+.eov textarea{flex:1;width:100%;min-height:0;background:var(--surface);border:1px solid var(--line);
+  border-radius:10px;padding:13px;font-size:17px;line-height:1.9;font-family:inherit;resize:none}
+.eov .efoot{display:flex;align-items:center;gap:9px;padding:11px 13px;border-top:1px solid var(--line);margin-top:11px}
+.eov .efoot .cnt{font-family:var(--mono);font-size:12px;color:var(--faint);flex:1}
+.eov .efoot .btn{min-height:46px}
+@media (min-width:761px){
+  .eov{max-width:860px;margin:0 auto;border-left:1px solid var(--line);border-right:1px solid var(--line)}
+}
+
+#toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);opacity:0;
+  background:var(--surface2);border:1px solid var(--signal);color:var(--ink);border-radius:10px;
+  padding:11px 18px;font-size:13.5px;transition:.25s;pointer-events:none;z-index:60;max-width:90vw;text-align:center}
+#toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+#resume{display:none;position:fixed;right:16px;bottom:16px;z-index:50;max-width:330px;
+  background:var(--surface2);border:1px solid var(--warn);border-radius:12px;padding:13px 15px;box-shadow:0 8px 30px rgba(0,0,0,.45)}
+#resume b{color:var(--warn)}
+hr{border:none;border-top:1px solid var(--line);margin:22px 0}
+.foot{color:var(--faint);font-size:12px;text-align:center;margin-top:26px;line-height:1.9}
+</style>
+</head>
+<body>
+<noscript>
+<div id="nojsBanner" style="margin:10px 11px;padding:13px 14px;background:rgba(238,108,77,.14);border:1px solid #EE6C4D;border-radius:12px;color:#FFB9A3;font-size:14px;line-height:1.8;font-weight:700">
+  この画面はJavaScriptが止まった状態で開かれています。<b>ボタンも入力も動きません。</b><br>
+  アプリ内のプレビューやファイルアプリの簡易ビューではなく、<b>Chrome（またはSafari）で開き直してください。</b>
+</div>
+</noscript>
+
+<div class="top">
+  <div class="brand"><i></i><div>通信ラボ<small>MOBILE / HIKARI / DEVICE</small></div></div>
+  <div class="spacer"></div>
+  <div class="status"><span class="dot off" id="apiDot"></span><span id="apiTxt">APIキー未設定</span></div>
+  <button class="btn sm" id="btnOpenKey">キーを設定</button>
+  <button class="btn sm" id="btnShowHow">使い方</button>
+</div>
+
+<div class="wrap">
+
+<!-- キー設定 -->
+<div class="panel" id="keyPanel">
+  <div class="ph"><span class="n">SETUP</span><h2>APIキーを入れる（最初の1回だけ）</h2></div>
+  <div class="pb">
+    <ol style="margin:0 0 12px;padding-left:22px;font-size:14px">
+      <li><a href="https://aistudio.google.com/api-keys" target="_blank" rel="noopener noreferrer">Google AI Studio</a> を開いてログイン</li>
+      <li>「APIキーを作成」を押して、出てきた <code>AIza…</code> をコピー</li>
+      <li>下の欄に貼り付けて「保存して確認」</li>
+    </ol>
+    <label class="f"><span>APIキー（人に見せないでください）</span><input type="password" id="inKey" placeholder="AIza..."></label>
+    <label style="display:flex;gap:9px;align-items:flex-start;font-size:13px;margin:4px 0 12px;cursor:pointer">
+      <input type="checkbox" id="inPace" checked style="width:auto;margin-top:3px">
+      <span>慎重モード（1回ごとに6秒あけて、回数制限（429）を避ける）</span>
+    </label>
+    <label class="f"><span>使うモデル（「保存して確認」を押すと、今使えるものが自動で選ばれます）</span>
+      <select id="inModelSel"><option value="">（まず「保存して確認」を押してください）</option></select></label>
+    <div class="actions" style="margin-top:0">
+      <button class="btn primary" id="btnSaveKey">保存して確認</button>
+      <button class="btn sm" id="btnClearKey">キーを消す</button>
+      <button class="btn sm" onclick="resetBlocked(); toast('除外モデルの記録を消しました。もう一度試せます。')">除外リストをリセット</button>
+    </div>
+    <div class="hint" id="keyOut"></div>
+    <div class="warnb"><b>無料プランの場合</b>：1分・1日あたりの回数に上限があります。慎重モード（6秒間隔）を最初からONにしています。また<b>無料プランでは入力内容がGoogleの製品改善に使われます</b>。売るための企画を出したくない場合は有料プラン（従量課金）をご検討ください（出典: Gemini API 料金ページ）。</div>
+  </div>
+</div>
+
+<!-- スマホで使うときの案内 -->
+<div class="panel" id="mobilePanel" style="display:none">
+  <div class="ph"><span class="n">MOBILE</span><h2>スマホで使うときの3つのコツ</h2></div>
+  <div class="pb" style="font-size:13.5px">
+    <ol style="margin:0;padding-left:22px">
+      <li><b>画面を閉じない。</b>生成中に画面が暗くなったり、他のアプリに切り替わると、ブラウザが止められて中断します。中止しても <b>「続きから再開」</b>で、終わった役割は再利用できます。</li>
+      <li><b>ホーム画面に追加すると楽です。</b>ブラウザのメニューから「ホーム画面に追加」を選ぶと、アプリのように1タップで開けます。</li>
+      <li><b>充電しながらが安全です。</b>待ち時間があるので、まとめて仕込むときは電源につないでください。</li>
+      <li><b>入力は「✎ 大きく入力する」から。</b>全画面の大きな入力欄が開きます。スマホのキーボードの<b>マイクボタンで音声入力</b>も使えます。打った内容は<b>その場で元の欄に反映</b>され、自動保存されます。「貼り付け」ボタンや<b>Markdownの記号・店頭体験の型</b>もボタン1つで入ります。</li>
+    </ol>
+    <div class="hint" style="margin-bottom:0">左下のボタンが画面下に固定されます（承認／却下／コピー／加筆を保存）。</div>
+  </div>
+</div>
+
+<!-- ① AIにネタを選ばせる -->
+<div class="panel">
+  <div class="ph"><span class="n">STEP 1</span><h2>AIにネタを集めさせる（材料を渡して選別）</h2>
+    <p>材料が無くても、AIの知識と切り口だけで提案させられます（その場合は【仮説】扱い）</p></div>
+  <div class="pb">
+    <label class="f"><span>材料（任意）── <code>trend_collect.py</code> の出力や、自分で拾ったニュース見出し・Xの投稿を貼る。1行1件でOK</span>
+      <textarea id="inTrendMat" rows="7" placeholder="例：
+1 | ahamoが一部プランを見直し | ITmedia Mobile | 2026-09-26 | https://...
+2 | Yahoo!スマホ買取が開始 | はてなブックマーク | 2026-09-27 | https://...
+光回線の工事費が来月から変わるらしい（店頭でお客様に聞かれた）"></textarea>
+      <button type="button" class="btn sm wide" onclick="openEditor('inTrendMat', 'ネタ材料（貼り付け・下書き）')">✎ 大きく入力する（音声入力も使えます）</button></label>
+    <div class="actions" style="margin-top:0">
+      <button class="btn primary" id="btnTrend">ネタを選ばせる（5〜10件）</button>
+      <button class="btn sm" id="btnTrendMore">もっと出す（12件）</button>
+      <button class="btn sm" id="btnTrendClear">クリア</button>
+    </div>
+    <div class="hint" id="trendLog" style="display:none"></div>
+    <div class="cands" id="cands"></div>
+  </div>
+</div>
+
+<!-- ② ネタを直接入力して1本作る -->
+<div class="panel">
+  <div class="ph"><span class="n">STEP 2-A</span><h2>ネタを直接入力して1本作る</h2></div>
+  <div class="pb">
+    <label class="f"><span>テーマ（自由に書いてOK。例：光回線の乗り換えで損しない手順）</span>
+      <input id="inTopic" placeholder="書くテーマを入れてください"></label>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:11px">
+      <label class="f"><span>ジャンル</span>
+        <select id="inGenre">
+          <option>モバイル/通信</option>
+          <option>光回線</option>
+          <option>デバイス/端末</option>
+          <option>料金・契約</option>
+          <option>MVNO/格安SIM</option>
+          <option>その他</option>
+        </select></label>
+      <label class="f"><span>想定する読者（任意）</span>
+        <input id="inReader" placeholder="例：乗り換えを検討中の30代"></label>
+      <label class="f"><span>調べたいこと（任意）</span>
+        <input id="inResearch" placeholder="例：対象プランの料金と条件"></label>
+    </div>
+    <div class="actions" style="margin-top:0">
+      <button class="btn primary" id="btnOne">このテーマで作る</button>
+      <button class="btn sm" id="btnOneStop">中止する</button>
+    </div>
+  </div>
+</div>
+
+<!-- ③ まとめて仕込む -->
+<div class="panel">
+  <div class="ph"><span class="n">STEP 2-B</span><h2>まとめて仕込む（ストックを作る）</h2></div>
+  <div class="pb">
+    <p style="font-size:13px;line-height:1.8;margin:0 0 10px;color:var(--dim)">1行に1テーマを書いて押すと、上から順に記事を作り、<b>承認待ちのストック</b>にたまります。1本終わるごとに保存するので、途中で止まっても作った分は残ります。</p>
+    <label class="f"><span>ネタ帳（1行に1テーマ）</span>
+      <textarea id="qTopics" rows="6" placeholder="格安SIMの料金プラン改定をどう読むか
+光回線の乗り換えで損しない手順
+スマホの下取り価格はいつ売るのが得か"></textarea>
+      <button type="button" class="btn sm wide" onclick="openEditor('qTopics', 'ネタ帳（1行に1テーマ）')">✎ 大きく入力する（音声入力も使えます）</button></label>
+    <div class="actions" style="margin-top:0">
+      <button class="btn primary" id="btnQueue">まとめて作る（ストックへ）</button>
+      <button class="btn sm" id="btnQueueStop">中止する</button>
+      <button class="btn sm" id="btnExportAll">ストックを書き出す（Markdown）</button>
+      <button class="btn sm" id="btnBackup">バックアップ（引き継ぎ用）</button>
+      <button class="btn sm" id="btnImport">バックアップを読み込む</button>
+      <button class="btn sm" id="btnClearStock">ストックを空にする</button>
+      <input type="file" id="inImport" accept=".json,application/json" style="display:none">
+    </div>
+    <div class="hint" id="qOut" style="display:none"></div>
+  </div>
+</div>
+
+<hr>
+
+<!-- 作業台 -->
+<div class="desk">
+  <div class="col">
+    <div class="ch"><b>ストック</b><span class="eyebrow" id="runCount"></span></div>
+    <div class="cb tall" id="runs"><div class="empty">まだありません</div></div>
+  </div>
+
+  <div class="col">
+    <div class="ch"><b id="deskTitle">作品を選んでください</b><span class="eyebrow" id="deskMeta"></span></div>
+    <div id="deskEmpty" class="empty">左のストックから1本を開くと、ここに本文と検査結果が出ます</div>
+    <div id="deskBody" style="display:none">
+      <div class="stations" id="stations">
+        <div class="station" data-s="idle" data-name="企画"><span class="nm">企画</span><span class="st">待機</span></div>
+        <div class="station" data-s="idle" data-name="需要"><span class="nm">需要</span><span class="st">待機</span></div>
+        <div class="station" data-s="idle" data-name="出典"><span class="nm">出典</span><span class="st">待機</span></div>
+        <div class="station" data-s="idle" data-name="構成"><span class="nm">構成</span><span class="st">待機</span></div>
+        <div class="station" data-s="idle" data-name="本文"><span class="nm">本文</span><span class="st">待機</span></div>
+        <div class="station" data-s="idle" data-name="検査"><span class="nm">検査</span><span class="st">待機</span></div>
+        <div class="station" data-s="idle" data-name="図解"><span class="nm">図解</span><span class="st">待機</span></div>
+        <div class="station" data-s="idle" data-name="SNS"><span class="nm">SNS</span><span class="st">待機</span></div>
+      </div>
+      <div class="verdicts" id="verdict"></div>
+      <div class="issues" id="issues"></div>
+      <div class="tabs" id="tabs"></div>
+      <div class="doc" id="doc"></div>
+      <div class="editwrap">
+        <p class="edlbl" id="edLbl"></p>
+        <textarea id="edText" rows="11"></textarea>
+      <button type="button" class="btn sm wide" onclick="openEditor('edText', '本文の加筆・修正')">✎ 大きく入力する（音声入力も使えます）</button>
+        <div class="actions">
+          <button class="btn sm" id="btnSave">加筆を保存</button>
+          <button class="btn sm" id="btnCopy">本文をコピー（note用）</button>
+          <button class="btn sm" id="btnDl">ファイルに保存</button>
+        </div>
+      </div>
+      <div class="decide">
+        <label class="f"><span>却下するときの理由（承認時は空でOK。理由は次回の企画に反映されます）</span>
+          <input id="noteText" placeholder="例：切り口が一般的すぎる／数値が古い"></label>
+        <div style="display:flex;gap:9px;padding-top:20px">
+          <button class="btn" id="btnApprove" style="border-color:var(--signal);color:var(--signal)">承認する（投稿してOK）</button>
+          <button class="btn" id="btnReject" style="border-color:var(--stop);color:var(--stop)">却下する（作り直し）</button>
+        </div>
+      </div>
+      <div class="log" id="log" style="display:none"></div>
+      <div class="eyebrow" id="decidedTxt" style="padding:0 13px 14px"></div>
+    </div>
+  </div>
+</div>
+
+<p class="foot">通信ラボ ── 通信・モバイル・光回線・デバイスの記事をAI9役で作り、承認待ちまでためる仕組み<br>
+金額には基準日を。アフィリエイトにはPR表記を。そして、あなたの店頭体験をひとつ。</p>
+</div>
+
+<div class="awake" id="awakeNote">生成中は<b>端末をスリープさせないでください</b>。画面を閉じたり他のアプリに切り替えると、ブラウザが止められて処理が中断します（中断しても、終わった役割は保存され「続きから再開」で再利用できます）。</div>
+
+<div class="eov" id="editorOv">
+  <div class="eh">
+    <b id="edTitle">入力</b><span class="sp"></span>
+    <button class="btn sm" onclick="closeEditor()">閉じる</button>
+  </div>
+  <div class="etools" id="edTools"></div>
+  <div class="ebody">
+    <textarea id="edBig" spellcheck="false"></textarea>
+  </div>
+  <div class="efoot">
+    <span class="cnt" id="edCount">0文字</span>
+    <button class="btn" id="edPaste">貼り付け</button>
+    <button class="btn primary" onclick="closeEditor()">決定して閉じる</button>
+  </div>
+</div>
+
+<div class="mbar" id="mbar" style="display:none">
+  <button class="btn mini" id="mBtnSave">加筆を保存</button>
+  <button class="btn mini" id="mBtnCopy">コピー</button>
+  <button class="btn" id="mBtnApprove" style="border-color:var(--signal);color:var(--signal)">承認</button>
+  <button class="btn" id="mBtnReject" style="border-color:var(--stop);color:var(--stop)">却下</button>
+</div>
+
+<div id="toast"></div>
+<div id="resume"></div>
+
+<script>
+/* ============================================================
+   1. 基本の道具
+   ============================================================ */
+const $ = s => document.querySelector(s);
+const LS = {
+  get(k, d){ try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; }catch(_){ return d; } },
+  set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }
+             catch(e){ toast("保存できませんでした。ブラウザの保存容量が上限の可能性があります。"); } }
+};
+function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+let TOAST_T = null;
+function toast(m){ const t = $("#toast"); t.textContent = m; t.classList.add("on");
+  clearTimeout(TOAST_T); TOAST_T = setTimeout(()=>t.classList.remove("on"), 3400); }
+
+/* 軽量なMarkdown表示（外部ライブラリを使わない） */
+function md(src){
+  const lines = String(src||"").split("\n");
+  const out = []; let inPre=false, inUl=false, inOl=false, inTbl=false;
+  const closeAll = ()=>{ if(inUl){out.push("</ul>");inUl=false;} if(inOl){out.push("</ol>");inOl=false;}
+                         if(inTbl){out.push("</table>");inTbl=false;} };
+  const inline = s => esc(s)
+    .replace(/`([^`]+)`/g, "<code>$1</code>")
+    .replace(/\*\*([^*]+)\*\*/g, "<b>$1</b>")
+    .replace(/\[([^\]]+)\]\((https?:[^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
+    .replace(/(^|[\s（(])(https?:\/\/[^\s<)）」]+)/g, '$1<a href="$2" target="_blank" rel="noopener noreferrer">$2</a>');
+  for(const raw of lines){
+    if(/^\s*```/.test(raw)){
+      if(!inPre){ closeAll(); out.push("<pre>"); inPre=true; } else { out.push("</pre>"); inPre=false; }
+      continue;
+    }
+    if(inPre){ out.push(esc(raw)); continue; }
+    const l = raw.replace(/\s+$/, "");
+    if(!l.trim()){ closeAll(); continue; }
+    let m;
+    if(m = l.match(/^(#{1,6})\s+(.*)$/)){ closeAll(); const n = Math.min(m[1].length, 3);
+      out.push(`<h${n}>${inline(m[2])}</h${n}>`); continue; }
+    if(/^\s*([-*_])\1{2,}\s*$/.test(l)){ closeAll(); out.push("<hr>"); continue; }
+    if(/^>\s?/.test(l)){ closeAll(); out.push(`<blockquote>${inline(l.replace(/^>\s?/,""))}</blockquote>`); continue; }
+    if(m = l.match(/^\s*[-*・]\s+(.*)$/)){ if(!inUl){closeAll();out.push("<ul>");inUl=true;} out.push(`<li>${inline(m[1])}</li>`); continue; }
+    if(m = l.match(/^\s*\d+[.．)]\s+(.*)$/)){ if(!inOl){closeAll();out.push("<ol>");inOl=true;} out.push(`<li>${inline(m[1])}</li>`); continue; }
+    if(/^\s*\|/.test(l)){
+      const cells = l.replace(/^\s*\|/, "").replace(/\|\s*$/, "").split("|").map(s=>s.trim());
+      if(cells.every(c => /^:?-{2,}:?$/.test(c))) continue;
+      if(!inTbl){ closeAll(); out.push("<table>"); inTbl=true; out.push("<tr>" + cells.map(c=>`<th>${inline(c)}</th>`).join("") + "</tr>"); }
+      else out.push("<tr>" + cells.map(c=>`<td>${inline(c)}</td>`).join("") + "</tr>");
+      continue;
+    }
+    closeAll(); out.push(`<p>${inline(l)}</p>`);
+  }
+  if(inPre) out.push("</pre>");
+  closeAll();
+  return out.join("\n");
+}
+
+/* ============================================================
+   2. 保存されるデータ
+   ============================================================ */
+let CONF   = LS.get("ml_conf", { key:"", model:"", pace:6 });
+let RUNS   = LS.get("ml_runs", {});
+let LEDGER = LS.get("ml_ledger", { topics:[], rejects:[] });
+let DRAFT  = LS.get("ml_draft", null);
+let TRIAL  = false;
+let CUR = null, TAB = "04_記事本文.md";
+function saveConf(){ LS.set("ml_conf", CONF); }
+function saveRuns(){ LS.set("ml_runs", RUNS); }
+function saveLedger(){ LS.set("ml_ledger", LEDGER); }
+
+/* ============================================================
+   3. 役割（プロンプト）と共通ルール
+   ============================================================ */
+const ROLES_MD = "# 役割プロンプト集 ── 通信・モバイル専門メディア版\n\nこの1ファイルが仕組みの「頭脳」です。書き換えれば他ジャンルにも流用できます。\n`<!-- ROLE: id | 表示名 -->` の行が役割の区切りです。消さないでください。\n\n---\n\n## この仕組みの前提\n\n- **媒体**: note（記事）。将来、自前サイトやYouTubeにも広げられる書き方をする。\n- **読者**: 20〜50代。料金の見直し、乗り換え、端末の買い替え、光回線の契約を検討中の人。**金額と条件にうるさい**。\n- **この分野は「お金」の領域（YMYL）**: Googleは料金・契約の情報を厳しく評価する。**一次情報**（各社公式・総務省・IR）と**基準日の明記**が生命線。\n- **最大の武器は運営者の一次情報**: モバイルショップ店頭で見てきた実例・お客様の質問・手続きの実感。**他サイトが書けないのはここだけ**。\n- **鮮度が命**: 料金・キャンペーンは数か月で変わる。**「YYYY年M月時点」を必ず書く**。後から更新できる前提で書く。\n- **法令**: 景品表示法（優良誤認・有利誤認／ステマ規制）、電気通信事業法、note総則規約。**断定・誇大表現・根拠のない比較優良表示は書かない**。\n- 全役割は**人間が最後に加筆する前提**で出力し、必ず「人間に足してほしい情報」で終わること。\n\n---\n\n<!-- ROLE: trend | トレンド編集者（ネタ選別） -->\n## あなたの役割\nあなたは**トレンド編集者**です。手元の材料（ニュース見出し・SNSの断片・メモ）と世の中の動きから、\n**「今、この媒体が書く価値があるネタ」を選び、順番をつけます**。記事は書きません。\n\n## 守るルール（最重要）\n- **材料に書かれていない事実を、事実として書かない。** 材料が無い部分は必ず `【仮説】` と明記する。\n- 材料として渡された見出しは**事実として扱ってよい**（ただし金額・条件は「要確認」）。\n- **「読者がいま決めようとしていること」に結びつかないネタは落とす**。業界の話そのものは読まれない。\n- **X（旧Twitter）の投稿は自動収集していない**。運営者が手で貼った断片があれば、それも材料として扱う。\n- **同じ切り口の量産をしない**。似たネタが複数あるときは統合するか、片方を落とす。\n- 並べるときは「今日出す1本」が分かるようにする。\n\n## 出力形式（この形式を厳守。画面が自動で読み取ります）\n```\n## ネタ候補\n1. テーマ（30字以内）| 一言要約（50字以内）| 切り口 | 話題度(0-100) | 賞味期限(短期/中期/長期) | 先に確認する一次情報 | 根拠（材料のNo. / 【仮説】）\n2. （同じ形式で5〜10件）\n```\nそのあとに:\n- **材料の使い方の注意**（どこに古い/不明な情報があるか）\n- **手動で足すべきネタ**（材料に無いが、店頭で強い題材の提案）\n- 人間に足してほしい情報\n\n<!-- ROLE: editor | 編集長 -->\n## あなたの役割\nあなたは**通信・モバイル専門メディアの編集長**です。週に数本を継続して出す前提で、ネタを「読まれる企画」に変換します。\n**連載の型**（シリーズ設計）まで考えてください。単発記事は資産になりません。\n\n## 守るルール\n- **タイトルは15〜25文字**。超えたら作り直す。**数字か固有名詞を必ず1つ**入れる。\n- **読者はいま何を決めようとしている人か**を1行で特定する（乗り換え？端末買い替え？開通？値上げ対策？）。\n- **連載の型**を1つ決める。例:「料金明細の読み解き」「乗り換え実録」「店頭で聞かれる質問」「改定ウォッチ」。\n- 切り口は次のどれか: **一次情報の追加 / 条件の分解 / 手順化 / 比較表 / 時系列の変化 / 誤解の訂正**。\n- 企画に**賞味期限**を必ず書く（1か月 / 半年 / 恒久）。\n- 収益の道筋を1行で明記する（無料で信頼を積む / 比較表を有料 / メンバーシップ誘導 / アフィリエイト）。\n\n## 出力形式\n- テーマの一言要約（40字以内）\n- 採用する連載の型（新規 or 既存シリーズの何本目か）\n- 切り口3案（各「誰が・なぜ読むか」「既出記事との差」「賞味期限」）\n- 採用する切り口と理由\n- タイトル案3つ（**全角文字数を明記**）\n- 記事の骨格（見出し5〜7個。各見出しに「そこで言うこと」1行）\n- **確認すべき一次情報の宛先**\n- リサーチャーへの依頼（3つ）\n- 人間に足してほしい情報\n\n<!-- ROLE: analyst | 需要分析 -->\n## あなたの役割\nあなたは**需要アナリスト**です。この企画を「今出すべきか」を判断します。**捨てる判断をすることが仕事**です。\n\n## 守るルール\n- 数字を捏造しない。検索ボリュームが不明なら【推定】と明記し、根拠（季節性・関連語の多さ・話題量・既存記事の数）を示す。\n- 競合の厚さを3段階（薄い/ふつう/飽和）で判定。通信系は**比較サイト・公式・大手メディアが非常に強い**ので、正面から戦う企画は落とす。\n- **勝てるのは「店頭の一次情報」「条件の分解」「手続きの実務」「誤解の訂正」の4種だけ**という前提で判断する。\n- 収益の道筋を2案（無料を主軸。有料は比較表・診断・テンプレートなど再利用価値があるもの）。\n- **賞味期限を判定**（短期1か月 / 中期半年 / 長期恒久）。短期なら「更新作業が発生する」ことを明記。\n- 価格は参考値として扱い、断定しない。\n\n## 出力形式\n- 需要スコア（100点満点）と内訳（検索需要/競合の薄さ/収益との相性/量産適性/賞味期限の長さ）\n- 競合の厚さと、上位記事が満たしていないニーズ\n- 収益の道筋2案\n- 量産適性の判定（連載で何本まで引けるか）\n- リスク（景表法・ステマ・誤情報・炎上・職業上の立場）\n- 判断: **やる / 切り口を変えてやる / やめる**（必ず1つ選ぶ）\n- 人間に足してほしい情報\n\n<!-- ROLE: researcher | リサーチ -->\n## あなたの役割\nあなたは**リサーチャー**です。料金・条件・手続きを、**一次情報で裏が取れた形**に整理します。\nこの分野で最も多い事故は「古い料金を書くこと」と「条件を書かないこと」です。あなたが防ぎます。\n\n## 守るルール\n- **一次情報を最優先**: 各社公式（料金表・提供条件書・ニュースリリース）、総務省の公表資料、IR。報道は補助。\n- **金額には必ず「YYYY年M月時点」を付ける**。日付不明の金額は【時期不明】と明記し、記事では使わない。\n- **「実質◯円」は必ず内訳**（端末代金・割引・ポイント還元・支払い回数）を書く。取れなければ【未確認】。\n- **キャンペーンは「開始日・終了日・対象条件・併用可否」を4点セット**で。欠ければ【未確認】。\n- **契約条件の3点**（契約期間 / 解約時の費用 / 事務手数料）を必ず調べる。\n- 事実 / 通説 / 推測 の3つにラベルを貼る。\n- 他サイトの文章をそのまま写さない。要約して自分の言葉にする。引用は引用部分を明示し出典を添え、自分の記述が主・引用が従の関係を保つ。\n- **比較優良表示（最安・No.1等）は根拠が出せない限り書かない**。\n\n## 出力形式\n- 出典リスト（番号 / 内容 / 出典元 / 公表日 / 種別〔公式・報道・総務省・IR〕 / 信頼度3段階）\n- 金額・条件の整理表（項目 / 数値 / 基準日 / 適用条件 / 出典番号）\n- 事実・通説・推測の仕分け表\n- 断定できない点（記事で「未確認」「時点により変わる」と明記すべき箇所）\n- 賞味期限: いつ変わりそうか\n- 追加で調べるべきこと（3つ）\n- 人間に足してほしい情報\n\n<!-- ROLE: digger | 深掘り・一次体験の設計 -->\n## あなたの役割\nあなたは**深掘り担当**です。材料から「他サイトに無い切り口と構成」を作ります。\n**運営者の店頭体験を最大限に活かす設計**をしてください。\n\n## 守るルール\n- 既出の切り口を1つ挙げ、**それをどう超えるか**を明記する。\n- **「店頭だから分かること」を3つ以上**リストアップする（お客様の実際の誤解、手続きで時間がかかる点、聞かれやすい質問、明細の見方、店頭とオンラインの違いなど）。\n- 抽象論で終わらせない。金額・条件・手順・時期を必ず入れる。\n- **読者がその記事で「できるようになること」を1つ**決める。\n- **誤解の訂正**を1つ入れる（断定せず条件付きで）。\n- **比較表を1つ設計**する（縦軸・横軸・入れる数値・出典の付け方）。\n\n## 出力形式\n- 既出の切り口と、それを超える方法\n- **店頭だから分かること3つ**（うち1つを記事の核に指定）\n- この記事だけの切り札\n- 構成案（見出しと、各見出しで言いたいこと1行）\n- 比較表の設計（軸・数値・出典の付け方）\n- 執筆担当への注意（ここは断定しない、時点を明記する など）\n- 人間に足してほしい情報（店頭の具体的なエピソードの依頼）\n\n<!-- ROLE: writer | 執筆 -->\n## あなたの役割\nあなたは**執筆担当**です。契約や買い替えを**具体的に決めようとしている人**に向けて本文を書きます。\n\n## 守るルール\n- **本文は2,500〜4,500文字**。読み切られることを優先。\n- 冒頭3行で「この記事を読むと何が分かるか」を出す。**最初の1文は短く**（20字以内目安）。\n- 見出し（##）は**4〜7個**、体言止めで短く。\n- **金額を書いたら直後に基準日**（例: 月額1,980円（2026年9月時点））。\n- **「実質◯円」には内訳を1行添える**。不明なら実質表記を使わない。\n- **キャンペーンを書いたら終了日を書く**。不明なら「終了時期は公式で確認」と書く。\n- **注意書きを必ず1ブロック**入れる（契約期間・解約時の費用・事務手数料・条件変更の可能性）。\n- 文の長さをばらけさせる。同じ語尾を3回続けない。段落は3〜5行まで。\n- 出典は本文中に「（出典: 公式サイト、2026年9月）」の形で残す。\n- **実在の企業・製品を扱うので断定を避ける**（「公式の表記では」「とされている」）。\n- **比較優良表示は書かない**（最安・No.1・絶対）。\n- **広告・アフィリエイトの直前に「PR」または「広告」を必ず明記**（ステマ規制）。\n- 個人・店舗が特定される情報は書かない（自分の勤務先を批評する形も書かない）。\n- 結びは「まとめ」で終わらせず、**次に読む記事への問い**を残す。\n\n## 出力形式\n- タイトル（本文冒頭に1行）\n- 導入（3行）\n- 本文（## 見出しつき、2,500字以上。金額に基準日、注意書きブロックあり）\n- 結び（次に読む記事への問い）\n- 出典一覧（出典元・公表日つき）\n- **note投稿メタ**（下記の形式を厳守。画面が自動チェックします）\n- 人間に足してほしい情報\n\n### note投稿メタ（この形式を厳守）\n```\n## note投稿メタ\n- タイトル: （15〜25文字）\n- タグ: #タグ1 #タグ2 #タグ3 #タグ4 #タグ5\n- 想定価格: 無料 / 300円 / 500円 など\n- 無料/有料ライン: （有料の場合のみ。「ここから有料: 見出し名」の形式）\n- 情報の基準日: （例: 2026年9月）\n- アイキャッチ案: （1280×670pxに置く文言を15文字以内で）\n```\n\n<!-- ROLE: qa | QA（校閲・法令・AIっぽさ） -->\n## あなたの役割\nあなたは**最後の関門**です。次の5観点で検査します。\n1. **法令**（景品表示法・電気通信事業法・ステマ規制）\n2. **情報の正確さと鮮度**（基準日・条件・出典）\n3. **YMYLとしての信頼性**（一次情報・更新日・運営者の立場の明示）\n4. **AIっぽさ**\n5. **媒体の安全性**（note規約・他社批判・権利）\n\n## 守るルール\n- 指摘は必ず**「該当箇所の引用」＋「なぜ問題か」＋「修正案」**の3点セット。\n- 機械チェックの結果は鵜呑みにせず、誤検知は「誤検知」と明記する。\n- 特に次の8つは厳しく見る。\n  1. **基準日のない金額**\n  2. **「実質◯円」の内訳がない**（有利誤認のおそれ）\n  3. **キャンペーンの終了日・条件がない**\n  4. **契約条件（契約期間・解約費用・手数料）の注意書きがない**\n  5. **比較優良表示・断定**（最安・No.1・絶対・必ず）→ **差し戻し**\n  6. **PR表記の欠落** → **差し戻し**\n  7. **一次情報ゼロ**（公式・総務省・IRが1つも無い）→ **差し戻し**\n  8. **人間の一次情報（店頭体験）が本文に無い**\n- 特定のキャリア・店舗・個人を貶す表現がないか確認する。\n- 「問題ありません」と書く場合も根拠を1行添える。\n\n## 出力形式\n- 判定（**公開可 / 要修正 / 公開不可**）\n- 修正必須（ERROR）一覧 / 修正推奨（WARN）一覧\n- 法務チェック（景表法 / ステマ / 電気通信事業法 / note規約 / 他社への配慮）\n- 鮮度チェック（基準日の有無、賞味期限、次に更新すべき時期）\n- AIっぽさの具体的な根拠（該当文の引用つき）\n- 退屈ポイント（離脱しそうな見出しと理由）\n- 修正後の理想的な一文の例\n- 人間に足してほしい情報\n\n<!-- ROLE: designer | 図解・画像 -->\n## あなたの役割\nあなたは**図解・画像の設計担当**です。通信の記事は数字が命です。**表とグラフで理解を一段上げます。**\n\n## 守るルール\n- アイキャッチは **1280×670px**。入れる文字は**15文字以内**、大きく。スマホの一覧で読めること。\n- **比較表を最低1つ**設計する（項目 / 数値 / 基準日 / 出典の4列を必ず含める）。\n- グラフは**実データのみ**。架空の数値・イメージの棒グラフを作らない。出典と基準日を付ける。\n- **企業ロゴ・公式サイトの画像・製品写真を勝手に使わない**。使ってよいのは「自分で撮影」「生成AIで作成」「公式が明示的に許可している素材」の3つだけ。**キャリア名は文字で書く**。\n- 画像生成AIのプロンプトに**実在の企業名・製品名・ロゴ・実在店舗を含めない**。\n- アイキャッチの文言は煽らない（「料金明細の見方」のように中身が分かる言葉）。\n\n## 出力形式\n- アイキャッチ案2つ（文言・構図・色、15文字以内）\n- 比較表の設計（列・行・数値・出典の書き方）\n- 本文図解3案（種類 / 伝える内容 / 差し込む見出し）\n- グラフを使う場合: 数値の出典と基準日、グラフの種類と理由\n- 作り方メモ（スプレッドシート / Canva など、手順3行）\n- 画像生成AI用プロンプト（実在企業名・ロゴを含めない。ネガティブ指定つき）\n- 使ってはいけない画像の注意\n- 人間に足してほしい情報\n\n<!-- ROLE: sns | 投稿・リプライ運用 -->\n## あなたの役割\nあなたは**投稿とコメント返信の運用担当**です。読者を連れてくる入口を作ります。\n\n## 守るルール\n- X投稿文は3案。**「速報型（変化を伝える）」「比較型（数字を出す）」「体験型（店頭の実感）」**を各1つ。\n- **数字を出すときは基準日を添える**。古い数字は信用を失う。\n- 煽らない。内容と食い違う釣りは規約違反リスク。\n- **投稿文に記事タイトルをそのまま入れ、記事URLを添える。**\n- ハッシュタグは**3〜5個**（大タグ1〜2個＋固有タグ2〜3個）。\n- 返信雛形を3種類（**事実の誤指摘 / 感想 / 荒らし**）。誤指摘には「確認して直します」と素直に返す。感情的にならない。\n- **特定のキャリア・店舗を貶す投稿は作らない**（業務上の立場を考え、比較は事実と条件のみ）。\n- アフィリエイトを伴う投稿には**「広告」「PR」を必ず入れる**。\n- 記事末尾の回遊導線も作る。\n\n## 出力形式\n- X投稿文3案（**それぞれ文字数つき**）\n- ハッシュタグ案（3〜5個、大タグ/固有タグの役割を明記）\n- 引用リポスト用の一言\n- 返信雛形3種類\n- noteのコメント欄に固定する一文\n- 記事末尾の回遊導線（一文）\n- 人間に足してほしい情報\n";
+const COMMON_RULES = [
+  "## この仕組みの共通ルール（全役割が守る）",
+  "- 金額には必ず基準日を書く（例: 2026年9月時点）。基準日が書けない金額は記事に使わない。",
+  "- 「実質◯円」を使うときは、必ず内訳（端末代金・割引・ポイント還元・支払い回数）を添える。",
+  "- キャンペーンは終了日と対象条件を書く。不明なら「公式で確認」と明記する。",
+  "- 「最安」「No.1」「絶対」「必ず」など根拠のない断定は書かない（景品表示法・優良誤認）。",
+  "- 広告・アフィリエイトのリンクの直前に「PR」または「広告」を必ず明記する（ステマ規制）。",
+  "- 実在の企業・製品は断定を避け、「公式の表記では」「とされている」を使う。",
+  "- 特定のキャリア・店舗・個人を貶す表現は書かない。比較は事実と条件のみ。",
+  "- 他サイトの文章をそのまま写さない。要約して自分の言葉で書く。",
+  "- 出力の最後に、必ず「## 人間に足してほしい情報」を付ける（運営者が加筆する前提）。"
+].join("\n");
+
+function parseRoles(text){
+  const roles = {}; const re = /<!--\s*ROLE:\s*([a-zA-Z0-9_]+)\s*\|\s*([^>]+?)\s*-->/g;
+  const hits = []; let m;
+  while((m = re.exec(text)) !== null) hits.push({ id:m[1], label:m[2], start:m.index, end:re.lastIndex });
+  hits.forEach((h, i) => { roles[h.id] = { label:h.label, body: text.slice(h.end, i+1<hits.length ? hits[i+1].start : text.length).trim() }; });
+  return roles;
+}
+const ROLES = parseRoles(ROLES_MD);
+
+/* ============================================================
+   4. AIの呼び出し（ブラウザからGoogleへ直接）
+   ============================================================ */
+const API_ROOT = "https://generativelanguage.googleapis.com/v1beta";
+const DEAD_WORDS  = ["no longer available","not found","does not exist","not supported","unsupported","deprecated"];
+const KEY_WORDS   = ["api key not valid","api_key_invalid","invalid api key","permission denied","unauthenticated"];
+const QUOTA_WORDS = ["429","resource_exhausted","resource exhausted","quota","rate limit","too many requests"];
+const BUSY_WORDS  = ["503","500","502","504","high demand","overloaded","unavailable","timed out","timeout","failed to fetch"];
+
+function classify(msg){
+  const m = String(msg).toLowerCase();
+  if(KEY_WORDS.some(w => m.includes(w)))   return "key";
+  if(DEAD_WORDS.some(w => m.includes(w)))  return "dead";
+  if(QUOTA_WORDS.some(w => m.includes(w))) return "quota";
+  if(BUSY_WORDS.some(w => m.includes(w)))  return "busy";
+  return "other";
+}
+function blockedList(){ return LS.get("ml_blocked", []); }
+function blockModel(m){ const b = blockedList(); if(!b.includes(m)){ b.push(m); LS.set("ml_blocked", b); } }
+function resetBlocked(){ LS.set("ml_blocked", []); }
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+function brief(m){ m = String(m).replace(/https?:\/\/\S+/g,"").replace(/\s+/g," ").trim();
+  return m.length > 220 ? m.slice(0,220) + "…" : m; }
+
+let LAST_CALL = 0;
+let PACE_HOOK = null;   // 待機メッセージの出力先
+async function pace(){
+  const gap = CONF.pace === undefined ? 6 : (CONF.pace || 0);
+  if(!gap) return;
+  const el = Date.now() - LAST_CALL;
+  if(el < gap*1000){
+    const w = Math.ceil((gap*1000 - el)/1000);
+    if(PACE_HOOK) PACE_HOOK(`  ※ 回数制限を避けるため ${w}秒待ちます…`);
+    await sleep(w*1000);
+  }
+  LAST_CALL = Date.now();
+}
+function rankModels(list){
+  const ok = (list||[]).filter(n => /^gemini-\d+(\.\d+)?[-.]/.test(n))
+    .filter(n => !/(image|tts|live|transcribe|embedding|robotics|computer-use|audio|omni|veo)/.test(n))
+    .filter(n => !/(preview|exp)/.test(n));
+  const score = n => {
+    const v = parseFloat((n.match(/^gemini-(\d+(?:\.\d+)?)/)||[])[1] || "0");
+    let s = v*100;
+    if(n.includes("flash") && !n.includes("lite")) s += 20;
+    else if(n.includes("pro")) s += 15;
+    else if(n.includes("lite")) s += 5;
+    return s;
+  };
+  return ok.sort((a,b) => score(b) - score(a));
+}
+async function listModels(){
+  const res = await fetch(`${API_ROOT}/models?key=${encodeURIComponent(CONF.key)}`);
+  if(!res.ok) throw new Error(`モデル一覧の取得に失敗（${res.status}）: ${(await res.text()).slice(0,200)}`);
+  const j = await res.json();
+  const all = (j.models||[]).map(m => (m.name||"").replace("models/",""));
+  return { all, ranked: rankModels(all) };
+}
+function extractText(j){
+  if(typeof j.output_text === "string" && j.output_text.trim()) return j.output_text.trim();
+  const walk = o => {
+    if(o === null || o === undefined) return "";
+    if(typeof o === "string") return o;
+    if(Array.isArray(o)) return o.map(walk).filter(Boolean).join("\n");
+    if(typeof o === "object"){
+      if(typeof o.text === "string") return o.text;
+      let s = "";
+      for(const k of ["steps","outputs","content","parts","candidates","output","model_output","message","result"]) if(o[k]) s += walk(o[k]);
+      return s;
+    }
+    return "";
+  };
+  return walk(j).trim();
+}
+async function once(model, system, user, temp){
+  const errs = [];
+  const r1 = await fetch(`${API_ROOT}/interactions`, {method:"POST",
+    headers:{"Content-Type":"application/json","x-goog-api-key":CONF.key},
+    body:JSON.stringify({model, input:user, system_instruction:system, generation_config:{temperature:temp}, store:false})});
+  if(r1.ok){ const t = extractText(await r1.json()); if(t) return t; errs.push("interactions: 返答を解釈できませんでした"); }
+  else errs.push(`interactions: HTTP ${r1.status} ${(await r1.text()).slice(0,300)}`);
+
+  const r2 = await fetch(`${API_ROOT}/models/${encodeURIComponent(model)}:generateContent`, {method:"POST",
+    headers:{"Content-Type":"application/json","x-goog-api-key":CONF.key},
+    body:JSON.stringify({systemInstruction:{parts:[{text:system}]}, contents:[{role:"user",parts:[{text:user}]}], generationConfig:{temperature:temp}})});
+  if(r2.ok){ const t = extractText(await r2.json()); if(t) return t; errs.push("generateContent: 返答を解釈できませんでした"); }
+  else errs.push(`generateContent: HTTP ${r2.status} ${(await r2.text()).slice(0,300)}`);
+
+  const msg = errs.join(" / ");
+  const e = new Error(msg);
+  e.soft = /HTTP 40[034]/.test(msg) || /no longer available/i.test(msg) || /not found/i.test(msg);
+  throw e;
+}
+async function gemini(system, user, temp){
+  temp = (temp === undefined) ? 0.85 : temp;
+  if(TRIAL) return trialReply(user);
+  if(!CONF.key) throw new Error("APIキーが未設定です。「キーを設定」から入れてください。");
+  let ranked = [];
+  try{ ranked = (await listModels()).ranked; }catch(_){}
+  const blocked = blockedList();
+  const cands = [];
+  const push = m => { if(m && !cands.includes(m) && !blocked.includes(m)) cands.push(m); };
+  push(CONF.model);
+  ranked.forEach(push);
+  ["gemini-flash-latest","gemini-flash-lite-latest","gemini-pro-latest"].forEach(push);
+  const targets = cands.slice(0,4);
+  if(!targets.length) throw new Error("使えるモデルが1つも見つかりませんでした。「キーを設定」→「保存して確認」を行ってください。");
+  await pace();
+  const tried = [], busyOnly = [], quotaOnly = [];
+  for(const model of targets){
+    let last = "";
+    for(let attempt = 1; attempt <= 3; attempt++){
+      try{
+        const out = await once(model, system, user, temp);
+        if(model !== CONF.model){ CONF.model = model; saveConf(); paintKey();
+          if(PACE_HOOK) PACE_HOOK(`  ※ モデルを ${model} に切り替えて実行しました`); }
+        return out;
+      }catch(e){
+        last = e.message;
+        const kind = classify(e.message);
+        if(kind === "key") throw new Error("APIキーが正しくないようです。キーをもう一度確認してください。\n" + brief(e.message));
+        if(kind === "dead"){
+          blockModel(model);
+          if(PACE_HOOK) PACE_HOOK(`  ※ ${model} は廃止/利用不可のため候補から外しました（次回から試しません）`);
+          tried.push(`${model} → 廃止/利用不可（候補から除外）`);
+          break;
+        }
+        if(kind === "quota"){
+          if(!CONF.pace){ CONF.pace = 6; saveConf(); paintKey(); }
+          const w = 20*attempt + Math.floor(Math.random()*6);
+          if(attempt < 3){
+            if(PACE_HOOK) PACE_HOOK(`  ※ ${model} は回数制限中（429）。${w}秒待って再挑戦します…（${attempt}/3）`);
+            await sleep(w*1000);
+            continue;
+          }
+          tried.push(`${model} → 回数制限（429）が続くため断念`);
+          quotaOnly.push(model);
+          break;
+        }
+        if(attempt === 1 && (kind === "busy" || kind === "other")){
+          const w = 4 + Math.floor(Math.random()*3);
+          if(PACE_HOOK) PACE_HOOK(`  ※ ${model} は混雑中（503など）。${w}秒待って再挑戦します…`);
+          await sleep(w*1000);
+          continue;
+        }
+        if(PACE_HOOK) PACE_HOOK(`  ※ ${model} は応答しません。次の候補を試します…`);
+        tried.push(`${model} → ${brief(last)}`);
+        busyOnly.push(model);
+        break;
+      }
+    }
+  }
+  const allBusy  = tried.length > 0 && busyOnly.length === tried.length;
+  const allQuota = tried.length > 0 && quotaOnly.length === tried.length;
+  throw new Error("AIの呼び出しに失敗しました。\n"
+    + (allQuota ? "すべての候補が「回数制限（429）」で止まりました。無料プランには1分・1日あたりの上限があります。20〜30分待つか、日付が変わってから実行してください。\n" : "")
+    + (allBusy  ? "原因は「Google側のサーバー混雑（503）」の可能性が高いです。設定のミスではありません。10分ほど置くか、時間帯を変えてください。\n" : "")
+    + tried.join("\n"));
+}
+function trialReply(user){
+  const heads = (user.match(/^## .+$/gm)||[]).slice(0,6).join("\n");
+  return "【練習モードの出力です。実際の文章ではありません】\n\n"
+    + "本物の記事を作るには、上部の「キーを設定」からAPIキーを入れてください。\n\n"
+    + "この練習モードでも、ボタンの場所と流れは本番と同じように確かめられます。\n\n"
+    + (heads ? "受け取った指示の見出し:\n" + heads : "")
+    + "\n\n## note投稿メタ\n- タイトル: 練習モードの見本タイトル\n- タグ: #練習 #スマホ料金 #乗り換え\n- 想定価格: 無料\n- 情報の基準日: 2026年9月\n- アイキャッチ案: 練習中の文字\n\n## 人間に足してほしい情報\n- あなたの店頭体験をここに書きます";
+}
+/* ============================================================
+   5. 機械チェック（AIに任せない部分）
+   ============================================================ */
+const TICS = ["と言えるでしょう","ではないでしょうか","いかがでしたか","まとめると","重要なポイントは","浮き彫りになりました","非常に重要です","ポイントは以下の通り","興味深いですね","注目すべきは","と言っても過言ではありません","筆者は考える"];
+const BANNED = ["絶対に","必ず得","必ず安い","100%安全","業界最安","確実に稼げ","誰でも簡単に稼げ"];
+const PRW = ["PR","広告","アフィリエイト","プロモーション"];
+const AFF = ["amazon.co.jp","a8.net","afi-b.com","もしも","rakuten.co.jp","valuecommerce","afb"];
+const SHORT = ["bit.ly","amzn.to","a.r10.to","tinyurl.com","is.gd"];
+const WORK = ["自分で買って","自購入","サクラ","購入してランキング"];
+
+function qaCheck(article, research, topic){
+  const issues = [];
+  const E = (i,d) => issues.push({level:"ERROR", item:i, detail:d});
+  const W = (i,d) => issues.push({level:"WARN",  item:i, detail:d});
+  const tm = article.match(/^-\s*タイトル\s*[:：]\s*(.+)$/m); const title = tm ? tm[1].trim() : "";
+  const tlen = title.length;
+  const gm = article.match(/^-\s*タグ\s*[:：]\s*(.+)$/m);
+  const tags = gm ? (gm[1].match(/[#＃][^\s#＃]+/g) || []) : [];
+  const pm = article.match(/^-\s*想定価格\s*[:：]\s*(.+)$/m); const price = pm ? pm[1].trim() : "";
+  const paid = price && !price.includes("無料");
+  const lm = article.match(/^-\s*無料[/／]有料ライン\s*[:：]\s*(.+)$/m);
+
+  if(!title) W("note投稿メタが無い","『## note投稿メタ』のブロックが本文にありません。タイトル・タグ・価格を自動確認できません。");
+  else if(tlen > 40) E("タイトルが長すぎる", `${tlen}文字。noteの一覧やXで省略されます。15〜25文字に収めてください。`);
+  else if(tlen > 25) W("タイトルがやや長い", `${tlen}文字。推奨は15〜25文字です。`);
+  else if(tlen < 15) W("タイトルが短い", `${tlen}文字。情報量を足すと読まれやすくなります。`);
+  if(title && !/[0-9０-９]/.test(title)) W("タイトルに数字が無い","「3つの」「月額1,980円」など数字を1つ入れると読まれやすくなります。");
+  if(!tags.length) W("タグが未設定","3〜5個が目安（大きいタグ1〜2個＋固有タグ2〜3個）。");
+  else if(tags.length < 3) W("タグが少ない", `${tags.length}個。3〜5個が目安です。`);
+  else if(tags.length > 7) W("タグが多すぎる", `${tags.length}個。軸がぶれるので5個前後に絞りましょう。`);
+  if(paid && !lm) W("有料ラインが不明","有料なのに『ここから有料』の位置がありません。無料部分で価値を見せる必要があります。");
+
+  const heads = (article.match(/^##\s+/gm) || []).length;
+  if(heads < 4) W("見出しが少ない", `${heads}個。4〜7個が目安です。`);
+  if(heads > 10) W("見出しが多すぎる", `${heads}個。細切れになって読みにくくなります。`);
+  if(article.length < 2500) W("本文が短い", `${article.length}文字。noteなら2500字以上が目安です。`);
+
+  const tics = {}; let ticN = 0;
+  for(const t of TICS){ const c = article.split(t).length - 1; if(c > 0){ tics[t] = c; ticN += c; } }
+  const sents = article.split(/[。！？\n]/).map(s => s.trim()).filter(s => s.length >= 4);
+  const lens = sents.map(s => s.length);
+  let sd = 0;
+  if(lens.length > 3){ const mean = lens.reduce((a,b) => a+b, 0) / lens.length;
+    sd = Math.sqrt(lens.reduce((a,b) => a + (b-mean)**2, 0) / lens.length); sd = Math.round(sd*10)/10; }
+  const personal = ["私は","僕は","私が","実際に","取材","店頭","窓口","体験","うちの"].some(w => article.includes(w));
+  const ex = (article.split("！").length - 1) + (article.split("!").length - 1);
+
+  let score = Math.min(60, ticN*6);
+  if(sd < 9) score += 15;
+  if(!personal) score += 15;
+  if(ex === 0) score += 5;
+  if(article.length < 2500) score += 10;
+  score = Math.min(100, score);
+
+  if(ticN) W("AIっぽい定型句", `${ticN}個: ${Object.keys(tics).join("、")}`);
+  if(sd < 9) W("文の長さが均一すぎる", `ばらつき ${sd}。長い文と短い文を混ぜてください。`);
+  if(!personal) W("人間の一次情報がゼロ","『店頭で』『実際に』等がありません。あなたの体験を必ず1つ足してください（最重要）。");
+
+  const src = (research.match(/https?:\/\//g) || []).length + (article.match(/https?:\/\//g) || []).length;
+  if(src < 2) E("出典が足りない", `出典が${src}件。一次情報を最低2件示してください。`);
+  for(const b of BANNED) if(article.includes(b)) E("断定・誇大表現", `『${b}』は景品表示法・規約の観点で危険です。`);
+  const lt = (article + research).toLowerCase();
+  if(AFF.some(h => lt.includes(h)) && !PRW.some(w => article.includes(w)))
+    E("PR表記がありません","アフィリエイトのリンクがあるのに『PR』『広告』表記がありません（ステマ規制）。");
+  if(SHORT.some(s => lt.includes(s))) W("短縮URL","短縮URLはnoteで弾かれる・規約リスクがあります。元のURLを使ってください。");
+  for(const w of WORK) if(article.includes(w)) E("自己取引の示唆", `『${w}』はnoteの禁止事項に触れるおそれがあります。`);
+  if(/住所[:：]|地番/.test(article)) W("個人特定につながる記述","住所・地番はプライバシー侵害のおそれがあります。");
+  if(LEDGER.topics.some(t => topic && String(t).slice(0,6) === topic.slice(0,6)))
+    W("過去記事とテーマ重複","ネタ台帳に似たテーマがあります。比較・検証の形に変えてください。");
+
+  /* --- 通信・モバイル固有のチェック --- */
+  const money = /[0-9０-９][0-9,，.]*\s*円/.test(article);
+  const dated = /(20[0-9]{2}年[0-9]{1,2}月|時点|基準日|現在の料金)/.test(article);
+  if(money && !dated) W("金額に基準日がありません","通信料金は改定が頻繁です。「2026年9月時点」のように基準日を必ず書いてください。");
+  if(article.includes("実質") && !/(端末代金|分割|割引|ポイント還元|支払い回数)/.test(article))
+    W("『実質』の内訳がありません","『実質◯円』は端末代金・割引・ポイント還元の内訳がないと有利誤認のおそれがあります。");
+  if(/(キャンペーン|還元|値引き)/.test(article) && !/(まで|期限|終了|20[0-9]{2}年[0-9]{1,2}月)/.test(article))
+    W("キャンペーンの期限がありません","終了時期と条件を書かないと読者の不利益になります。");
+  if(/(最安|業界最速|No\.?1|日本一|絶対お得)/.test(article))
+    E("比較優良の断定","『最安』『No.1』等は根拠が必要です（優良誤認）。条件と基準日を添えるか、表現を弱めてください。");
+  if(!/(契約期間|違約金|解約|事務手数料|注意)/.test(article))
+    W("契約条件の注意書きがありません","契約期間・解約時の費用・事務手数料の説明を1ブロック入れてください。");
+  if(!/(総務省|公式|プレスリリース|IR)/.test(article + research))
+    W("一次情報がありません","各社公式・総務省などの一次情報を1つ以上示してください（お金の領域では特に重要）。");
+  if(!/(店頭|窓口|実際に|私は|私が|体験)/.test(article))
+    W("あなたの一次情報がありません","店頭で見てきた実例を1つ足してください。これが他サイトとの決定的な差になります。");
+  /* --- ここまで --- */
+
+  return { verdict: (issues.some(i => i.level === "ERROR") || score >= 45) ? "FAIL" : "PASS",
+    ai_like_score: score, tics, sentence_sd: sd, sources: src, chars: article.length, headings: heads,
+    title, title_len: tlen, tags, issues };
+}
+
+/* ============================================================
+   6. 制作の流れ（AI8役）
+   ============================================================ */
+function ledgerText(){
+  const t = LEDGER.topics.slice(-40).map(x => "- " + x).join("\n") || "- （まだありません）";
+  const r = LEDGER.rejects.slice(-10).map(x => "- " + x).join("\n") || "- （まだありません）";
+  return `## 過去に扱ったテーマ（重複を避ける）\n${t}\n## 過去に却下された理由（同じ失敗を繰り返さない）\n${r}`;
+}
+function setStation(i, s){
+  const n = document.querySelectorAll(".station")[i]; if(!n) return;
+  n.dataset.s = s;
+  n.querySelector(".st").textContent = ({idle:"待機",run:"実行中",done:"完了",rev:"差し戻し",skip:"再利用"})[s] || "待機";
+}
+function clearStations(){
+  document.querySelectorAll(".station").forEach(n => { n.dataset.s="idle"; n.querySelector(".st").textContent="待機"; });
+}
+function logLine(t){
+  const el = $("#log"); if(!el) return;
+  el.style.display = "block";
+  el.innerHTML += (el.innerHTML ? "<br>" : "") + esc(t);
+  el.scrollTop = el.scrollHeight;
+}
+async function step(roleId, user, temp){
+  const r = ROLES[roleId];
+  if(!r) throw new Error(`役割プロンプトが見つかりません: ${roleId}`);
+  const sys = `あなたは「${r.label}」です。\n\n${r.body}\n\n${COMMON_RULES}`;
+  return await gemini(sys, user, temp);
+}
+let STOP = false;
+let BUSY = false;   // 生成中か（スリープ防止の制御に使う）
+
+/* コピーできたか必ず確かめる（iOSのブラウザはクリップボードが制限されることがある） */
+async function copyText(txt){
+  try{ await navigator.clipboard.writeText(txt); return true; }catch(_){}
+  try{
+    const ta = document.createElement("textarea");
+    ta.value = txt; ta.setAttribute("readonly","");
+    ta.style.position = "fixed"; ta.style.top = "-2000px"; ta.style.fontSize = "16px";
+    document.body.appendChild(ta);
+    ta.focus(); ta.select(); ta.setSelectionRange(0, txt.length);
+    const ok = document.execCommand("copy");
+    document.body.removeChild(ta);
+    return ok;
+  }catch(_){ return false; }
+}
+
+/* 生成中は画面を眠らせない（対応端末のみ） */
+let WAKE = null;
+async function keepAwake(on){
+  try{
+    if(on){
+      if("wakeLock" in navigator && !WAKE){
+        WAKE = await navigator.wakeLock.request("screen");
+        WAKE.addEventListener("release", () => { WAKE = null; });
+      }
+      const n = $("#awakeNote"); if(n) n.style.display = "block";
+    }else{
+      if(WAKE){ await WAKE.release(); WAKE = null; }
+      const n = $("#awakeNote"); if(n) n.style.display = "none";
+    }
+  }catch(_){ const n = $("#awakeNote"); if(n && on) n.style.display = "block"; }
+}
+document.addEventListener("visibilitychange", () => {
+  if(document.visibilityState === "visible" && BUSY && !WAKE) keepAwake(true);
+});
+function saveDraft(d){
+  DRAFT = d; LS.set("ml_draft", d);
+  const el = $("#resume");
+  if(el && d) { el.style.display = "block";
+    el.innerHTML = `<b>前回の続きがあります</b><br><span style="font-size:12.5px;color:var(--dim)">「${esc(d.topic)}」の途中まで保存されています。作った役割は再利用するので、APIの回数を使いません。</span><div class="actions"><button class="btn sm primary" onclick="resumeDraft()">続きから再開</button><button class="btn sm" onclick="dropDraft()">破棄する</button></div>`;
+  }
+}
+function dropDraft(){ DRAFT = null; LS.set("ml_draft", null); const el = $("#resume"); if(el) el.style.display = "none"; }
+async function resumeDraft(){
+  if(!DRAFT) return;
+  const d = DRAFT; dropDraft();
+  $("#inTopic").value = d.topic; if(d.genre) $("#inGenre").value = d.genre;
+  try{ const rec = await runPipeline(d.topic, d.genre, d.reader, d.research, d); openRun(rec.id); }
+  catch(e){ toast("再開に失敗しました。ログを確認してください。"); logLine("失敗: " + String(e.message||e).split("\n")[0]); }
+}
+
+async function runPipeline(topic, genre, reader, research, resume){
+  topic = String(topic||"").trim();
+  if(!topic) throw new Error("テーマが空です。");
+  genre = genre || "モバイル/通信";
+  const F = (resume && resume.files) ? resume.files : {};
+  const d = { topic, genre, reader: reader||"", research: research||"", files: F };
+  const id = new Date().toISOString().slice(0,16).replace(/[-:T]/g,"").slice(2)
+           + "_" + topic.slice(0,16).replace(/[\s\/\\]/g,"-");
+  const base = `# 依頼\n- テーマ: ${topic}\n- ジャンル: ${genre}\n- 想定読者: ${reader || "料金の見直し・乗り換え・端末買い替えを検討中の人"}\n- 媒体: note（記事）\n- 運営者: モバイルショップの店頭で働く実務者（一次情報を持っている）\n\n${ledgerText()}\n`;
+
+  const doStep = async (idx, key, roleId, mk, temp) => {
+    if(F[key]){ setStation(idx,"skip"); logLine(`  ↺ ${key} は前回の結果を再利用します（API回数を節約）`); return F[key]; }
+    setStation(idx,"run"); logLine(`▶ ${ROLES[roleId].label} … 実行中`);
+    const out = await step(roleId, mk(), temp);
+    F[key] = out; setStation(idx,"done"); saveDraft(d);
+    return out;
+  };
+
+  PACE_HOOK = logLine;
+  BUSY = true; await keepAwake(true);
+  try{
+    const plan = await doStep(0, "00_企画.md", "editor",
+      () => base + "\nこのテーマで、他サイトと差がつく切り口を3案出し、連載の型を決めて、1案を選んだ企画書にまとめてください。");
+    const demand = await doStep(1, "01_需要分析.md", "analyst",
+      () => base + `\n## 編集長の企画\n${plan}\n\n需要・競合・収益・量産適性と賞味期限を評価し、やる/やめるを判断してください。`);
+    const mat = research ? research
+      : "（材料なし。自分の知識で候補を出し、出典の当たりを付け、金額・条件は「要確認」と明記してください。推測は推測と書くこと）";
+    const researchMd = await doStep(2, "02_リサーチ.md", "researcher",
+      () => base + `\n## 手元の材料\n${mat}\n\n出典リストと、金額・条件の整理表（基準日つき）を作ってください。`);
+    const dig = await doStep(3, "03_深掘り.md", "digger",
+      () => base + `\n## 企画\n${plan}\n## 出典\n${researchMd}\n\n他サイトが書いていない角度を掘り、構成案と比較表の設計を作ってください。`);
+    let draft = await doStep(4, "04_記事本文.md", "writer",
+      () => base + `\n## 企画\n${plan}\n## 需要分析\n${demand}\n## 出典\n${researchMd}\n## 構成案\n${dig}\n\n本文を書いてください。最後に『## note投稿メタ』を必ず付けてください。`, 0.9);
+
+    setStation(5,"run"); logLine(`▶ ${ROLES.qa.label} … 検査中`);
+    let checks = qaCheck(draft, researchMd, topic);
+    const qaText = await step("qa", base + `\n## 本文\n${draft}\n## 機械チェック結果\n${JSON.stringify(checks, null, 2)}\n\nレビューしてください。`);
+    if(checks.verdict === "FAIL" && !F["04_記事本文_改訂版.md"]){
+      logLine("  ↺ 検査でダメ出し → 書き直します");
+      setStation(4,"rev");
+      F["04_記事本文_改訂版.md"] = await step("writer", base
+        + `\n## 前回の本文\n${draft}\n## 検査の指摘\n${qaText}\n## 機械チェック\n${JSON.stringify(checks, null, 2)}\n\n指摘をすべて直した改訂版を書いてください。『## note投稿メタ』も更新すること。`);
+      draft = F["04_記事本文_改訂版.md"];
+      checks = qaCheck(draft, researchMd, topic);
+      saveDraft(d);
+    }
+    setStation(4,"done");
+    F["05_QAレポート.md"] = `# QAレポート\n\n## 判定: ${checks.verdict}\n`
+      + `- AIっぽさ: ${checks.ai_like_score}/100（45以上で要修正）\n`
+      + `- タイトル: ${checks.title}（${checks.title_len}文字）\n`
+      + `- タグ: ${checks.tags.length}個 / 見出し: ${checks.headings}個 / 文字数: ${checks.chars}\n`
+      + `- 出典: ${checks.sources}\n\n## 指摘一覧\n`
+      + (checks.issues.map(i => `- [${i.level}] ${i.item}: ${i.detail}`).join("\n") || "- 指摘なし")
+      + `\n\n## 校閲のコメント\n${qaText}\n`;
+    setStation(5,"done"); saveDraft(d);
+
+    await doStep(6, "06_図解指示.md", "designer",
+      () => base + `\n## 本文\n${draft}\n\nアイキャッチ2案と比較表の設計、図解3点、画像生成のプロンプトを作ってください。`);
+    const sns = await doStep(7, "07_SNS投稿セット.md", "sns",
+      () => base + `\n## 本文\n${draft}\n\nX投稿文3案、タグ案、返信雛形、記事末尾の回遊導線を作ってください。`);
+
+    F["08_承認用サマリー.md"] = `# 承認待ち: ${topic}\n\n`
+      + `- 判定: ${checks.verdict}（AIっぽさ ${checks.ai_like_score}/100、指摘 ${checks.issues.length}件）\n`
+      + `- タイトル: ${checks.title}（${checks.title_len}文字）／タグ ${checks.tags.length}個\n`
+      + `- 本文の文字数: ${checks.chars} / 出典: ${checks.sources}\n\n`
+      + `## 承認する前に見る4点\n`
+      + `1. 本文を読み、**あなたの店頭体験を1つ足す**（『## 人間に足してほしい情報』参照）\n`
+      + `2. ERROR が残っていないか\n`
+      + `3. 金額に基準日があるか、キャンペーンに終了日があるか\n`
+      + `4. 実在の企業・製品を断定していないか\n`;
+    F["human_inputs.md"] = "# あなたの加筆欄\n\n- ここに店頭で見た実例・お客様の質問・手続きの実感を書いて、本文へ移してください\n";
+    F["note_paste.md"] = draft;
+
+    const rec = { id, topic, genre, reader: reader||"", format:"note",
+      at: new Date().toISOString().slice(0,16).replace("T"," "),
+      status:"awaiting", checks, files:F };
+    RUNS[id] = rec; saveRuns(); dropDraft();
+    logLine("=== 完成しました ===");
+    logLine(`検査: ${checks.verdict} / AIっぽさ ${checks.ai_like_score}点 / 『${checks.title}』`);
+    return rec;
+  } finally {
+    PACE_HOOK = null;
+    BUSY = false; keepAwake(false);
+  }
+}
+
+/* ============================================================
+   7. AIにネタを選ばせる
+   ============================================================ */
+let CANDS = [];
+function parseCands(text){
+  const out = [];
+  for(const l of String(text||"").split("\n")){
+    const m = l.match(/^\s*\d+\s*[.．)]\s*(.+)$/);
+    if(!m) continue;
+    const p = m[1].split("|").map(s => s.trim());
+    if(p.length < 3) continue;
+    if(!p[0] || p[0].length > 70) continue;
+    out.push({ theme:p[0], sum:p[1]||"", angle:p[2]||"", score:p[3]||"", shelf:p[4]||"", primary:p[5]||"", basis:p[6]||"" });
+  }
+  return out;
+}
+async function askTrends(count){
+  const mat = ($("#inTrendMat").value || "").trim();
+  const logEl = $("#trendLog"); logEl.style.display = "block"; logEl.innerHTML = "";
+  const tl = t => { logEl.innerHTML += (logEl.innerHTML ? "<br>" : "") + esc(t); };
+  PACE_HOOK = tl;
+  try{
+    tl("▶ トレンド編集者がネタを選別しています…");
+    const user = `# 依頼\n- 媒体: note（通信・モバイル専門）\n- 読者: 料金の見直し・乗り換え・端末買い替え・光回線の契約を検討中の20〜50代\n`
+      + `- 運営者: モバイルショップ店頭の実務者（一次情報を持つ）\n- 出す件数: ${count}件\n\n`
+      + `## 手元の材料（無ければ空）\n${mat || "（材料なし）"}\n\n`
+      + `${mat ? "材料の中から、読者の決めごとに直結するネタを選んで順番をつけてください。" : "材料がありません。あなたの知識の範囲で、読者が今まさに困っているテーマを提案してください。材料が無いので、事実の断定は避け、金額や条件は【仮説】【要確認】と明記すること。"}\n\n`
+      + `${ledgerText()}\n\n`
+      + `上の『## ネタ候補』の形式（1行に「テーマ | 一言要約 | 切り口 | 話題度 | 賞味期限 | 先に確認する一次情報 | 根拠」）を厳守して出力してください。`;
+    const raw = await step("trend", user, 0.9);
+    CANDS = parseCands(raw);
+    tl(CANDS.length ? `✓ ${CANDS.length}件のネタ候補を選びました。作りたいものを選んでください。`
+                    : "候補を読み取れませんでした。もう一度押すか、材料を減らして試してください。");
+    renderCands();
+    if(!CANDS.length) tl(raw.slice(0, 1200));
+  }catch(e){
+    tl("失敗: " + String(e.message||e).split("\n")[0]);
+    toast("ネタ選別に失敗しました。ログを確認してください。");
+  } finally { PACE_HOOK = null; }
+}
+function renderCands(){
+  const box = $("#cands");
+  if(!CANDS.length){ box.innerHTML = ""; return; }
+  box.innerHTML = CANDS.map((c,i) => `
+    <div class="cand">
+      <div class="r1"><span class="rank">${i+1}</span><span class="tt">${esc(c.theme)}</span></div>
+      ${c.sum ? `<p class="sum">${esc(c.sum)}</p>` : ""}
+      <div class="tags">
+        ${c.angle ? `<span class="sig">${esc(c.angle)}</span>` : ""}
+        ${c.score ? `<span>話題度 ${esc(c.score)}</span>` : ""}
+        ${c.shelf ? `<span>賞味期限 ${esc(c.shelf)}</span>` : ""}
+      </div>
+      ${c.primary ? `<div class="src">先に確認: ${esc(c.primary)}</div>` : ""}
+      ${c.basis ? `<div class="src">根拠: ${esc(c.basis)}</div>` : ""}
+      <div class="acts">
+        <button class="btn sm primary" data-i="${i}" data-a="make">このネタで作る</button>
+        <button class="btn sm" data-i="${i}" data-a="queue">ネタ帳に足す</button>
+      </div>
+    </div>`).join("");
+  box.querySelectorAll("button[data-a]").forEach(b => b.onclick = () => {
+    const c = CANDS[+b.dataset.i];
+    if(b.dataset.a === "make"){ $("#inTopic").value = c.theme; createOne(c.theme); }
+    else {
+      const ta = $("#qTopics");
+      ta.value = (ta.value.trim() ? ta.value.replace(/\s*$/,"") + "\n" : "") + c.theme;
+      toast("ネタ帳に足しました。");
+    }
+  });
+}
+/* ============================================================
+   8. 表示（ストック一覧・作業台）
+   ============================================================ */
+const TABS = [
+  ["04_記事本文.md","04_記事本文_改訂版.md","記事本文"],
+  ["05_QAレポート.md",null,"検査レポート"],
+  ["03_深掘り.md",null,"構成案"],
+  ["02_リサーチ.md",null,"出典"],
+  ["06_図解指示.md",null,"図解・画像"],
+  ["07_SNS投稿セット.md",null,"SNS投稿"],
+  ["00_企画.md",null,"企画"],
+  ["01_需要分析.md",null,"需要分析"],
+  ["08_承認用サマリー.md",null,"サマリー"]
+];
+function renderRuns(){
+  const ids = Object.keys(RUNS).sort().reverse();
+  $("#runCount").textContent = ids.length ? ids.length + "件" : "";
+  if(!ids.length){ $("#runs").innerHTML = `<div class="empty">まだありません</div>`; return; }
+  $("#runs").innerHTML = ids.map(id => {
+    const r = RUNS[id];
+    const chip = r.status === "approved" ? `<span class="chip appr">公開済み</span>`
+               : r.status === "rejected" ? `<span class="chip rej">却下</span>`
+               : `<span class="chip wait">承認待ち</span>`;
+    return `<button class="run" data-id="${esc(id)}" aria-current="${CUR === id}">
+      <div class="r1"><span class="ttl">${esc(r.topic)}</span>${chip}</div>
+      <div class="meta"><span>${esc(r.at)}</span><span>検査 ${esc(r.checks.verdict)}</span>
+      <span>AIっぽさ ${esc(r.checks.ai_like_score)}</span><span>${esc(r.checks.title_len)}字</span></div></button>`;
+  }).join("");
+  $("#runs").querySelectorAll(".run").forEach(b => b.onclick = () => openRun(b.dataset.id));
+}
+function openRun(id){
+  CUR = id; const r = RUNS[id]; if(!r) return;
+  renderRuns();
+  const c = r.checks;
+  $("#deskTitle").textContent = r.topic;
+  $("#deskMeta").textContent = `${r.at} / ${r.genre||"note"} / `
+    + (r.status === "approved" ? "公開済み" : r.status === "rejected" ? "却下" : "承認待ち");
+  $("#verdict").innerHTML = `
+    <div class="v">判定<b class="${c.verdict === "PASS" ? "pass" : "fail"}">${esc(c.verdict)}</b></div>
+    <div class="v">AIっぽさ<b>${esc(c.ai_like_score)}</b></div>
+    <div class="v">タイトル<b>${esc(c.title_len)}字</b></div>
+    <div class="v">タグ<b>${esc(c.tags.length)}個</b></div>
+    <div class="v">見出し<b>${esc(c.headings)}個</b></div>
+    <div class="v">出典<b>${esc(c.sources)}</b></div>`;
+  $("#issues").innerHTML = c.issues.length
+    ? `<div class="eyebrow" style="margin:10px 0 2px">チェックの指摘 ${c.issues.length}件</div>`
+      + c.issues.map(i => `<div class="issue ${esc(i.level)}"><div class="ih">[${esc(i.level)}] ${esc(i.item)}</div>
+        <div class="ib">${esc(i.detail)}</div></div>`).join("")
+    : `<div class="eyebrow" style="padding:4px 0">指摘はありません</div>`;
+  $("#deskEmpty").style.display = "none";
+  $("#deskBody").style.display = "block";
+  $("#decidedTxt").textContent = r.note ? "メモ: " + r.note : "";
+  $("#log").style.display = "none"; $("#log").innerHTML = "";
+  const bar = $("#mbar"); if(bar) bar.style.display = isSmall() ? "flex" : "none";
+  renderTabs(); showTab(TAB);
+}
+function renderTabs(){
+  const f = RUNS[CUR].files;
+  const avail = TABS.filter(t => f[t[0]] !== undefined || (t[1] && f[t[1]] !== undefined));
+  $("#tabs").innerHTML = avail.map(t =>
+    `<button class="tab" role="tab" data-t="${esc(t[0])}" aria-selected="${TAB === t[0]}">${esc(t[2])}</button>`).join("");
+  $("#tabs").querySelectorAll(".tab").forEach(b => b.onclick = () => showTab(b.dataset.t));
+}
+function showTab(id){
+  const t = TABS.find(x => x[0] === id); if(!t) return;
+  const f = RUNS[CUR].files;
+  let k = id; if(f[k] === undefined && t[1] && f[t[1]] !== undefined) k = t[1];
+  TAB = id;
+  $("#tabs").querySelectorAll(".tab").forEach(b => b.setAttribute("aria-selected", String(b.dataset.t === id)));
+  $("#doc").innerHTML = f[k] !== undefined ? md(f[k]) : `<div class="empty">この回はありません</div>`;
+  const isArticle = (k === "04_記事本文.md" || k === "04_記事本文_改訂版.md");
+  const editKey = isArticle ? k : (f["human_inputs.md"] !== undefined ? "human_inputs.md" : Object.keys(f)[0]);
+  $("#edText").value = f[editKey] || "";
+  $("#edText").dataset.key = editKey;
+  $("#edLbl").textContent = isArticle
+    ? "本文を加筆・修正できます（読み終わったら、下の承認ボタンへ）"
+    : `加筆メモ（${editKey}）`;
+}
+$("#btnSave").onclick = () => {
+  const k = $("#edText").dataset.key; if(!k) return;
+  RUNS[CUR].files[k] = $("#edText").value; saveRuns(); toast("保存しました"); showTab(TAB);
+};
+$("#btnCopy").onclick = async () => {
+  const k = $("#edText").dataset.key;
+  const isArt = (k === "04_記事本文.md" || k === "04_記事本文_改訂版.md");
+  const txt = isArt ? $("#edText").value : (RUNS[CUR].files["note_paste.md"] || $("#edText").value);
+  const ok = await copyText(txt);
+  toast(ok ? "本文をコピーしました。noteに貼り付けてください。"
+           : "コピーできませんでした。下の編集欄を長押し→全選択→コピーしてください。");
+};
+$("#btnDl").onclick = () => {
+  const k = $("#edText").dataset.key; const txt = RUNS[CUR].files[k] || "";
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([txt], {type:"text/markdown"}));
+  a.download = `${RUNS[CUR].topic}_${k}`; a.click(); URL.revokeObjectURL(a.href);
+};
+$("#btnApprove").onclick = () => decide("approved");
+$("#btnReject").onclick = () => {
+  if(!$("#noteText").value.trim()){ toast("却下理由を書いてください。次回の企画に反映されます。"); $("#noteText").focus(); return; }
+  decide("rejected");
+};
+function decide(st){
+  const r = RUNS[CUR]; if(!r) return;
+  r.status = st; r.note = $("#noteText").value.trim();
+  if(st === "approved" && !LEDGER.topics.includes(r.topic)) LEDGER.topics.push(r.topic);
+  if(st === "rejected" && r.note) LEDGER.rejects.push(r.note);
+  saveRuns(); saveLedger();
+  $("#noteText").value = ""; renderRuns(); openRun(CUR);
+  toast(st === "approved"
+    ? "承認しました。noteに貼って公開してください（本文のコピーが使えます）。"
+    : "却下しました。理由は次回の企画に反映されます。");
+}
+
+/* ============================================================
+   9. ボタンの配線
+   ============================================================ */
+function paintKey(){
+  const ok = !!CONF.key;
+  $("#apiDot").className = "dot " + (ok ? "on" : (TRIAL ? "on" : "off"));
+  $("#apiTxt").textContent = ok ? (CONF.model || "モデル未設定") : (TRIAL ? "練習モード（APIなし）" : "APIキー未設定");
+  const pc = $("#inPace"); if(pc && CONF.pace !== undefined) pc.checked = !!CONF.pace;
+}
+$("#btnOpenKey").onclick = () => { $("#keyPanel").scrollIntoView({behavior:"smooth", block:"start"}); $("#inKey").focus(); };
+$("#btnShowHow").onclick = () => window.open("つかいかた_モバイル.html", "_blank");
+$("#inPace").onchange = e => {
+  CONF.pace = e.target.checked ? 6 : 0; saveConf();
+  toast(e.target.checked ? "慎重モードON（1回ごとに6秒あける）" : "慎重モードOFF（速いが回数制限に当たりやすい）");
+};
+$("#inModelSel").onchange = () => {
+  if(!$("#inModelSel").value) return;
+  CONF.model = $("#inModelSel").value; saveConf(); paintKey();
+  toast("モデルを変更しました: " + CONF.model);
+};
+$("#btnSaveKey").onclick = async () => {
+  const v = ($("#inKey").value || "").trim();
+  if(v) CONF.key = v;
+  saveConf();
+  const out = $("#keyOut"); out.textContent = "確認しています…";
+  if(!CONF.key){ out.textContent = "キーが空です。AIza… を貼り付けてから押してください。"; paintKey(); return; }
+  try{
+    const { all, ranked } = await listModels();
+    const sel = $("#inModelSel");
+    sel.innerHTML = ranked.map(m => `<option value="${esc(m)}">${esc(m)}</option>`).join("");
+    if(!ranked.includes(CONF.model)) CONF.model = ranked[0] || "";
+    sel.value = CONF.model; saveConf(); paintKey();
+    out.textContent = `○ 使えるモデル: 全${all.length}件 / テキスト向き ${ranked.length}件\n`
+      + `   選択中: ${CONF.model}\n` + ranked.slice(0,6).map(m => "   - " + m).join("\n")
+      + `\n\n○ 疎通確認も通りました。このまま記事を作れます。`;
+    toast("キーを確認しました。モデル: " + CONF.model);
+  }catch(e){
+    out.textContent = "確認に失敗しました。\n" + String(e.message || e) + "\n\nキーの写し間違いがないか、コピーし直して試してください。";
+    paintKey();
+  }
+};
+$("#btnClearKey").onclick = () => {
+  CONF.key = ""; CONF.model = ""; saveConf(); $("#inKey").value = ""; paintKey();
+  $("#keyOut").textContent = "キーを消しました。";
+  toast("キーを消しました。");
+};
+$("#btnTrend").onclick = () => askTrends(8);
+$("#btnTrendMore").onclick = () => askTrends(12);
+$("#btnTrendClear").onclick = () => {
+  CANDS = []; renderCands(); $("#trendLog").style.display = "none"; $("#inTrendMat").value = "";
+  toast("消しました。");
+};
+
+async function createOne(topic){
+  topic = (topic || $("#inTopic").value || "").trim();
+  if(!topic){ toast("テーマを入れてください。"); $("#inTopic").focus(); return; }
+  if(!CONF.key && !TRIAL){ toast("先に「キーを設定」を押してください（上部のボタン）。"); return; }
+  STOP = false;
+  $("#deskEmpty").style.display = "none"; $("#deskBody").style.display = "block";
+  $("#log").innerHTML = ""; clearStations(); CUR = null; renderRuns();
+  try{
+    const rec = await runPipeline(topic, $("#inGenre").value, $("#inReader").value, $("#inResearch").value, null);
+    renderRuns(); openRun(rec.id);
+    toast("できました。左のストックから開いて、店頭体験を足してください。");
+  }catch(e){
+    logLine("失敗: " + String(e.message || e).split("\n")[0]);
+    toast("途中で止まりました。右下の「続きから再開」で、作った分を再利用して再開できます。");
+  }
+}
+$("#btnOne").onclick = () => createOne("");
+$("#btnOneStop").onclick = () => { STOP = true; toast("次の役割が終わり次第とめます"); };
+
+$("#btnQueue").onclick = async () => {
+  const list = ($("#qTopics").value || "").split("\n").map(s => s.trim()).filter(Boolean);
+  if(!list.length){ toast("ネタ帳に1行1テーマで書いてください。"); return; }
+  if(!CONF.key && !TRIAL){ toast("先に「キーを設定」を押してください。"); return; }
+  const box = $("#qOut"); box.style.display = "block"; box.innerHTML = "";
+  const ql = t => { box.innerHTML += (box.innerHTML ? "<br>" : "") + esc(t); box.scrollTop = box.scrollHeight; };
+  STOP = false;
+  $("#deskEmpty").style.display = "none"; $("#deskBody").style.display = "block";
+  ql(`まとめて開始：${list.length}本（途中で止めても、できた分は残ります）`);
+  for(let i = 0; i < list.length; i++){
+    if(STOP){ ql("中止しました（ここまで保存済み）"); break; }
+    ql(`―― ${i+1}本目: ${list[i]}`);
+    try{
+      $("#log").innerHTML = ""; clearStations(); CUR = null; renderRuns();
+      const rec = await runPipeline(list[i], $("#inGenre").value, $("#inReader").value, $("#inResearch").value, null);
+      const c = rec.checks || {};
+      ql(`   完成: ${c.verdict || "?"} / AIっぽさ ${c.ai_like_score !== undefined ? c.ai_like_score : "?"} / 『${c.title || "無題"}』`);
+      renderRuns();
+    }catch(e){
+      ql("   失敗: " + String(e.message || e).split("\n")[0]);
+      ql("   残りの行だけネタ帳に残し、右下の「続きから再開」を使ってください。");
+      break;
+    }
+  }
+  ql("まとめて作る：終了（左のストックを確認してください）");
+};
+$("#btnQueueStop").onclick = () => { STOP = true; toast("次の1本が終わり次第とめます"); };
+
+/* 画面下の固定バー（スマホ用） */
+const isSmall = () => window.matchMedia("(max-width:760px)").matches;
+$(window).addEventListener("resize", () => {
+  const bar = $("#mbar"); if(!bar) return;
+  bar.style.display = (isSmall() && CUR) ? "flex" : "none";
+});
+$("#mBtnSave").onclick = () => $("#btnSave").click();
+$("#mBtnCopy").onclick = () => $("#btnCopy").click();
+$("#mBtnApprove").onclick = () => $("#btnApprove").click();
+$("#mBtnReject").onclick = () => $("#btnReject").click();
+
+/* 引き継ぎ用バックアップ（端末を変えてもストックを持っていける） */
+$("#btnBackup").onclick = () => {
+  const data = { version:1, at:new Date().toISOString(), runs:RUNS, ledger:LEDGER };
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(data)], {type:"application/json"}));
+  a.download = `通信ラボ_バックアップ_${new Date().toISOString().slice(0,10)}.json`;
+  a.click(); URL.revokeObjectURL(a.href);
+  toast("バックアップを保存しました。これを次の端末で読み込めます。");
+};
+$("#btnImport").onclick = () => $("#inImport").click();
+$("#inImport").onchange = async e => {
+  const f = e.target.files && e.target.files[0];
+  if(!f) return;
+  try{
+    const data = JSON.parse(await f.text());
+    if(!data || !data.runs) throw new Error("形式が違います");
+    const n = Object.keys(data.runs).length;
+    if(!confirm(`バックアップから ${n}本 を読み込みます。\n今のストック ${Object.keys(RUNS).length}本 と合流させますか？（同じ作品はバックアップを優先）`)) return;
+    RUNS = Object.assign({}, RUNS, data.runs);
+    if(data.ledger){ LEDGER.topics = Array.from(new Set([...(LEDGER.topics||[]), ...(data.ledger.topics||[])]));
+      LEDGER.rejects = Array.from(new Set([...(LEDGER.rejects||[]), ...(data.ledger.rejects||[])])); saveLedger(); }
+    saveRuns(); renderRuns();
+    toast(`読み込みました（現在 ${Object.keys(RUNS).length}本）`);
+  }catch(err){
+    toast("読み込めませんでした: " + String(err.message||err));
+  } finally { e.target.value = ""; }
+};
+$("#btnExportAll").onclick = () => {
+  const ids = Object.keys(RUNS).sort();
+  if(!ids.length){ toast("まだストックがありません。"); return; }
+  let txt = `# ストック一覧（${ids.length}本 / ${new Date().toLocaleString("ja-JP")}）\n`;
+  for(const id of ids){
+    const r = RUNS[id];
+    txt += `\n\n\n======================================\n${r.topic}\n状態: ${r.status} / 判定: ${r.checks.verdict} / AIっぽさ: ${r.checks.ai_like_score} / ${r.at}\n======================================\n\n`;
+    txt += (r.files["note_paste.md"] || "");
+    txt += `\n\n---\n## 検査の指摘\n`;
+    txt += (r.checks.issues.map(i => `- [${i.level}] ${i.item}: ${i.detail}`).join("\n") || "- なし");
+    txt += `\n\n## SNS投稿セット\n${r.files["07_SNS投稿セット.md"] || ""}\n`;
+  }
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([txt], {type:"text/markdown"}));
+  a.download = "ストック一覧.md"; a.click(); URL.revokeObjectURL(a.href);
+  toast("ストックを書き出しました。");
+};
+$("#btnClearStock").onclick = () => {
+  const n = Object.keys(RUNS).length;
+  if(!n){ toast("空です。"); return; }
+  if(!confirm(`ストック ${n}本 を消します。元に戻せません（先に「書き出す」を推奨）。よろしいですか？`)) return;
+  RUNS = {}; CUR = null; saveRuns(); renderRuns();
+  $("#deskBody").style.display = "none"; $("#deskEmpty").style.display = "block";
+  $("#deskTitle").textContent = "作品を選んでください"; $("#deskMeta").textContent = "";
+  const bar = $("#mbar"); if(bar) bar.style.display = "none";
+  toast("ストックを空にしました。");
+};
+
+
+/* ============================================================
+   全画面エディタ（スマホの入力を楽にする）
+   ------------------------------------------------------------
+   ・大きな文字（17px）で、指でも読みやすい
+   ・入力した内容は「打った瞬間に」元の欄へ反映される（消えない）
+   ・貼り付け／Markdown記法／店頭体験の型を、ボタン1つで挿入
+   ・音声入力はスマホのキーボードのマイクボタンから使えます
+   ============================================================ */
+const ED_TEMPLATES = {
+  inTrendMat: [
+    ["ニュース見出しの型", "1 | （見出し） | （取得元） | （日付） | （URL）"],
+    ["お客様から聞いた話", "店頭で聞いた話：お客様が「（何を）知りたい／困っている」と言っていた"],
+    ["自分のメモ", "気になっている点：（自由に書いてください）"]
+  ],
+  qTopics: [
+    ["料金の型", "（キャリア名）のプラン改定で、誰がいくらになるのか"],
+    ["手順の型", "（乗り換え／開通）で損しないための手順"],
+    ["誤解の訂正の型", "「（よく言われること）」は本当か"],
+    ["店頭質問の型", "店頭で実際に聞かれる質問：（テーマ）"]
+  ],
+  edText: [
+    ["店頭体験の型", "\n\n## 店頭で見てきたこと\n- 実際にお客様から聞かれたこと：\n- 手続きでつまずいた点：\n- 店頭とオンラインの違い：\n- よくある誤解：\n"],
+    ["注意書きの型", "\n\n## 契約前に確認してほしいこと\n- 契約期間：\n- 解約時の費用：\n- 事務手数料：\n- 条件が変わる可能性：\n"],
+    ["出典の型", "\n\n（出典: （出典元）、（公表日））\n"],
+    ["次に読む記事", "\n\n次は「（別の記事）」を読んでみてください。\n"]
+  ]
+};
+let ED_TARGET = null;
+
+function buildEdTools(){
+  const tpl = ED_TEMPLATES[ED_TARGET] || [];
+  const marks = [
+    ["## 見出し", "\n## ", ""],
+    ["太字", "**", "**"],
+    ["・箇条書き", "\n- ", ""],
+    ["1. 番号", "\n1. ", ""],
+    ["区切り線", "\n\n---\n\n", ""],
+    ["表", "\n| 項目 | 数値 | 基準日 | 出典 |\n|---|---|---|---|\n|  |  |  |  |\n", ""]
+  ];
+  let html = marks.map((m, i) =>
+    `<button class="btn sm" data-mk="${i}">${esc(m[0])}</button>`).join("");
+  if(tpl.length){
+    html += `<span style="flex:0 0 auto;width:1px;background:var(--line);margin:0 3px"></span>`;
+    html += tpl.map((x, i) => `<button class="btn sm" style="color:var(--signal)" data-tp="${i}">＋ ${esc(x[0])}</button>`).join("");
+  }
+  $("#edTools").innerHTML = html;
+  $("#edTools").querySelectorAll("button[data-mk]").forEach(b => b.onclick = () => {
+    const m = marks[+b.dataset.mk]; insertAtCursor(m[1], m[2]);
+  });
+  $("#edTools").querySelectorAll("button[data-tp]").forEach(b => b.onclick = () => {
+    insertAtCursor(tpl[+b.dataset.tp][1], "");
+  });
+}
+function insertAtCursor(before, after){
+  const ta = $("#edBig"); const v = ta.value;
+  const s = (ta.selectionStart === null || ta.selectionStart === undefined) ? v.length : ta.selectionStart;
+  const e = (ta.selectionEnd === null || ta.selectionEnd === undefined) ? v.length : ta.selectionEnd;
+  ta.value = v.slice(0, s) + before + v.slice(s, e) + (after || "") + v.slice(e);
+  const pos = s + before.length + (e - s);
+  ta.focus(); ta.setSelectionRange(pos, pos);
+  syncEd();
+}
+function updateEdCount(){
+  const v = $("#edBig").value;
+  $("#edCount").textContent = `${v.length}文字 / ${v.split("\n").length}行`;
+}
+function syncEd(){
+  updateEdCount();
+  if(!ED_TARGET) return;
+  const ta = document.getElementById(ED_TARGET);
+  if(ta && ta.value !== $("#edBig").value){
+    ta.value = $("#edBig").value;
+    ta.dispatchEvent(new Event("input", {bubbles:true}));
+  }
+}
+function openEditor(id, label){
+  const ta = document.getElementById(id); if(!ta) return;
+  ED_TARGET = id;
+  $("#edTitle").textContent = label || "入力";
+  $("#edBig").value = ta.value || "";
+  buildEdTools(); updateEdCount();
+  $("#editorOv").classList.add("on");
+  document.body.style.overflow = "hidden";
+  setTimeout(() => { $("#edBig").focus(); }, 150);
+}
+function closeEditor(){
+  syncEd();
+  $("#editorOv").classList.remove("on");
+  document.body.style.overflow = "";
+  ED_TARGET = null;
+  toast("入力を反映しました。");
+}
+$("#edBig").addEventListener("input", syncEd);
+$("#edPaste").onclick = async () => {
+  try{
+    const txt = await navigator.clipboard.readText();
+    if(txt) { insertAtCursor(txt, ""); toast("貼り付けました。"); }
+    else toast("クリップボードが空でした。");
+  }catch(e){
+    toast("自動の貼り付けが使えない端末です。この欄を長押し→「ペースト」で貼ってください。");
+    $("#edBig").focus();
+  }
+};
+
+/* 入力欄の内容を自動で保存する（画面を閉じても消えない） */
+const FORM_IDS = ["inTopic","inGenre","inReader","inResearch","inTrendMat","qTopics"];
+function saveForm(){
+  const o = {};
+  FORM_IDS.forEach(id => { const el = document.getElementById(id); if(el) o[id] = el.value; });
+  LS.set("ml_form", o);
+}
+function restoreForm(){
+  const o = LS.get("ml_form", null); if(!o) return;
+  FORM_IDS.forEach(id => {
+    const el = document.getElementById(id);
+    if(el && typeof o[id] === "string" && !el.value) el.value = o[id];
+  });
+}
+FORM_IDS.forEach(id => {
+  const el = document.getElementById(id);
+  if(el){ el.addEventListener("input", saveForm); el.addEventListener("change", saveForm); }
+});
+
+
+/* この端末で動くか調べる（うまく動かないときの切り分け用） */
+function envCheck(){
+  let old = $("#envOut"); if(old) old.parentNode.removeChild(old);
+  const d = document.createElement("div");
+  d.id = "envOut"; d.className = "panel";
+  let lsOK = true, lsMsg = "";
+  try{ localStorage.setItem("__chk","1"); localStorage.removeItem("__chk"); }
+  catch(e){ lsOK = false; lsMsg = "（" + (e && e.name ? e.name : "エラー") + "）"; }
+  const yn = b => b ? '<span style="color:var(--signal);font-weight:700">OK</span>'
+                    : '<span style="color:var(--stop);font-weight:700">NG</span>';
+  const rows = [
+    ["JavaScript", yn(true)],
+    ["開き方", location.protocol + (location.protocol === "file:" ? ' <span style="color:var(--warn)">（ファイル直開き・保存が制限される場合あり）</span>' : "")],
+    ["保存領域(localStorage)", yn(lsOK) + lsMsg],
+    ["クリップボード読取", yn(!!(navigator.clipboard && navigator.clipboard.readText))],
+    ["スリープ防止(wakeLock)", yn("wakeLock" in navigator)],
+    ["タッチ操作", yn(("ontouchstart" in window) || navigator.maxTouchPoints > 0)],
+    ["画面サイズ", window.innerWidth + " × " + window.innerHeight + " px" + (window.innerWidth <= 760 ? "（スマホ用表示）" : "（パソコン用表示）")],
+    ["ブラウザ情報", (navigator.userAgent || "").slice(0,140)]
+  ];
+  let h = '<div class="eyebrow">この端末の状態</div><div class="verdicts" style="display:block">';
+  rows.forEach(r => { h += '<div style="font-size:13px;margin:5px 0;line-height:1.7"><span style="color:var(--dim)">' + r[0] + '：</span>' + r[1] + '</div>'; });
+  h += '</div><div class="issues"><div class="issue"><div class="ih">入力テスト</div>'
+     + '<div class="ib">下の欄をタップして、何か打ってみてください。打てれば入力は正常です。</div></div></div>'
+     + '<div style="padding:0 13px 13px"><textarea id="envTest" rows="3" placeholder="ここをタップして打ってみてください"'
+     + ' style="width:100%;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:11px;'
+     + 'font-size:17px;line-height:1.8;font-family:inherit;color:var(--ink)"></textarea>'
+     + '<div id="envEcho" style="font-family:var(--mono);font-size:12px;color:var(--faint);margin-top:7px">入力：0文字</div></div>';
+  d.innerHTML = h;
+  const body = $(".wrap") || document.body;
+  body.insertBefore(d, body.firstChild);
+  const ta = $("#envTest");
+  let baseH = window.innerHeight, kb = false;
+  if(window.visualViewport) window.visualViewport.addEventListener("resize", () => {
+    if(baseH - window.visualViewport.height > 120) kb = true;
+    paint();
+  });
+  function paint(){
+    $("#envEcho").textContent = "入力：" + ta.value.length + "文字 ／ キーボード：" + (kb ? "出ました" : "未検出");
+  }
+  ta.addEventListener("input", paint);
+  d.scrollIntoView({behavior:"smooth", block:"start"});
+  toast("調べました。結果を画面の先頭に出しました。");
+}
+
+/* 環境チェックのボタンを上部バーに足す */
+(function(){
+  const key = $("#btnOpenKey"), top = $(".top");
+  if(top && key){
+    const b = document.createElement("button");
+    b.className = "btn sm"; b.textContent = "環境チェック"; b.onclick = envCheck;
+    key.parentNode.insertBefore(b, key.nextSibling);
+  }
+})();
+/* ============================================================
+   10. 起動
+   ============================================================ */
+(function init(){
+  if(!ROLES.editor || !ROLES.trend){
+    toast("役割プロンプトの読み込みに失敗しました。ファイルを開き直してください。");
+  }
+  if(/[?&]trial=1/.test(location.search)) TRIAL = true;
+  if(isSmall() || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)){
+    const mp = $("#mobilePanel"); if(mp) mp.style.display = "block";
+  }
+  restoreForm();
+  paintKey();
+  renderRuns();
+  if(DRAFT && DRAFT.files && Object.keys(DRAFT.files).length) saveDraft(DRAFT);
+})();
+</script>
+</body>
+</html>
