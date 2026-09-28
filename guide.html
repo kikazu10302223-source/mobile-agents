@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>つかいかた ── 通信ラボ</title>
+<style>
+:root{--bg:#0B1017;--surface:#141B26;--line:#243040;--ink:#E9EFF7;--dim:#9BABC2;--faint:#66768C;--signal:#3DDC97;--signal-soft:rgba(61,220,151,.12);--warn:#F5A623;--warn-soft:rgba(245,166,35,.12);--stop:#FF6B6B;--stop-soft:rgba(255,107,107,.12);--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);line-height:1.9;font-size:15px;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP","Yu Gothic UI",sans-serif}
+.wrap{max-width:920px;margin:0 auto;padding:26px 18px 90px}
+h1{font-size:25px;line-height:1.5;margin:0 0 6px}
+h2{font-size:19px;margin:36px 0 12px;padding-bottom:8px;border-bottom:2px solid var(--line)}
+h3{font-size:16px;margin:20px 0 6px;color:var(--signal)}
+.sub{color:var(--dim);font-size:14px;margin:0 0 24px}
+.toc{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 22px}
+table{width:100%;border-collapse:collapse;margin:12px 0;font-size:14px;background:var(--surface)}
+th,td{border:1px solid var(--line);padding:9px 11px;text-align:left;vertical-align:top}
+th{background:#1B2431;white-space:nowrap}
+code,pre{font-family:var(--mono)}
+code{background:var(--surface);padding:1px 6px;border-radius:5px;font-size:13px;border:1px solid var(--line)}
+pre{background:#050A10;border:1px solid var(--line);padding:13px 15px;border-radius:10px;overflow-x:auto;font-size:13px;color:#CBD8EA}
+.note{border-left:3px solid var(--signal);background:var(--signal-soft);padding:12px 16px;border-radius:0 10px 10px 0;margin:14px 0}
+.warn{border-left:3px solid var(--warn);background:var(--warn-soft);padding:12px 16px;border-radius:0 10px 10px 0;margin:14px 0}
+.stop{border-left:3px solid var(--stop);background:var(--stop-soft);padding:12px 16px;border-radius:0 10px 10px 0;margin:14px 0}
+.flow{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:14px 0}
+.step{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.step b{display:block;color:var(--signal);font-size:12.5px;letter-spacing:.05em;font-family:var(--mono)}
+.step span{font-size:13.5px;color:var(--dim)}
+ol,ul{padding-left:24px}
+li{margin:6px 0}
+.chk{list-style:none;padding-left:0}
+.chk li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:9px 13px;margin:7px 0;font-size:14px}
+.chk li::before{content:"☐ ";color:var(--signal);font-weight:700}
+.small{font-size:13px;color:var(--faint)}
+a{color:#5AA9FF}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>つかいかた ── 通信ラボ</h1>
+<p class="sub">AI9役で通信・モバイルの記事を作り、あなたが魂を入れ、承認待ちまでストックする。1本 30〜45分。</p>
+
+<div class="toc"><b>もくじ</b>
+<ol>
+<li>全体の流れ</li>
+<li>準備（最初の1回）</li>
+<li>ネタを集める（AIが選別する）</li>
+<li>ネタを直接入力して1本作る</li>
+<li>まとめて仕込む（ストック）</li>
+<li>承認する（あなたの出番）</li>
+<li>noteに投稿する</li>
+<li>仕事のルール（通信分野の7か条）</li>
+<li>止まったときの直し方</li>
+<li>スマホ・タブレットで使う</li>
+</ol></div>
+
+<h2>1. 全体の流れ</h2>
+<div class="flow">
+<div class="step"><b>STEP 1</b><span>ネタを集める（AIが5分）</span></div>
+<div class="step"><b>STEP 2</b><span>仕込む（5〜15分）</span></div>
+<div class="step"><b>STEP 3</b><span>あなたが加筆（10分）</span></div>
+<div class="step"><b>STEP 4</b><span>承認する（1分）</span></div>
+<div class="step"><b>STEP 5</b><span>noteに投稿（10分）</span></div>
+</div>
+<p>働くのは<b>9人</b> ── トレンド編集者（ネタ選別）・編集長・需要分析・リサーチ・深掘り・執筆・QA・図解・SNS。<br>
+加えて<b>機械</b>が2つ働きます。ネタの<u>材料集め</u>（AIの回数を使わない）と、記事の<u>自動検査</u>です。</p>
+
+<h2>2. 準備（最初の1回だけ）</h2>
+<ol>
+<li><code>かんたん版_モバイル.html</code> をダブルクリック（インストール不要・ブラウザで動きます）</li>
+<li>右上の <b>「キーを設定」</b> を押す</li>
+<li><a href="https://aistudio.google.com/api-keys" target="_blank" rel="noopener noreferrer">Google AI Studio</a> でAPIキーを作り、<code>AIza…</code> を貼る</li>
+<li><b>「保存して確認」</b> を押す → 「使えるモデルを◯件…」と出れば成功</li>
+</ol>
+<div class="warn"><b>無料プランの場合</b>：1分・1日あたりの回数に上限があります。この仕組みは<b>1回ごとに6秒あける「慎重モード」</b>を最初からONにしています。また<b>無料プランでは入力内容がGoogleの製品改善に使われます</b>。売るための企画を外部に出したくない場合は、有料プラン（従量課金）をご検討ください。</div>
+<p class="small">キーを入れずに動作だけ試すこともできます：<code>かんたん版_モバイル.html?trial=1</code> で開くと練習モード（AIは呼ばず、見本の出力）になります。</p>
+
+<h2>3. ネタを集める（AIが選別する）</h2>
+<h3>3-1. 材料を用意する（任意・推奨）</h3>
+<p>黒い画面（ターミナル）でこのフォルダに移動し、次を実行します。</p>
+<pre>python3 trend_collect.py --plain --out 材料.txt</pre>
+<p><code>材料.txt</code> を開いて全文コピーし、画面の <b>「材料」欄に貼り付け</b>ます。<br>
+この材料は、ITmedia Mobile / はてなブックマーク / Yahoo!ニュース / 総務省 の公開フィードから集めた「いま動いている話題」です（2026年9月時点で応答を確認済み）。</p>
+<table>
+<tr><th>やること</th><th>コマンド</th></tr>
+<tr><td>材料を集める（AIに貼る用）</td><td><code>python3 trend_collect.py --plain --out 材料.txt</code></td></tr>
+<tr><td>取得先が生きているか確認</td><td><code>python3 trend_collect.py --check</code></td></tr>
+<tr><td>語で絞る（例：光回線）</td><td><code>python3 trend_collect.py --keyword 光回線 --plain</code></td></tr>
+<tr><td>自分で拾った断片を混ぜる</td><td><code>python3 trend_collect.py --paste x_posts.txt --plain</code></td></tr>
+</table>
+<div class="stop"><b>X（旧Twitter）からの自動収集はできません。</b>2026年2月にX APIは従量課金へ移行し、新規では実質的に無料枠が無くなりました。さらにXの利用規約が自動収集を禁止しています。<br>
+代わりに、あなたが目で拾った投稿を<b>数行コピーして <code>x_posts.txt</code> に貼り</b>、材料に混ぜてください。現場の嗅覚がそのまま活きます。</div>
+
+<h3>3-2. AIに選ばせる</h3>
+<ol>
+<li>「AIにネタを集めさせる」欄の材料を貼る（<b>空でもOK</b>。その場合はAIが記憶から提案し、【仮説】【要確認】と明記します）</li>
+<li><b>「ネタを選ばせる（5〜10件）」</b> を押す</li>
+<li>ネタ候補がカードで出ます。各カードには<b>切り口・話題度・賞味期限・先に確認すべき一次情報・根拠</b>が付きます</li>
+<li><b>「このネタで作る」</b> を押すと制作が始まります。<b>「ネタ帳に足す」</b> でまとめ仕込みに回せます</li>
+</ol>
+
+<h2>4. ネタを直接入力して1本作る</h2>
+<ol>
+<li>テーマを入力（例：光回線の乗り換えで損しない手順）</li>
+<li>ジャンルを選ぶ（モバイル/通信、光回線、デバイス、料金・契約 など）</li>
+<li>想定読者・調べたいことを入れると、精度が上がります（任意）</li>
+<li><b>「このテーマで作る」</b> を押す</li>
+</ol>
+<p>8つの役割が順に働き、最後に検査まで済ませて<b>ストックへたまります</b>。</p>
+
+<h2>5. まとめて仕込む（ストック）</h2>
+<ol>
+<li>ネタ帳に1行1テーマで3〜5行を貼る（AIの候補から「ネタ帳に足す」でもOK）</li>
+<li><b>「まとめて作る（ストックへ）」</b> を押す</li>
+</ol>
+<table>
+<tr><th>ボタン</th><th>意味</th></tr>
+<tr><td>中止する</td><td>次の1本が終わってから安全に止まります</td></tr>
+<tr><td>ストックを書き出す</td><td>全記事＋検査＋SNS投稿を1ファイルに。こまめに退避してください</td></tr>
+<tr><td>ストックを空にする</td><td>ブラウザの保存を整理します（消えるので先に書き出しを）</td></tr>
+</table>
+<div class="note">ストックはブラウザの中に保存されます。<b>20〜30本を超えると保存容量に近づきます</b>。また<b>ブラウザのデータを消すとストックも消えます</b>。月に一度は「書き出す」を押してください。</div>
+
+<h2>6. 承認する（あなたの出番）</h2>
+<p>左の「ストック」から1本を開きます。やることは3つです。</p>
+<ol>
+<li><b>本文を読む</b>（「検査レポート」タブでERRORが残っていないか確認）</li>
+<li><b>あなたの店頭体験を1つ足す</b> ── 実際にお客様から聞かれたこと、手続きでつまずく点、店頭とオンラインの違い。<b>これが他サイトとの決定的な差</b>です</li>
+<li><b>「承認する」</b>（却下するときは理由を必ず書く。理由は次回の企画に自動で反映されます）</li>
+</ol>
+
+<h2>7. noteに投稿する</h2>
+<table>
+<tr><th>段階</th><th>やること</th></tr>
+<tr><td>画像</td><td>「図解・画像」タブの指示でアイキャッチ（<b>1280×670px</b>）を1枚用意。<b>自分で撮った写真が一番強い</b></td></tr>
+<tr><td>貼る</td><td>noteにログイン → <b>[投稿]</b> → <b>[テキスト]</b> → 見出し画像・タイトル・本文を貼る（<b>「本文をコピー（note用）」</b>ボタンが使えます）</td></tr>
+<tr><td>タグ</td><td><b>[公開設定]</b> → ハッシュタグ3〜5個（例: #スマホ #料金見直し #乗り換え）</td></tr>
+<tr><td>販売</td><td><b>[販売設定]</b> で無料／有料を選ぶ。有料なら価格（100円〜）と<b>有料エリア設定</b></td></tr>
+<tr><td>公開</td><td><b>[投稿する]</b> → 公開後、「このラインより上のエリアが無料で表示されます。」の位置を確認</td></tr>
+<tr><td>告知</td><td>「SNS投稿」タブのX投稿文をそのまま使う</td></tr>
+</table>
+<p class="small">有料ラインは<b>「段落の直下」にしか引けません</b>。先に本文でEnterを押して段落を作り、<b>[＋] → [有料エリア指定]</b> を選びます。</p>
+
+<h2>8. 仕事のルール（通信分野の7か条）</h2>
+<ul class="chk">
+<li><b>金額には基準日</b>を書いた（例: 2026年9月時点）</li>
+<li><b>「実質◯円」には内訳</b>（端末代金・割引・ポイント還元・支払い回数）を書いた</li>
+<li><b>キャンペーンには終了日と条件</b>を書いた</li>
+<li><b>契約条件の注意書き</b>（契約期間・解約費用・事務手数料）を入れた</li>
+<li><b>「最安」「No.1」「絶対」</b>を使っていない</li>
+<li>アフィリエイトのリンクに<b>「PR」「広告」</b>を明記した</li>
+<li><b>あなたの一次情報（店頭体験）</b>が本文に1つ以上入っている</li>
+</ul>
+<div class="warn">特定のキャリア・店舗・個人を貶す表現は入れないでください。<b>事実と条件だけ</b>で比較します。あなたの職業上の立場を守るためでもあります。<br>
+また、キャリア・代理店のアフィリエイト規約には「有料コンテンツ内での掲載可否」が個別に定められていることがあります。有料記事にアフィリエイトを併用する前に、提携先の規約をご確認ください。</div>
+
+<h2>9. スマホ・タブレットで使う</h2>
+<p>同じファイルがそのままスマホでも動きます（インストール不要）。画面幅が狭いときは、自動でスマホ向けの表示に切り替わります。</p>
+<table>
+<tr><th>スマホ向けの工夫</th><th>内容</th></tr>
+<tr><td><b>画面下の固定バー</b></td><td>作品を開くと、画面の下に「承認／却下／コピー／加筆を保存」が固定されます。長い本文をスクロールしても、いつでも押せます</td></tr>
+<tr><td><b>1列レイアウト</b></td><td>ストック一覧と本文を横並びにせず、縦に並べます。指の届く範囲で操作できます</td></tr>
+<tr><td><b>工程ボードを2〜4列</b></td><td>9つの役割の進み具合を、狭い画面でも一望できます</td></tr>
+<tr><td><b>入力欄を16pxに</b></td><td>iPhoneで入力欄をタップしたときに、勝手に画面が拡大されるのを防ぎます</td></tr>
+<tr><td><b>ボタンを44px以上に</b></td><td>指で押しやすい大きさにしています</td></tr>
+<tr><td><b>タブは横スクロール</b></td><td>「記事本文」「検査レポート」などのタブを、折り返さず横に流して選べます</td></tr>
+<tr><td><b>コピーの代替手段</b></td><td>コピーが使えない端末では、編集欄を長押し→全選択→コピーを案内します</td></tr>
+</table>
+<div class="warn"><b>いちばん大事な注意：生成中は画面を閉じないでください。</b><br>スマホでは、画面が暗くなったり他のアプリに切り替わると、ブラウザが止められて処理が中断します。この仕組みは、対応している端末では<b>画面が眠らないようにロック</b>をかけ、画面の上の方に注意書きも出します。<br>それでも中断した場合は、画面右下の <b>「前回の続きがあります → 続きから再開」</b> を押してください。<b>終わった役割は再利用されるので、AIの呼び出し回数を使いません。</b></div>
+<h3>スマホで快適に使う3つのコツ</h3>
+<ol>
+<li><b>ホーム画面に追加する。</b>ブラウザのメニューから「ホーム画面に追加」を選ぶと、アプリのように1タップで開けます</li>
+<li><b>電源につないでおく。</b>待ち時間があるので、まとめて仕込むときは充電しながらが安全です</li>
+<li><b>長時間のスリープ設定を長めに。</b>端末の設定で画面ロックまでの時間を延ばすと、中断のリスクが下がります</li>
+</ol>
+<h3>ストックの引き継ぎ（端末を変えるとき）</h3>
+<p>ストックはブラウザの中に保存されるので、<b>端末を変えると引き継がれません</b>。そこで引き継ぎ用のバックアップを用意しました。</p>
+<ol>
+<li>「まとめて仕込む」欄の <b>「バックアップ（引き継ぎ用）」</b> を押す → JSONファイルが保存されます</li>
+<li>新しい端末で同じファイルを開き、<b>「バックアップを読み込む」</b> を押して、そのJSONファイルを選ぶ</li>
+<li>今のストックと合流します（同じ作品はバックアップ側を優先）</li>
+</ol>
+<p class="small">※ Markdownの「ストックを書き出す」は人が読む用で、読み込みはできません。引き継ぎには JSON のバックアップをお使いください。</p>
+
+<h2>10. 止まったときの直し方</h2>
+<table>
+<tr><th>こんな症状</th><th>原因と対処</th></tr>
+<tr><td>429 と出た</td><td>回数の使いすぎ（あなた側）。20〜30分待つ。1日分の上限は日本時間の夕方ごろにリセットされます</td></tr>
+<tr><td>503 と出た</td><td>Google側の混雑。<b>4〜6秒待って自動で再挑戦します</b>。それでも続くときは10分置くか、時間帯を変える（朝が狙い目）</td></tr>
+<tr><td>404 と出た</td><td>モデルの廃止。<b>自動で別のモデルに乗り換えます</b>（何もしなくてOK）</td></tr>
+<tr><td>途中で止まった</td><td>画面右下に <b>「前回の続きがあります → 続きから再開」</b> が出ます。<b>作った役割は再利用されるので、回数を使いません</b></td></tr>
+<tr><td>急に遅くなった</td><td>慎重モード（6秒間隔）が働いています。正常です</td></tr>
+<tr><td>ストックが消えた</td><td>ブラウザのデータを消すと消えます。<b>「バックアップ（引き継ぎ用）」</b>でJSONを保存しておいてください（読み込みで復元できます）</td></tr>
+<tr><td>スマホで画面が暗くなり止まった</td><td>端末が眠ると中断します。画面ロック時間を延ばし、電源につないで実行してください。止まっても<b>「続きから再開」</b>で回数を使わずに続けられます</td></tr>
+</table>
+
+<p class="small" style="margin-top:34px">この手引きは通信・モバイル版です。ファイルの意味は <code>START_HERE.md</code>、運用の考え方は <code>運用ガイド_モバイル.md</code> にあります。</p>
+</div>
+</body>
+</html>
