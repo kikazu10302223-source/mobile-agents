@@ -298,6 +298,11 @@ hr{border:none;border-top:1px solid var(--line);margin:22px 0}
       <input type="checkbox" id="inPace" checked style="width:auto;margin-top:3px">
       <span>慎重モード（1回ごとに6秒あけて、回数制限（429）を避ける）</span>
     </label>
+    <label style="display:flex;gap:9px;align-items:flex-start;font-size:13px;margin:0 0 8px;cursor:pointer">
+      <input type="checkbox" id="inLight" style="width:auto;margin-top:3px">
+      <span>軽量モード（「図解」と「SNS」を省略して、呼び出しを2回ぶん節約する）</span>
+    </label>
+    <div class="hint" id="quotaOut" style="margin:0 0 12px"></div>
     <label class="f"><span>使うモデル（「保存して確認」を押すと、今使えるものが自動で選ばれます）</span>
       <select id="inModelSel"><option value="">（まず「保存して確認」を押してください）</option></select></label>
     <div class="actions" style="margin-top:0">
@@ -594,6 +599,41 @@ function blockedList(){ return LS.get("ml_blocked", []); }
 function blockModel(m){ const b = blockedList(); if(!b.includes(m)){ b.push(m); LS.set("ml_blocked", b); } }
 function resetBlocked(){ LS.set("ml_blocked", []); }
 const sleep = ms => new Promise(r => setTimeout(r, ms));
+const MAXTRIES = 4;
+
+/* ---- 回数制限（429）をやり過ごすための道具 ----
+   ・今日すでに何回呼んだかを数えて画面に出す
+   ・待ち時間を 25秒 → 50秒 → 90秒 → 150秒 と倍々に伸ばす（ゆらぎ付き）
+   ・Googleが「あと何秒待て」と指定してきたら、その指示に従う          */
+function dayKey(){
+  const pst = new Date(Date.now() - 17*3600*1000);   // 日本時間−17時間＝太平洋時間ざっくり
+  return pst.toISOString().slice(0,10);
+}
+function quotaRec(){
+  const r = LS.get("ml_quota", null);
+  if(!r || r.day !== dayKey()) return { day: dayKey(), calls: 0, hits: 0, models: {} };
+  return r;
+}
+function bumpQuota(kind, model){
+  const r = quotaRec();
+  if(kind === "call"){ r.calls = (r.calls||0) + 1; if(model) r.models[model] = (r.models[model]||0) + 1; }
+  if(kind === "hit")  r.hits  = (r.hits||0) + 1;
+  LS.set("ml_quota", r); paintQuota();
+  return r;
+}
+function paintQuota(){
+  const el = $("#quotaOut"); if(!el) return;
+  const r = quotaRec();
+  el.innerHTML = '今日の呼び出し <b style="font-family:var(--mono);color:var(--signal)">' + (r.calls||0) + '回</b>'
+    + ' ／ 回数制限で待った回数 <b style="font-family:var(--mono);color:var(--warn)">' + (r.hits||0) + '回</b>'
+    + '<br><span style="color:var(--faint)">無料枠は日本時間の16〜17時ごろにリセット（太平洋時間の0時）。夜の作業はリセット直後なので、その日の枠を丸ごと使えます。</span>';
+}
+function waitFor(msg, attempt){
+  let w = [25, 50, 90, 150][Math.min(attempt-1, 3)] || 150;
+  const m = String(msg).match(/retryDelay\D{0,6}(\d+(?:\.\d+)?)s/);
+  if(m) w = Math.max(w, Math.ceil(parseFloat(m[1])) + 3);
+  return w + Math.floor(Math.random()*8);
+}
 function brief(m){ m = String(m).replace(/https?:\/\/\S+/g,"").replace(/\s+/g," ").trim();
   return m.length > 220 ? m.slice(0,220) + "…" : m; }
 
@@ -684,9 +724,10 @@ async function gemini(system, user, temp){
   const tried = [], busyOnly = [], quotaOnly = [];
   for(const model of targets){
     let last = "";
-    for(let attempt = 1; attempt <= 3; attempt++){
+    for(let attempt = 1; attempt <= MAXTRIES; attempt++){
       try{
         const out = await once(model, system, user, temp);
+        bumpQuota("call", model);
         if(model !== CONF.model){ CONF.model = model; saveConf(); paintKey();
           if(PACE_HOOK) PACE_HOOK(`  ※ モデルを ${model} に切り替えて実行しました`); }
         return out;
@@ -702,9 +743,10 @@ async function gemini(system, user, temp){
         }
         if(kind === "quota"){
           if(!CONF.pace){ CONF.pace = 6; saveConf(); paintKey(); }
-          const w = 20*attempt + Math.floor(Math.random()*6);
-          if(attempt < 3){
-            if(PACE_HOOK) PACE_HOOK(`  ※ ${model} は回数制限中（429）。${w}秒待って再挑戦します…（${attempt}/3）`);
+          bumpQuota("hit");
+          const w = waitFor(last, attempt);
+          if(attempt < MAXTRIES){
+            if(PACE_HOOK) PACE_HOOK(`  ※ ${model} は回数制限中（429）。${w}秒待って再挑戦します…（${attempt}/${MAXTRIES}）`);
             await sleep(w*1000);
             continue;
           }
@@ -728,7 +770,7 @@ async function gemini(system, user, temp){
   const allBusy  = tried.length > 0 && busyOnly.length === tried.length;
   const allQuota = tried.length > 0 && quotaOnly.length === tried.length;
   throw new Error("AIの呼び出しに失敗しました。\n"
-    + (allQuota ? "すべての候補が「回数制限（429）」で止まりました。無料プランには1分・1日あたりの上限があります。20〜30分待つか、日付が変わってから実行してください。\n" : "")
+    + (allQuota ? "すべての候補が「回数制限（429）」で止まりました。無料枠は1分（RPM）と1日（RPD）の2つの上限があります。\n  ・1分あたりの上限なら → 20〜30分あけて、もう一度\n  ・1日あたりの上限なら → 日本時間の16〜17時ごろにリセット。今日はここまでにして、明日の夕方に「続きから再開」を押してください（済んだ役割は再利用するので回数を無駄にしません）\n" : "")
     + (allBusy  ? "原因は「Google側のサーバー混雑（503）」の可能性が高いです。設定のミスではありません。10分ほど置くか、時間帯を変えてください。\n" : "")
     + tried.join("\n"));
 }
@@ -855,9 +897,19 @@ function logLine(t){
   el.innerHTML += (el.innerHTML ? "<br>" : "") + esc(t);
   el.scrollTop = el.scrollHeight;
 }
+const LIGHT_SKIP = ["図解","SNS"];   // 軽量モードで省略する役割
+function isLightSkipped(roleId){
+  const r = ROLES[roleId]; if(!r) return false;
+  const hay = String(roleId) + " " + String(r.label || "");
+  return LIGHT_SKIP.some(l => hay.includes(l) || hay.toLowerCase().includes(l.toLowerCase()));
+}
 async function step(roleId, user, temp){
   const r = ROLES[roleId];
   if(!r) throw new Error(`役割プロンプトが見つかりません: ${roleId}`);
+  if(CONF.light && isLightSkipped(roleId)){
+    if(PACE_HOOK) PACE_HOOK(`  ※ 軽量モード: 「${r.label}」を省略しました（回数制限を避けるため。あとで単体でも実行できます）`);
+    return "（軽量モードのため省略しました。必要なときは、この役割だけを単体で実行してください）";
+  }
   const sys = `あなたは「${r.label}」です。\n\n${r.body}\n\n${COMMON_RULES}`;
   return await gemini(sys, user, temp);
 }
@@ -1540,6 +1592,11 @@ function envCheck(){
   }
   restoreForm();
   paintKey();
+  paintQuota();
+  const lc = $("#inLight");
+  if(lc){ lc.checked = !!CONF.light;
+    lc.onchange = () => { CONF.light = lc.checked; saveConf();
+      toast(lc.checked ? "軽量モードON（図解・SNSを省略します）" : "軽量モードOFF"); }; }
   renderRuns();
   if(DRAFT && DRAFT.files && Object.keys(DRAFT.files).length) saveDraft(DRAFT);
 })();
