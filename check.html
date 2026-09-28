@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0B1017">
+<meta name="format-detection" content="telephone=no">
+<title>通信ラボ 動作チェック</title>
+<style>
+  :root{--bg:#0B1017;--surface:#141B26;--line:#25303F;--ink:#E6EDF5;--dim:#9FB0C3;--faint:#6B7C90;
+        --signal:#3DDC97;--warn:#EEB44D;--stop:#EE6C4D;--mono:ui-monospace,SFMono-Regular,Menlo,monospace}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:rgba(61,220,151,.15)}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Noto Sans JP","Hiragino Kaku Gothic ProN",Meiryo,sans-serif;
+    font-size:16px;line-height:1.8;padding:16px 14px calc(28px + env(safe-area-inset-bottom));
+    -webkit-text-size-adjust:100%}
+  h1{font-size:19px;margin:6px 0 14px}
+  h2{font-size:16px;margin:24px 0 8px;color:var(--signal)}
+  .banner{border-radius:12px;padding:14px 15px;font-weight:700;font-size:15px;line-height:1.7;margin-bottom:10px;border:1px solid}
+  .bad{background:rgba(238,108,77,.14);border-color:var(--stop);color:#FFB9A3}
+  .good{background:rgba(61,220,151,.12);border-color:var(--signal);color:#9BF0C8}
+  .note{color:var(--dim);font-size:13.5px;margin:0 0 18px}
+  table{width:100%;border-collapse:collapse;background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;font-size:14px}
+  td{padding:11px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  tr:last-child td{border-bottom:none}
+  td:first-child{color:var(--dim);width:44%;font-size:13px}
+  .ok{color:var(--signal);font-weight:700}
+  .ng{color:var(--stop);font-weight:700}
+  .warnv{color:var(--warn);font-weight:700}
+  textarea{width:100%;min-height:120px;background:var(--surface);color:var(--ink);border:1px solid var(--line);
+    border-radius:12px;padding:13px;font-size:17px;line-height:1.9;font-family:inherit;resize:vertical}
+  .echo{font-family:var(--mono);font-size:13px;color:var(--dim);margin:9px 0 0}
+  button{width:100%;min-height:50px;margin-top:16px;background:var(--surface);color:var(--ink);
+    border:1px solid var(--signal);border-radius:12px;font-size:15px;font-weight:700;font-family:inherit}
+  pre{background:#0B1017;border:1px solid var(--line);border-radius:12px;padding:12px;
+    font-family:var(--mono);font-size:12px;line-height:1.7;color:var(--dim);white-space:pre-wrap;word-break:break-all;margin-top:14px}
+  .foot{color:var(--faint);font-size:12px;margin-top:22px;line-height:1.9}
+</style>
+</head>
+<body>
+
+<h1>通信ラボ ── 動作チェック</h1>
+
+<div class="banner bad" id="jsStat">JavaScriptが止まっています ── この画面は「ブラウザ」で開いてください</div>
+<p class="note" id="jsNote">この赤い表示が消えない場合は、開き方に問題があります（アプリ内のプレビュー、ファイルアプリの簡易ビューなど）。<b>Chrome</b>（またはSafari）で開き直してください。開き直すと、この表示が緑に変わります。</p>
+
+<h2>この端末の状態</h2>
+<div id="rows"></div>
+
+<h2>入力テスト</h2>
+<p class="note">下の白い枠をタップして、何か打ってみてください。<b>キーボードが出て文字が打てれば、入力は正常です。</b>打っても何も起きない場合は、この端末・この開き方で入力が止められています。</p>
+<textarea id="t" rows="5" placeholder="ここをタップして、なんでも打ってみてください（例：テスト"></textarea>
+<p class="echo" id="echo">入力：0文字　／　キーボード：未検出</p>
+
+<button id="cp">診断結果をコピーする</button>
+<pre id="rep">（コピーした結果がここに出ます）</pre>
+
+<p class="foot">この用紙の結果を、そのまま私に貼り付けていただければ、原因を特定して直します。<br>通信ラボ ── 通信・モバイル・光回線・デバイスの記事づくり</p>
+
+<script>
+(function(){
+  var rows = [];
+  function line(name, val){ rows.push([name, val]); }
+  function yn(b){ return b ? '<span class="ok">OK</span>' : '<span class="ng">NG</span>'; }
+
+  // 1) JavaScript が動いている ＝ ここに来た時点で動作中
+  var stat = document.getElementById("jsStat");
+  stat.className = "banner good";
+  stat.textContent = "JavaScriptは動いています ── このまま下の診断結果をお使いください";
+  document.getElementById("jsNote").textContent = "緑なら、この開き方でJavaScriptが動いています。";
+
+  // 2) 保存領域
+  var lsOK = false, lsMsg = "";
+  try{ localStorage.setItem("__chk","1"); localStorage.removeItem("__chk"); lsOK = true; }
+  catch(e){ lsMsg = "（" + (e && e.name ? e.name : "エラー") + "）"; }
+  line("保存領域（localStorage）", yn(lsOK) + lsMsg);
+
+  // 3) 開き方
+  var proto = location.protocol;
+  var protoTxt = proto === "file:" ? '<span class="warnv">file:</span>（ファイル直開き）'
+               : proto === "https:" ? '<span class="ok">https:</span>'
+               : '<span class="warnv">' + proto + '</span>';
+  line("開き方（プロトコル）", protoTxt);
+
+  // 4) クリップボード
+  line("クリップボード読み取り", yn(!!(navigator.clipboard && navigator.clipboard.readText)));
+
+  // 5) スリープ防止
+  line("スリープ防止（wakeLock）", yn("wakeLock" in navigator));
+
+  // 6) タッチ
+  line("タッチ操作", yn(("ontouchstart" in window) || navigator.maxTouchPoints > 0));
+
+  // 7) 画面幅
+  var w = window.innerWidth, h = window.innerHeight;
+  line("画面サイズ", w + " × " + h + " px　" + (w <= 760 ? '<span class="ok">スマホ用表示</span>' : '<span class="warnv">パソコン用表示</span>'));
+
+  // 8) 端末・ブラウザ
+  line("ブラウザ情報", (navigator.userAgent || "").replace(/</g,"&lt;").slice(0,160));
+
+  // 9) キーボードが出たか（画面の高さが縮んだら出たとみなす）
+  var baseH = h, kbSeen = false, kbSize = 0;
+  if(window.visualViewport){
+    window.visualViewport.addEventListener("resize", function(){
+      var vh = window.visualViewport.height;
+      if(baseH - vh > 120){ kbSeen = true; kbSize = Math.round(baseH - vh); }
+      paintEcho();
+    });
+  }
+
+  var ta = document.getElementById("t");
+  function paintEcho(){
+    document.getElementById("echo").textContent = "入力：" + ta.value.length + "文字　／　キーボード："
+      + (kbSeen ? ("出ました（画面が約" + kbSize + "px縮みました）") : "未検出");
+  }
+  ta.addEventListener("input", paintEcho);
+  paintEcho();
+
+  // 10) 表に描き出す
+  var html = "<table>";
+  for(var i=0;i<rows.length;i++){
+    html += "<tr><td>" + rows[i][0] + "</td><td>" + rows[i][1] + "</td></tr>";
+  }
+  html += "<tr><td>文字入力テスト</td><td id='cellType'><span class='warnv'>未実施</span>（上の枠に打ってください）</td></tr>";
+  html += "</table>";
+  document.getElementById("rows").innerHTML = html;
+
+  ta.addEventListener("input", function(){
+    var c = document.getElementById("cellType");
+    if(c && ta.value.length > 0) c.innerHTML = "<span class='ok'>OK</span>（" + ta.value.length + "文字 打てました）";
+  });
+
+  // 11) コピー（失敗したら手で選択してもらう）
+  function report(){
+    var out = "【通信ラボ 動作チェック結果】\n";
+    out += "- JavaScript: OK\n";
+    out += "- 保存領域: " + (lsOK ? "OK" : "NG" + lsMsg) + "\n";
+    out += "- 開き方: " + proto + "\n";
+    out += "- クリップボード読取: " + (!!(navigator.clipboard && navigator.clipboard.readText) ? "OK" : "NG") + "\n";
+    out += "- wakeLock: " + ("wakeLock" in navigator ? "OK" : "NG") + "\n";
+    out += "- 画面: " + w + "x" + h + "\n";
+    out += "- 入力テスト: " + (ta.value.length > 0 ? ("OK(" + ta.value.length + "文字)") : "打てなかった") + "\n";
+    out += "- キーボード: " + (kbSeen ? "出た" : "出なかった/未検出") + "\n";
+    out += "- UA: " + (navigator.userAgent || "");
+    return out;
+  }
+  document.getElementById("cp").addEventListener("click", function(){
+    var txt = report();
+    document.getElementById("rep").textContent = txt;
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(txt).then(function(){
+        document.getElementById("cp").textContent = "コピーしました ── そのまま私に貼ってください";
+      }, function(){
+        manual(txt);
+      });
+    }else{ manual(txt); }
+  });
+  function manual(txt){
+    var t2 = document.createElement("textarea");
+    t2.value = txt; t2.setAttribute("readonly","");
+    t2.style.position="fixed"; t2.style.top="-2000px"; t2.style.fontSize="16px";
+    document.body.appendChild(t2); t2.focus(); t2.select();
+    try{ document.execCommand("copy"); document.getElementById("cp").textContent = "コピーしました ── そのまま私に貼ってください"; }
+    catch(e){ document.getElementById("cp").textContent = "下の枠を長押しして「コピー」してください"; }
+    document.body.removeChild(t2);
+  }
+})();
+</script>
+</body>
+</html>
