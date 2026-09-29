@@ -967,6 +967,12 @@ async function resumeDraft(){
 }
 
 async function runPipeline(topic, genre, reader, research, resume){
+  /* 実行中に次の依頼が来ても断らない。終わり次第、順番に始める */
+  if(BUSY){
+    toast("いま実行中です。終わり次第、続けて始めます（画面は閉じないでください）");
+    logLine("⏳ 実行中です。この依頼は、いまの実行が終わり次第はじめます…");
+  }
+  while(BUSY){ await sleep(2000); }
   topic = String(topic||"").trim();
   if(!topic) throw new Error("テーマが空です。");
   genre = genre || "モバイル/通信";
@@ -1022,10 +1028,16 @@ async function runPipeline(topic, genre, reader, research, resume){
       + `\n\n## 校閲のコメント\n${qaText}\n`;
     setStation(5,"done"); saveDraft(d);
 
-    await doStep(6, "06_図解指示.md", "designer",
+    /* 図解とSNSは、どちらも「本文」だけで作れる独立した仕事なので同時に走らせます。
+       6秒ずらして開始することで、1分あたりの回数制限（RPM）には当たりにくくします。 */
+    const pDesign = doStep(6, "06_図解指示.md", "designer",
       () => base + `\n## 本文\n${draft}\n\nアイキャッチ2案と比較表の設計、図解3点、画像生成のプロンプトを作ってください。`);
-    const sns = await doStep(7, "07_SNS投稿セット.md", "sns",
-      () => base + `\n## 本文\n${draft}\n\nX投稿文3案、タグ案、返信雛形、記事末尾の回遊導線を作ってください。`);
+    const pSns = (async () => {
+      await sleep(6000);
+      return doStep(7, "07_SNS投稿セット.md", "sns",
+        () => base + `\n## 本文\n${draft}\n\nX投稿文3案、タグ案、返信雛形、記事末尾の回遊導線を作ってください。`);
+    })();
+    const sns = (await Promise.all([pDesign, pSns]))[1];
 
     F["08_承認用サマリー.md"] = `# 承認待ち: ${topic}\n\n`
       + `- 判定: ${checks.verdict}（AIっぽさ ${checks.ai_like_score}/100、指摘 ${checks.issues.length}件）\n`
@@ -1049,6 +1061,8 @@ async function runPipeline(topic, genre, reader, research, resume){
   } finally {
     PACE_HOOK = null;
     BUSY = false; keepAwake(false);
+    const doneKeys = Object.keys(F || {});
+    if(doneKeys.length) logLine(`  ※ いままでに保存できた役割: ${doneKeys.length}件（「続きから再開」で再利用します。APIの回数は使いません）`);
   }
 }
 
