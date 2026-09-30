@@ -277,6 +277,12 @@ code{background:var(--surface2);padding:1px 6px;border-radius:5px;font-family:va
 #resume b{color:var(--warn)}
 hr{border:none;border-top:1px solid var(--line);margin:22px 0}
 .foot{color:var(--faint);font-size:12px;text-align:center;margin-top:26px;line-height:1.9}
+
+/* ===== 配色切り替えの丸ボタン（常に画面右下に出ます） ===== */
+#fabTheme{position:fixed;right:14px;bottom:calc(16px + env(safe-area-inset-bottom));z-index:60;
+  width:48px;height:48px;border-radius:50%;border:1px solid var(--line);background:var(--surface);
+  color:var(--ink);font-size:20px;line-height:1;font-family:inherit;box-shadow:0 5px 16px rgba(0,0,0,.30)}
+#fabTheme:active{transform:scale(.93)}
 </style>
 </head>
 <body>
@@ -1611,11 +1617,23 @@ function applyTheme(pref){
   if(pref === "light" || pref === "dark") th = pref;
   else th = (window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches) ? "light" : "dark";
   document.documentElement.setAttribute("data-theme", th);
-  const b = $("#btnTheme"); if(b) b.textContent = (th === "light" ? "表示：明" : "表示：暗");
+  const lab = (th === "light" ? "表示：明" : "表示：暗");
+  const b = $("#btnTheme"); if(b) b.textContent = lab;
+  const b2 = $("#bTheme"); if(b2) b2.textContent = lab;
+  const fb = $("#fabTheme"); if(fb) fb.title = (th === "light" ? "いま明るい配色。押すと暗くなります" : "いま暗い配色。押すと明るくなります");
   const m = document.querySelector('meta[name="theme-color"]');
   if(m) m.setAttribute("content", th === "light" ? "#F4F6FA" : "#0B1017");
   LS.set("ml_theme", pref || "auto");
   return th;
+}
+/* 配色切り替えの丸ボタンを画面右下に常設する */
+function injectThemeFab(){
+  if(document.getElementById("fabTheme")) return;
+  const b = document.createElement("button");
+  b.id = "fabTheme"; b.type = "button"; b.textContent = "◐";
+  b.setAttribute("aria-label","配色を切り替える");
+  b.onclick = cycleTheme;
+  document.body.appendChild(b);
 }
 function cycleTheme(){
   const cur = LS.get("ml_theme", "auto");
@@ -1639,6 +1657,7 @@ function cycleTheme(){
     tb2.onclick = cycleTheme;
     key.parentNode.insertBefore(tb2, b.nextSibling);
     applyTheme(LS.get("ml_theme", "auto"));
+    injectThemeFab();
     key.parentNode.insertBefore(b, key.nextSibling);
   }
 })();
