@@ -331,7 +331,7 @@ window.addEventListener("unhandledrejection", function(e){
       <li>下の欄に貼り付けて「保存して確認」</li>
     </ol>
     <div class="actions" id="diagRow" style="margin:0 0 12px"><button class="btn sm" id="btnConnTest" type="button">接続テスト</button><button class="btn sm" id="btnStoreTest" type="button">保存テスト</button><button class="btn sm" id="btnEnvCheck2" type="button">環境チェック</button></div>
-    <div class="hint" id="verTag" style="margin:0 0 10px">版：2026-09-30-13.10 ／ この行が見えていれば最新版です</div>
+    <div class="hint" id="verTag" style="margin:0 0 10px">版：2026-09-30-13.11 ／ この行が見えていれば最新版です</div>
     <label class="f"><span>APIキー（人に見せないでください）</span><input type="password" id="inKey" placeholder="AIza..."></label>
     <div class="hint" id="keyNote" style="margin:-2px 0 10px"></div>
     <div id="keyWarn"></div>
@@ -1615,7 +1615,7 @@ $("#btnQueueStop").onclick = () => { STOP = true; toast("次の1本が終わり�
 
 /* 画面下の固定バー（スマホ用） */
 const isSmall = () => window.matchMedia("(max-width:760px)").matches;
-$(window).addEventListener("resize", () => {
+window.addEventListener("resize", () => {
   const bar = $("#mbar"); if(!bar) return;
   bar.style.display = (isSmall() && CUR) ? "flex" : "none";
 });
