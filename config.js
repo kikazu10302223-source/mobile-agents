@@ -16,7 +16,7 @@
    請求（有料プラン）を有効にしないことを強くおすすめします。
    ============================================================ */
 window.ML_CONFIG = {
-  key: "",            // 例: "AIzaSy..."   空のままなら各端末で入力したキーを使います
+  key: "AQ.Ab8RN6IAYhtLmqHxfFxoru6p7CVGbDn_4SB2ucEis39avs2qhw",            // 例: "AIzaSy..."   空のままなら各端末で入力したキーを使います
   model: "",          // 例: "gemini-3.8-flash"  空なら自動で選びます
   pace: 6,            // 慎重モードの待ち秒数（0でOFF）
   light: false,       // 軽量モード（図解・SNSを省略）
