@@ -353,7 +353,7 @@ hr{border:none;border-top:1px solid var(--line);margin:22px 0}
       <li>下の欄に貼り付けて「保存して確認」</li>
     </ol>
     <div class="actions" id="diagRow" style="margin:0 0 12px"><button class="btn sm" id="btnConnTest" type="button">接続テスト</button><button class="btn sm" id="btnStoreTest" type="button">保存テスト</button><button class="btn sm" id="btnEnvCheck2" type="button">環境チェック</button></div>
-    <div class="hint" id="verTag" style="margin:0 0 10px">版：2026-09-30-13.7 ／ この行が見えていれば最新版です</div>
+    <div class="hint" id="verTag" style="margin:0 0 10px">版：2026-09-30-13.8 ／ この行が見えていれば最新版です</div>
     <label class="f"><span>APIキー（人に見せないでください）</span><input type="password" id="inKey" placeholder="AIza..."></label>
     <div class="hint" id="keyNote" style="margin:-2px 0 10px"></div>
     <div id="keyWarn"></div>
@@ -633,7 +633,9 @@ let CONF   = LS.get("ml_conf", { key:"", model:"", pace:6 });
 (function(){
   if(CONF.key) return;
   try{
-    const b = JSON.parse(localStorage.getItem("ml_conf_bak") || "null");
+    let b = null;
+    try{ b = JSON.parse(localStorage.getItem("ml_conf_bak") || "null"); }catch(_){ b = null; }
+    if(!b || !b.key){ try{ b = JSON.parse(localStorage.getItem("ml_key2") || "null"); }catch(_){} }
     if(b && b.key){
       CONF.key = b.key;
       if(b.model) CONF.model = b.model;
@@ -655,6 +657,11 @@ if(SITE){
   if(!CONF.model) CONF.model = "gemini-3.5-flash-lite";
   CONF.__siteFile = true;
 }
+/* 起動した瞬間の状態を記録に残す（更新で消える原因を後から特定するため） */
+(function(){
+  const L = k => { try{ return (localStorage.getItem(k) || "").length; }catch(_){ return -1; } };
+  audit("起動: 本体" + L("ml_conf") + "文字 / 予備" + L("ml_conf_bak") + "文字 / 予備2" + L("ml_key2") + "文字 → 認識したキー " + (CONF.key || "").length + "文字" + (CONF.__restored ? "（予備から復元）" : ""));
+})();
 /* ===== 保存領域が使えるかを調べる（更新で消える原因の切り分け） ===== */
 let STOREOK = true;
 try{
@@ -690,8 +697,31 @@ let LEDGER = LS.get("ml_ledger", { topics:[], rejects:[] });
 let DRAFT  = LS.get("ml_draft", null);
 let TRIAL  = false;
 let CUR = null, TAB = "04_記事本文.md";
-function saveConf(){
+function audit(ev){
+  try{
+    const a = LS.get("ml_audit", []);
+    a.push({t:Date.now(), ev:String(ev), keyLen:(CONF.key || "").length, url:(location.host || "") + (location.pathname || "")});
+    while(a.length > 40) a.shift();
+    LS.set("ml_audit", a);
+  }catch(_){}
+}
+function saveConf(opt){
+  const force = !!(opt && opt.force);
+  /* 【重要】空のキーで、保存済みのキーを上書きしない（「キーを消す」を押したときだけ消す） */
+  if(!CONF.key && !force){
+    try{
+      const p = JSON.parse(localStorage.getItem("ml_conf") || "null");
+      if(p && p.key){ CONF.key = p.key; audit("空のキーで上書きしようとしたため、保存済みのキーを戻しました"); }
+      else{
+        const m = JSON.parse(localStorage.getItem("ml_key2") || "null");
+        if(m && m.key){ CONF.key = m.key; audit("予備2からキーを戻しました"); }
+      }
+    }catch(_){}
+  }
+  if(!CONF.key && force){ try{ localStorage.removeItem("ml_key2"); }catch(_){} }
   LS.set("ml_conf", CONF);
+  if(CONF.key){ try{ localStorage.setItem("ml_key2", JSON.stringify({key:CONF.key, model:CONF.model || "", at:new Date().toISOString()})); }catch(_){} }
+  audit("保存しました（キー" + (CONF.key || "").length + "文字" + (force ? "／消去の操作" : "") + "）");
   try{
     localStorage.setItem("ml_conf_bak", JSON.stringify(
       { key:CONF.key || "", model:CONF.model || "", pace:(CONF.pace === undefined ? 6 : CONF.pace),
@@ -1545,7 +1575,7 @@ $("#btnSaveKey").onclick = async () => {
   }
 };
 $("#btnClearKey").onclick = () => {
-  CONF.key = ""; CONF.model = ""; saveConf(); $("#inKey").value = ""; paintKey();
+  CONF.key = ""; CONF.model = ""; saveConf({force:true}); $("#inKey").value = ""; paintKey();
   $("#keyOut").textContent = "キーを消しました。";
   toast("キーを消しました。");
 };
@@ -1868,6 +1898,16 @@ function storeTest(){
   out.push("保存項目の総数: " + localStorage.length);
   out.push("開いているURL: " + location.host + location.pathname);
   out.push("いま画面が認識しているキー: " + ((CONF.key ? CONF.key.length + "文字" : "なし")) + (CONF.__restored ? "（予備から復元）" : ""));
+  const hist = LS.get("ml_audit", []);
+  if(hist.length){
+    out.push("― これまでの記録（新しい順・40件まで）―");
+    hist.slice(-12).reverse().forEach(a => {
+      const d = new Date(a.t);
+      const p2 = n => String(n).padStart(2, "0");
+      out.push("  " + p2(d.getHours()) + ":" + p2(d.getMinutes()) + ":" + p2(d.getSeconds())
+        + "  キー" + a.keyLen + "文字  " + a.ev);
+    });
+  }
   const el = $("#saveTestOut");
   if(el) el.innerHTML = '<div style="border:1px solid var(--line);background:var(--bg);border-radius:10px;'
     + 'padding:10px 12px;font-size:12.5px;line-height:1.85;font-family:var(--mono);white-space:pre-wrap">'
@@ -2013,6 +2053,14 @@ function cycleTheme(){
   mk("btnConnTest", "接続テスト", connTest);
   mk("btnStoreTest", "保存テスト", storeTest);
   mk("btnEnvCheck2", "環境チェック", envCheck);
+  mk("btnPeek", "キーを表示", () => {
+    const i = $("#inKey"); if(!i) return;
+    i.type = (i.type === "password") ? "text" : "password";
+    toast(i.type === "password" ? "キーを隠しました。" : "表示中です。人に見せないでください。");
+  });
+  /* 保存されているキーを最初から入れておく（消えたように見えるのを防ぐ） */
+  const ik0 = $("#inKey");
+  if(ik0 && CONF.key && !ik0.value) ik0.value = CONF.key;
 })();
 
 /* ============================================================
