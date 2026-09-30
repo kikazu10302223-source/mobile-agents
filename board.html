@@ -1942,6 +1942,17 @@ function decide(st){
     ? "承認しました。noteに貼って公開してください（本文のコピーが使えます）。"
     : "却下しました。理由は次回の企画に反映されます。");
 }
+/* 承認タブの一覧から、開かずに承認する（v16.1で追加。以前は未定義で動かなかった） */
+function approveRun(id){
+  const r = RUNS[id]; if(!r) return false;
+  r.status = "approved";
+  if(r.topic && !LEDGER.topics.includes(r.topic)) LEDGER.topics.push(r.topic);
+  saveRuns(); saveLedger();
+  try{ renderRuns(); }catch(_){}
+  try{ if(CUR === id) openRun(id); }catch(_){}
+  try{ if(window.mlNow) window.mlNow(); }catch(_){}
+  return true;
+}
 
 /* ============================================================
    9. ボタンの配線
@@ -2825,7 +2836,7 @@ setTimeout(() => { try{ paintKey(); }catch(_){} }, 800);
             }).join("") + '</table>'
         : '<p class="hint" style="padding:0 13px">承認待ちはありません。</p>';
       al.querySelectorAll("[data-ap]").forEach(b => b.onclick = () => {
-        try{ approveRun(b.dataset.ap); toast("承認しました。"); paintWorkers(); }catch(e){ toast("承認できませんでした：" + (e.message||e)); }
+        try{ var okAp = approveRun(b.dataset.ap); toast(okAp ? "承認しました。noteに貼って公開してください（本文のコピーが使えます）。" : "その作品が見つかりませんでした。"); paintWorkers(); }catch(e){ toast("承認できませんでした：" + (e.message||e)); }
       });
     }
   }
