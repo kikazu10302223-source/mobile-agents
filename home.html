@@ -3149,7 +3149,10 @@ input,select,textarea{font-size:16px}
       if(!localStorage.getItem("ml_theme")) applyTheme("light");
     }catch(_){}
     var h = (location.hash || "").replace("#", "");
-    if(h === "rec"){ curTab = "記録"; setTimeout(paintRec, 60); }
+    var H2T = {"home":"ホーム","work":"作業","ap":"承認","sns":"発信","rec":"記録","me":"あなた","setup":"設定"};
+    var hn = H2T[h];
+    if(hn){ curTab = hn; navTo(hn); }
+    else { navTo("ホーム"); }
     paintHome();
     try{ paintNames(); }catch(_){}
     if(document.getElementById("homePanel") && document.getElementById("homePanel").offsetParent !== null){ curTab = "ホーム"; }
