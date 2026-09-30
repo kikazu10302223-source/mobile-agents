@@ -323,18 +323,7 @@ hr{border:none;border-top:1px solid var(--line);margin:22px 0}
 </style>
 </head>
 <body onload="window.__ML_LOADED=1">
-<div id="trybar"><b>v15</b>（2026-09-30）：<b>はじめての人でも使えるように</b>しました（はじめの3ステップ・「いまやること」表示・<b>ジャンルを選べば通信以外にも流用</b>）。<a href="board_v13.html">旧版に戻す</a>。
-<script>
-/* どんな失敗も見逃さないための記録係（いちばん最初に読み込む） */
-window.__MLERR = [];
-window.addEventListener("error", function(e){
-  try{ window.__MLERR.push((e.message || "不明") + " @ " + String(e.filename || "").slice(-24) + " :" + (e.lineno || "?")); }catch(_){}
-});
-window.addEventListener("unhandledrejection", function(e){
-  try{ var r = e && e.reason; window.__MLERR.push("非同期の失敗: " + ((r && (r.message || r)) || "不明")); }catch(_){}
-});
-</script>>
-<div class="bnav" id="bnav"></div>
+<div id="trybar"><b>v16</b>（2026-09-30）：<b>投稿セット（SNS）</b>・<b>収益の記録</b>・<b>文字を大きくする</b>を追加しました。<a href="board_v13.html">旧版に戻す</a>。</div>
 <div id="nowBar" hidden></div>
 
 
@@ -354,6 +343,7 @@ window.addEventListener("unhandledrejection", function(e){
     <button class="btn sm" id="btnOpenKey" type="button">APIキーを設定</button>
     <button class="btn sm" id="btnShowHow" type="button">つかいかた</button>
     <button class="btn sm" id="btnOnb" type="button">はじめの3ステップ</button>
+    <button class="btn sm" id="btnEasy" type="button">文字を大きくする</button>
     <button class="btn sm" id="bTheme" type="button">表示：暗</button>
     <button class="btn sm" id="mEnv" type="button">環境チェック</button>
   </div>
@@ -478,6 +468,20 @@ window.addEventListener("unhandledrejection", function(e){
   <div class="ph"><span class="n">GENRE</span><h2>ジャンルを選ぶ（通信以外にも使えます）</h2>
     <p>選んだジャンルに合わせて、<b>AI9人の書き方</b>と<b>画面の言葉づかい</b>が切り替わります。<b>あとから何度でも変えられます。</b></p></div>
   <div class="pb"><div id="genreBox"></div></div>
+</div>
+
+<!-- SNSの投稿セット -->
+<div class="panel" id="snsAutoPanel">
+  <div class="ph"><span class="n">POST SET</span><h2>投稿セットを組み立てる（SNS用）</h2>
+    <p>記事を選んで出す先を押すと、<b>X／Instagram／Threads／noteの告知</b>の文面を自動で組み立てます。<b>コピーして貼るだけ</b>です。</p></div>
+  <div class="pb"><div id="psBox"></div></div>
+</div>
+
+<!-- 収益の記録 -->
+<div class="panel" id="earnPanel">
+  <div class="ph"><span class="n">EARN</span><h2>収益の記録（どの記事が稼いだか）</h2>
+    <p>アフィリエイトやnoteの売上を、<b>記事ごとに手で入れる</b>だけ。次にどの記事を伸ばせばいいかが見えます。</p></div>
+  <div class="pb"><div id="earnBox"></div></div>
 </div>
 
 <!-- 文体（あなたらしさ）設定 -->
@@ -1065,6 +1069,7 @@ function mlGenreRules(){
   (g.extra || []).forEach(function(x){ a.push("- " + x); });
   a.push("- 運営者の一次情報（" + g.firsthand + "）を必ず1か所入れる。空欄のまま出すときは `" + ML_PH + "` の形で残す（**この文字列はシステムの目印。絶対に言い換えない**）。");
   a.push("- 主な収益源: " + g.money + "。アフィリエイトの提携先の例: " + g.asp + "。");
+  a.push("- **収益の導線を必ず1つ設計する**: 比較表の直後に置く「広告枠」（どのリンクを・どのPR表記つきで・どんな一文で置くか）を、深掘り担当と執筆担当の出力に必ず含める。");
   a.push("- 比較優良表示・断定（最安・No.1・絶対）は書かない。");
   return "\n\n" + a.join("\n");
 }
@@ -2695,7 +2700,7 @@ setTimeout(() => { try{ paintKey(); }catch(_){} }, 800);
    通信ラボ 運用ボード（追加レイヤー）
    ============================================================ */
 (function(){
-  const MAP0 = {"keyPanel": "設定", "genrePanel": "設定"};
+  const MAP0 = {"keyPanel": "設定", "genrePanel": "設定", "snsAutoPanel": "発信", "earnPanel": "記録"};
   const NEWMAP = {boardPanel:"ホーム", homePanel:"ホーム",snsPanel:"発信",stylePanel:"あなた",namePanel:"あなた",mobilePanel:"あなた",apPanel:"承認",deskPanel:"承認",kpiPanel:"記録", workPanel1:"作業", workPanel2:"作業", workPanel3:"作業",costPanel:"記録",
                   affiPanel:"記録",personaPanel:"記録",acctPanel:"記録",
                   imgPanel:"記録",qaPanel2:"記録"};
@@ -3626,6 +3631,27 @@ input,select,textarea{font-size:16px}
 #genreBox .gcur{border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--bg)}
 #genreBox .gk{font-size:12px;font-weight:800;letter-spacing:.06em;color:var(--dim);margin-bottom:7px}
 #genreBox .tbl td:first-child{white-space:nowrap;color:var(--dim);width:34%}
+/* ===== v16: 投稿セット／収益／やさしい表示 ===== */
+.pstep{display:flex;align-items:center;gap:10px;margin:15px 0 8px;font-size:15px}
+.pstep .pnum{flex:0 0 auto;width:26px;height:26px;border-radius:50%;background:var(--signal);color:#06120C;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px}
+.dbtns{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:6px}
+.dbtn{flex:1 1 44%;min-height:54px;border:1px solid var(--line);background:var(--surface2);color:var(--ink);border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;padding:10px 12px}
+.dbtn.on{border:2px solid var(--signal);color:var(--signal)}
+.pscard{border:1px solid var(--line);border-radius:13px;padding:11px 12px;margin-top:11px;background:var(--surface2)}
+.pscard .psh{display:flex;justify-content:space-between;gap:8px;font-size:14px;font-weight:700;margin-bottom:7px}
+.pscard .psh span{font-size:12px;color:var(--dim);font-weight:400;white-space:nowrap}
+.pscard textarea{width:100%;box-sizing:border-box;min-height:132px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);font-size:14px;line-height:1.8;padding:10px;font-family:inherit;resize:vertical}
+html.easy body{font-size:18.5px}
+html.easy .hint{font-size:15px;line-height:1.85}
+html.easy .btn{font-size:17px;min-height:64px;padding:15px 18px}
+html.easy .nb{font-size:14.5px;min-height:46px;padding:9px 13px}
+html.easy input,html.easy textarea,html.easy select{font-size:17.5px;min-height:52px}
+html.easy .ph h2{font-size:23px}
+html.easy .tbl td,html.easy .tbl th{font-size:15.5px;padding:10px 8px}
+html.easy #nowBar .nb-b b{font-size:18px}
+html.easy #nowBar .nb-b small{font-size:15px}
+html.easy .dbtn{font-size:17px;min-height:64px}
+html.easy .pscard textarea{font-size:16px;min-height:160px}
 </style>
 <script>
 /* ===== ホーム（案A）＋記録タブの切り替え＋既定の明るい配色 ===== */
@@ -3670,7 +3696,7 @@ input,select,textarea{font-size:16px}
       + '<div class="card"><div class="k">ネタ帳の記録</div><div class="v">' + topics + '<small>件</small></div></div>';
   }
   /* 記録タブ：中身を1つずつ表示 */
-  var REC = [["kpiPanel","KPI"],["costPanel","AIコスト"],["affiPanel","アフィ"],
+  var REC = [["kpiPanel","KPI"],["costPanel","AIコスト"],["affiPanel","アフィ"],["earnPanel","収益"],
              ["personaPanel","ペルソナ"],["acctPanel","アカウント"],["imgPanel","画像"],["qaPanel2","QA"]];
   var recSel = "kpiPanel", curTab = "";
   function paintRec(){
@@ -3723,5 +3749,279 @@ input,select,textarea{font-size:16px}
 })();
 </script>
 
+
+<!-- SNSの投稿セット -->
+<div class="panel" id="snsAutoPanel">
+  <div class="ph"><span class="n">POST SET</span><h2>投稿セットを組み立てる（SNS用）</h2>
+    <p>記事を選んで出す先を押すと、<b>X／Instagram／Threads／noteの告知</b>の文面を自動で組み立てます。<b>コピーして貼るだけ</b>です。</p></div>
+  <div class="pb"><div id="psBox"></div></div>
+</div>
+
+<!-- 収益の記録 -->
+<div class="panel" id="earnPanel">
+  <div class="ph"><span class="n">EARN</span><h2>収益の記録（どの記事が稼いだか）</h2>
+    <p>アフィリエイトやnoteの売上を、<b>記事ごとに手で入れる</b>だけ。次にどの記事を伸ばせばいいかが見えます。</p></div>
+  <div class="pb"><div id="earnBox"></div></div>
+</div>
+
+
+<script>
+/* ============================================================
+   v16: 投稿セット（SNS）／収益の記録／やさしい表示
+   ============================================================ */
+var PS = { art:"", dest:["x"], url:"" };
+var PS_BASE = {
+  mobile:["#スマホ","#携帯料金","#乗り換え"],
+  gadget:["#ガジェット","#家電","#買い替え"],
+  beauty:["#美容","#コスメ","#スキンケア"],
+  money:["#マネー","#保険","#節約"],
+  travel:["#旅行","#観光","#ホテル"],
+  custom:["#ブログ","#note"]
+};
+var PS_TIME = {
+  x:["7〜9時（通勤の時間）","12〜13時（昼休み）","20〜22時（寝る前）"],
+  instagram:["11〜13時","19〜22時"],
+  threads:["21〜23時"],
+  note:["20〜22時"]
+};
+function psEsc(v){
+  try{ if(typeof mlEsc === "function") return mlEsc(v); }catch(_){}
+  return String(v == null ? "" : v).replace(/[&<>"]/g, function(c){ return ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"})[c]; });
+}
+function psYmd(){ var d = new Date(); return d.getFullYear() + "年" + (d.getMonth()+1) + "月"; }
+function psList(){
+  var out = [];
+  try{
+    Object.keys(RUNS || {}).forEach(function(k){
+      var r = RUNS[k] || {}; var F = r.files || {};
+      var body = F["note_paste.md"] || F["04_記事本文.md"] || F["03_本文.md"] || F["本文.md"] || "";
+      out.push({ id:r.id || k, topic:r.topic || "（題名なし）", at:r.at || "", body:String(body || "") });
+    });
+  }catch(_){}
+  return out.reverse();
+}
+function psMeta(body){
+  var t = String(body || ""), o = { title:"", tags:[], date:"", num:"" };
+  var m = t.match(/##\s*note投稿メタ([\s\S]{0,900})/);
+  var seg = m ? m[1] : t;
+  var x = seg.match(/タイトル\s*[:：]\s*(.+)/); if(x) o.title = x[1].replace(/[（(].*$/, "").trim();
+  x = seg.match(/タグ\s*[:：]\s*(.+)/); if(x) o.tags = (x[1].match(/#[^\s#]+/g) || []);
+  x = seg.match(/情報の基準日\s*[:：]\s*(.+)/); if(x) o.date = x[1].trim();
+  if(!o.title){ x = t.match(/^#\s+(.+)$/m); if(x) o.title = x[1].trim(); }
+  x = (o.title || "").match(/[0-9０-９]+[^0-9０-９]{0,6}/); if(x) o.num = x[0].trim();
+  return o;
+}
+function psHook(body){
+  var t = String(body || "").replace(/```[\s\S]*?```/g, " ").replace(/##\s*note投稿メタ[\s\S]*$/, "");
+  var lines = t.split("\n").map(function(s){ return s.trim(); }).filter(Boolean);
+  for(var i=0;i<lines.length;i++){
+    var l = lines[i];
+    if(/^#/.test(l) || /^[-*|>]/.test(l) || /^【ここにあなたの/.test(l)) continue;
+    var s = l.replace(/[*`]/g, "").trim();
+    if(s.length >= 14) return s.length > 92 ? s.slice(0, 92) + "…" : s;
+  }
+  return "";
+}
+function psHeads(body){
+  var t = String(body || "");
+  var hs = (t.match(/^##\s+(.+)$/gm) || []).map(function(s){ return s.replace(/^##\s+/, "").trim(); })
+    .filter(function(s){ return !/note投稿メタ|人間に足してほしい情報|見出し|タイトル/.test(s); });
+  return hs.slice(0, 3);
+}
+function psTag(tags, dest, genre){
+  var base = PS_BASE[genre] || PS_BASE.custom;
+  var all = (tags || []).concat(base).filter(function(v, i, a){ return v && a.indexOf(v) === i; });
+  var n = dest === "instagram" ? 10 : (dest === "note" ? 5 : 3);
+  return all.slice(0, n).join(" ");
+}
+function psBuild(it, dest, genre){
+  var m = psMeta(it.body), url = PS.url || "（ここに記事のURL）";
+  var date = m.date || psYmd(), hook = psHook(it.body) || "（←ここに記事の要点を1行）";
+  var title = m.title || it.topic, hs = psHeads(it.body), tg = psTag(m.tags, dest, genre);
+  var out = [];
+  if(dest === "x"){
+    out.push({ k:"X ① 速報型（変化を伝える）", text:(m.num ? "【" + m.num + "】" : "") + title + "\n\n" + hook + "\n\n" + url + "\n" + tg });
+    out.push({ k:"X ② 比較型（数字を出す）", text:title + "\n\n" + (hs[0] ? "・" + hs[0] + "\n" : "") + "（" + date + "時点）\n\n" + url + "\n" + tg });
+    out.push({ k:"X ③ 体験型（あなたの実感）", text:title + "\n\n（←ここにあなたの店頭体験をひとつ）\n\n" + url + "\n" + tg });
+  } else if(dest === "instagram"){
+    out.push({ k:"Instagram（写真＋説明）", text:title + "\n\n" + hook + "\n\n" + hs.map(function(h){ return "・" + h; }).join("\n") + "\n\n（" + date + "時点）\n\n" + url + "\n\n" + tg });
+  } else if(dest === "threads"){
+    out.push({ k:"Threads（会話型）", text:hook + "\n\n" + title + "\n\nみなさんはどうしていますか？\n\n" + url + "\n" + tg });
+  } else {
+    out.push({ k:"noteの告知（短文）", text:title + "\n\n" + url + "\n\n" + tg });
+  }
+  return out;
+}
+function psPromptText(it, genre){
+  var m = psMeta(it.body);
+  return "次の記事から、SNSの投稿セットを作ってください。\n\n"
+    + "## 記事のタイトル\n" + (m.title || it.topic) + "\n\n"
+    + "## 出す先と型\n"
+    + "- X：①速報型（変化を伝える）②比較型（数字を出す）③体験型（店頭の実感）の3案。それぞれ文字数も書く\n"
+    + "- Instagram：写真に添える説明文（300字以内）＋ハッシュタグ\n"
+    + "- Threads：会話を始める問いかけ型\n"
+    + "- noteの告知：短い1本\n\n"
+    + "## 守るルール\n- 数字には必ず基準日を付ける\n- アフィリエイトを含む投稿には冒頭に「広告」または「PR」\n"
+    + "- 煽らない。事実と条件だけで書く\n- ハッシュタグは大タグ1〜2個＋固有タグ2〜3個\n\n"
+    + "## 記事の本文\n" + String(it.body || "").slice(0, 6000);
+}
+function psCopy(txt, btn){
+  function done(ok){
+    try{ btn.textContent = ok ? "コピーしました" : "長押しでコピー"; setTimeout(function(){ btn.textContent = "コピー"; }, 1600); }catch(_){}
+    try{ toast(ok ? "コピーしました。貼り付けてください。" : "コピーできませんでした。下の枠を長押し→全選択→コピーしてください。"); }catch(_){}
+  }
+  function fb(){
+    try{
+      var ta = document.createElement("textarea");
+      ta.value = txt; ta.setAttribute("readonly", ""); ta.style.position = "fixed"; ta.style.top = "-1000px";
+      document.body.appendChild(ta); ta.select(); ta.setSelectionRange(0, txt.length);
+      var ok = document.execCommand("copy"); document.body.removeChild(ta); done(ok);
+    }catch(_){ done(false); }
+  }
+  try{ if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(txt).then(function(){ done(true); }, fb); return; } }catch(_){}
+  fb();
+}
+function psRender(){
+  var box = document.getElementById("psBox"); if(!box) return;
+  var arts = psList();
+  if(!arts.length){
+    box.innerHTML = '<p class="hint" style="padding:0 2px">まだ記事がありません。「<b>作業</b>」タブでネタを仕込むと、ここに並びます。</p>';
+    return;
+  }
+  var found = false;
+  for(var i=0;i<arts.length;i++) if(arts[i].id === PS.art) found = true;
+  if(!found) PS.art = arts[0].id;
+  var sel = arts.map(function(a){ return '<option value="' + psEsc(a.id) + '"' + (a.id === PS.art ? " selected" : "") + '>' + psEsc(a.topic) + '</option>'; }).join("");
+  var DEST = [["x","X（旧Twitter）"],["instagram","Instagram"],["threads","Threads"],["note","noteの告知"]];
+  var dbtns = DEST.map(function(d){ return '<button class="dbtn' + (PS.dest.indexOf(d[0]) >= 0 ? " on" : "") + '" data-d="' + d[0] + '" type="button">' + d[1] + '</button>'; }).join("");
+  var tline = PS.dest.map(function(d){ return '<div style="font-size:12.5px;color:var(--dim);margin:3px 0">' + psEsc(d === "x" ? "X" : d) + "：" + psEsc((PS_TIME[d] || []).join(" / ")) + "</div>"; }).join("");
+  box.innerHTML =
+      '<div class="pstep"><span class="pnum">1</span><div><b>どの記事を出しますか</b></div></div>'
+    + '<label class="f"><span>記事（ストックから選ぶ）</span><select id="psArt">' + sel + '</select></label>'
+    + '<div class="pstep"><span class="pnum">2</span><div><b>どこに出しますか</b>（いくつでも押せます）</div></div>'
+    + '<div class="dbtns">' + dbtns + '</div>'
+    + '<label class="f"><span>記事のURL（noteのURLを貼る）</span><input type="text" id="psUrl" placeholder="https://note.com/..." value="' + psEsc(PS.url) + '"></label>'
+    + '<div class="pstep"><span class="pnum">3</span><div><b>「セットを作る」を押す</b></div></div>'
+    + '<div class="actions"><button class="btn primary" id="psGo" type="button">セットを作る</button>'
+    + '<button class="btn" id="psPrompt" type="button">AIに肉付けさせる指示文をコピー</button></div>'
+    + '<p class="hint">出しやすい時間帯の目安（あなたのフォロワーに合わせて調整してください）</p>' + tline
+    + '<p class="hint"><b>アフィリエイトのリンクを含む投稿には、冒頭に「広告」または「PR」を必ず入れてください</b>（ステマ規制）。</p>'
+    + '<div id="psOut"></div>';
+  var s = document.getElementById("psArt"); if(s) s.onchange = function(){ PS.art = s.value; psRender(); };
+  var u = document.getElementById("psUrl"); if(u) u.oninput = function(){ PS.url = String(u.value || "").trim(); };
+  var bs = box.querySelectorAll("[data-d]");
+  for(var j=0;j<bs.length;j++){ bs[j].onclick = (function(b){ return function(){
+    var k = b.getAttribute("data-d"); var i2 = PS.dest.indexOf(k);
+    if(i2 >= 0) PS.dest.splice(i2, 1); else PS.dest.push(k);
+    psRender();
+  }; })(bs[j]); }
+  var go = document.getElementById("psGo"); if(go) go.onclick = function(){ psMake(); };
+  var pr = document.getElementById("psPrompt"); if(pr) pr.onclick = function(){
+    var a = null, all = psList();
+    for(var i3=0;i3<all.length;i3++) if(all[i3].id === PS.art) a = all[i3];
+    if(!a){ toast("記事を選んでください。"); return; }
+    psCopy(psPromptText(a, (typeof mlGenreId === "function" ? mlGenreId() : "mobile")), pr);
+  };
+}
+function psMake(){
+  var out = document.getElementById("psOut"); if(!out) return;
+  if(!PS.dest.length){ out.innerHTML = '<p class="hint">出す先を1つ以上押してください。</p>'; return; }
+  var a = null, all = psList();
+  for(var i=0;i<all.length;i++) if(all[i].id === PS.art) a = all[i];
+  if(!a){ out.innerHTML = '<p class="hint">記事を選んでください。</p>'; return; }
+  var genre = (typeof mlGenreId === "function" ? mlGenreId() : "mobile");
+  var cards = "";
+  PS.dest.forEach(function(d){
+    psBuild(a, d, genre).forEach(function(p, n){
+      var id = "psc_" + d + "_" + n;
+      cards += '<div class="pscard"><div class="psh">' + psEsc(p.k) + '<span>' + p.text.length + '文字</span></div>'
+        + '<textarea id="' + id + '" readonly>' + psEsc(p.text) + '</textarea>'
+        + '<div class="actions"><button class="btn sm" data-copy="' + id + '" type="button">コピー</button></div></div>';
+    });
+  });
+  out.innerHTML = '<div class="pstep" style="margin-top:14px"><span class="pnum">✓</span><div><b>できました</b>。コピーして貼ってください。</div></div>' + cards;
+  var cs = out.querySelectorAll("[data-copy]");
+  for(var k=0;k<cs.length;k++){ cs[k].onclick = (function(b){ return function(){
+    var t = document.getElementById(b.getAttribute("data-copy"));
+    psCopy(t ? t.value : "", b);
+  }; })(cs[k]); }
+}
+/* ---- 収益の記録 ---- */
+function earnData(){ try{ return LS.get("ml_earn", {}) || {}; }catch(_){ return {}; } }
+function earnRender(){
+  var box = document.getElementById("earnBox"); if(!box) return;
+  var d = earnData(), arts = psList();
+  function row(id, label){
+    var e = d[id] || {};
+    return '<tr><td>' + psEsc(label) + '</td>'
+      + '<td><input type="number" min="0" inputmode="numeric" data-cl="' + psEsc(id) + '" value="' + (e.clicks || "") + '" style="width:88px"></td>'
+      + '<td><input type="number" min="0" inputmode="numeric" data-yen="' + psEsc(id) + '" value="' + (e.yen || "") + '" style="width:100px"></td>'
+      + '<td><input type="text" data-memo="' + psEsc(id) + '" value="' + psEsc(e.memo || "") + '" placeholder="例: 8月のAmazon" style="width:100%"></td></tr>';
+  }
+  var rows = arts.map(function(a){ return row(a.id, a.topic); }).join("");
+  rows += row("__other", "記事以外（メンバーシップ・単発の仕事など）");
+  var tc = 0, ty = 0, best = "", bv = -1;
+  Object.keys(d).forEach(function(k){
+    var e = d[k] || {}; tc += Number(e.clicks || 0); ty += Number(e.yen || 0);
+    if(Number(e.yen || 0) > bv){ bv = Number(e.yen || 0); best = k; }
+  });
+  var bestName = "まだ記録がありません";
+  if(best && bv > 0){
+    bestName = best === "__other" ? "記事以外" : best;
+    for(var i=0;i<arts.length;i++) if(arts[i].id === best) bestName = arts[i].topic;
+    bestName = psEsc(bestName) + "（" + bv.toLocaleString() + "円）";
+  }
+  box.innerHTML = '<div class="cards">'
+    + '<div class="card"><div class="k">合計の報酬</div><div class="v">' + ty.toLocaleString() + '<small>円</small></div></div>'
+    + '<div class="card"><div class="k">合計のクリック</div><div class="v">' + tc.toLocaleString() + '<small>回</small></div></div>'
+    + '<div class="card"><div class="k">1クリックあたり</div><div class="v">' + (tc ? (ty / tc).toFixed(1) : "0") + '<small>円</small></div></div>'
+    + '<div class="card"><div class="k">いちばん稼いだ記事</div><div class="v" style="font-size:15px;line-height:1.5">' + bestName + '</div></div>'
+    + '</div>'
+    + (arts.length ? '' : '<p class="hint">記事がまだありません。先に「作業」タブで仕込むと、ここに記事ごとの行が出ます。</p>')
+    + '<table class="tbl"><tr><th>記事</th><th>クリック</th><th>報酬(円)</th><th>メモ</th></tr>' + rows + '</table>'
+    + '<div class="actions" style="margin-top:10px"><button class="btn primary" id="earnSave" type="button">この内容で保存する</button></div>'
+    + '<p class="hint">アフィリエイトの管理画面やnoteの売上から、<b>月に1回うつすだけ</b>で十分です。どの記事を伸ばせばいいかが見えます。</p>';
+  var sv = document.getElementById("earnSave");
+  if(sv) sv.onclick = function(){
+    var nd = {};
+    var fields = box.querySelectorAll("[data-cl]");
+    for(var i=0;i<fields.length;i++){
+      var id = fields[i].getAttribute("data-cl");
+      var y = box.querySelector('[data-yen="' + id + '"]');
+      var m = box.querySelector('[data-memo="' + id + '"]');
+      var c = Number(fields[i].value || 0), yy = Number((y && y.value) || 0);
+      if(c || yy || (m && m.value)) nd[id] = { clicks:c, yen:yy, memo:(m ? String(m.value || "") : "") };
+    }
+    try{ LS.set("ml_earn", nd); }catch(_){}
+    earnRender();
+    try{ toast("収益を保存しました。"); }catch(_){}
+  };
+}
+/* ---- やさしい表示（文字を大きく） ---- */
+function easyApply(on){
+  try{ document.documentElement.classList.toggle("easy", !!on); }catch(_){}
+  var b = document.getElementById("btnEasy");
+  if(b) b.textContent = on ? "文字を元にもどす" : "文字を大きくする";
+  try{ LS.set("ml_easy", on ? 1 : 0); }catch(_){}
+}
+function easyToggle(){
+  var on = false;
+  try{ on = document.documentElement.classList.contains("easy"); }catch(_){}
+  easyApply(!on);
+  try{ toast(!on ? "文字とボタンを大きくしました。" : "文字を元にもどしました。"); }catch(_){}
+}
+(function(){
+  function boot(){
+    try{ psRender(); }catch(e){}
+    try{ earnRender(); }catch(e){}
+    try{ easyApply(!!LS.get("ml_easy", 0)); }catch(e){}
+    var b = document.getElementById("btnEasy"); if(b) b.onclick = easyToggle;
+  }
+  try{ if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot); else boot(); }catch(_){}
+  setTimeout(boot, 300);
+})();
+try{ window.__v16 = { psBuild:psBuild, psMeta:psMeta, psPromptText:psPromptText, earnRender:earnRender, psList:psList }; }catch(_){}
+
+</script>
 </body>
 </html>
