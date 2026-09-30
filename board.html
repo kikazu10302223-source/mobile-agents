@@ -497,8 +497,8 @@ window.addEventListener("unhandledrejection", function(e){
     </div>
     <div class="hint" id="stOut" style="white-space:pre-wrap;font-family:var(--mono);font-size:11.5px;max-height:240px;overflow:auto"></div>
     <details style="margin:12px 0 0;border:1px solid var(--line);border-radius:10px;padding:10px 12px">
-      <summary style="cursor:pointer;font-size:13.5px;font-weight:700">別の端末に移す（書き出し／読み込み）</summary>
-      <div style="margin-top:9px;font-size:13px;color:var(--dim)">「書き出す」で出たコードをコピーし、別の端末で貼って「読み込む」を押します。</div>
+      <summary style="cursor:pointer;font-size:13.5px;font-weight:700">別の端末に移す（文体＋担当者の名前をまとめて）</summary>
+      <div style="margin-top:9px;font-size:13px;color:var(--dim)">「書き出す」で出たコードをコピーし、別の端末で貼って「読み込む」を押します。<b>文体と担当者の名前が、1つのコードでまとめて移ります。</b><br>このコードは人に見せないでください（あなたの文体と設定が入っています）。</div>
       <textarea id="stIO" rows="3" placeholder="ここに設定コードが出ます／貼り付けます"
         style="width:100%;margin-top:9px;background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:9px;font-size:11.5px;font-family:var(--mono);color:var(--ink)"></textarea>
       <div class="actions" style="margin-top:8px">
@@ -2754,17 +2754,32 @@ setTimeout(() => { try{ paintKey(); }catch(_){} }, 800);
   function stExport(){
     var el = E("stIO"); if(!el) return;
     try{
-      el.value = "MLSTYLE1:" + btoa(unescape(encodeURIComponent(JSON.stringify(stGet()))));
-      toast("下の枠に出ました。コピーして次の端末に貼ってください。");
+      var nm = {};
+      try{ nm = JSON.parse(localStorage.getItem("ml_names") || "null") || {}; }catch(_){ nm = {}; }
+      el.value = "MLSTYLE2:" + btoa(unescape(encodeURIComponent(JSON.stringify({ s: stGet(), n: nm }))));
+      toast("下の枠に出ました（文体＋担当者の名前）。コピーして次の端末に貼ってください。");
     }catch(_){ toast("書き出せませんでした。"); }
   }
   function stImport(){
     var el = E("stIO"); if(!el) return;
-    var v = String(el.value || "").trim().replace(/^MLSTYLE1:/, "");
+    var v = String(el.value || "").trim();
     if(!v){ toast("枠が空です。先に「書き出す」を押すか、コードを貼ってください。"); return; }
+    v = v.replace(/^MLSTYLE[0-9]*:/, "");
     try{
       var o = JSON.parse(decodeURIComponent(escape(atob(v))));
-      LS.set("ml_style", o); stFill(); stPreview(); toast("読み込みました。");
+      var hadNames = false;
+      if(o && (o.s || o.n)){
+        LS.set("ml_style", o.s || {});
+        if(o.n){ LS.set("ml_names", o.n); hadNames = true; }
+      }else{
+        LS.set("ml_style", o || {});
+      }
+      stFill(); stPreview();
+      try{
+        if(typeof nmGet === "function") nmGet();
+        if(typeof paintNames === "function") paintNames();
+      }catch(_){}
+      toast(hadNames ? "読み込みました（文体＋担当者の名前）。" : "読み込みました（文体）。");
     }catch(_){ toast("コードを読み取れませんでした。コピーし直してください。"); }
   }
 
