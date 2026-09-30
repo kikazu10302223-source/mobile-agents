@@ -323,7 +323,7 @@ hr{border:none;border-top:1px solid var(--line);margin:22px 0}
 </style>
 </head>
 <body onload="window.__ML_LOADED=1">
-<div id="trybar">試作版2.1：ホーム4ステップ＋<b>④発信（X・Instagram・TikTok）</b>＋<b>文体設定（空欄からご自身で入力）</b>。元の画面は<a href="board.html">こちら</a>（無傷です）。</div>
+<div id="trybar">試作版2.2：<b>「あなた」タブ</b>を新設（文体・担当者の名前・スマホのコツ）。元の画面は<a href="board.html">こちら</a>（無傷です）。</div>
 <script>
 /* どんな失敗も見逃さないための記録係（いちばん最初に読み込む） */
 window.__MLERR = [];
@@ -364,7 +364,7 @@ window.addEventListener("unhandledrejection", function(e){
       <li>下の欄に貼り付けて「保存して確認」</li>
     </ol>
     <div class="actions" id="diagRow" style="margin:0 0 12px"><button class="btn sm" id="btnConnTest" type="button">接続テスト</button><button class="btn sm" id="btnStoreTest" type="button">保存テスト</button><button class="btn sm" id="btnEnvCheck2" type="button">環境チェック</button></div>
-    <div class="hint" id="verTag" style="margin:0 0 10px">試作版2.1：2026-09-30-15.1 ／ この行が見えていれば最新版です</div>
+    <div class="hint" id="verTag" style="margin:0 0 10px">試作版2.2：2026-09-30-15.2 ／ この行が見えていれば最新版です</div>
     <label class="f"><span>APIキー（人に見せないでください）</span><input type="password" id="inKey" placeholder="AIza..."></label>
     <div class="hint" id="keyNote" style="margin:-2px 0 10px"></div>
     <div id="keyWarn"></div>
@@ -413,7 +413,7 @@ window.addEventListener("unhandledrejection", function(e){
 
 <!-- スマホで使うときの案内 -->
 <div class="panel" id="mobilePanel" style="display:none">
-  <div class="ph"><span class="n">MOBILE</span><h2>スマホで使うときの3つのコツ</h2></div>
+  <div class="ph"><span class="n">MOBILE</span><h2>スマホで使うときのコツ（4つ）</h2></div>
   <div class="pb" style="font-size:13.5px">
     <ol style="margin:0;padding-left:22px">
       <li><b>画面を閉じない。</b>生成中に画面が暗くなったり、他のアプリに切り替わると、ブラウザが止められて中断します。中止しても <b>「続きから再開」</b>で、終わった役割は再利用できます。</li>
@@ -505,11 +505,30 @@ window.addEventListener("unhandledrejection", function(e){
   </div>
 </div>
 
+<!-- AI担当者の名前（あなたタブ） -->
+<div class="panel" id="namePanel">
+  <div class="ph"><span class="n">NAMES</span><h2>AI担当者の名前（好きな呼び名でOK）</h2>
+    <p>9人の担当に、あなたが呼びたい名前を付けられます。<b>作業画面の9つの枠・実行ログ・オフィス一覧の表示が、付けた名前に変わります。</b></p></div>
+  <div class="pb">
+    <div class="cards">
+      <div class="card"><div class="k">呼び名を付けると</div><div class="v" style="font-size:18px">見やすくなる</div><small>誰が働いているか一目で分かる</small></div>
+      <div class="card"><div class="k">空欄のとき</div><div class="v" style="font-size:18px">既定の名前</div><small>元の呼び名のまま</small></div>
+      <div class="card"><div class="k">AIの中身</div><div class="v" style="font-size:18px">変えない</div><small>指示の中身はそのまま</small></div>
+    </div>
+    <div id="nameRows"></div>
+    <div class="actions" style="margin-top:0">
+      <button class="btn primary" id="nmSave" type="button">名前を保存する</button>
+      <button class="btn sm" id="nmClear" type="button">全部もとの名前に戻す</button>
+    </div>
+    <div class="hint">例：「ネタ係」「リサーチさん」「書き手」「最後のチェック係」など。12字まで。<b>付けた名前は、この端末の表示だけに使われます</b>（AIへ送る役割の指示は変わりません）。</div>
+  </div>
+</div>
+
 <!-- ① AIにネタを選ばせる -->
 <!-- ホーム：今日やること（案A） -->
 <div class="panel" id="homePanel">
   <div class="ph"><span class="n">HOME</span><h2>今日やること（この順番で押すだけ）</h2>
-    <p>むずかしい設定は「記録」と「設定」にまとめました。ふだんはこの4つだけで進められます。</p></div>
+    <p>「あなた」タブに<b>文体（あなたらしさ）・担当者の名前・スマホのコツ</b>をまとめました。ふだんはこの4つだけで進められます。</p></div>
   <div class="pb">
     <div class="cards" id="homeState"></div>
     <div class="steps">
@@ -522,7 +541,7 @@ window.addEventListener("unhandledrejection", function(e){
       <button class="step" type="button" onclick="__mlStep(4)">
         <b>④ 発信する</b><small>X・Instagram・TikTokの文面を作ります</small><i>ひらく →</i></button>
     </div>
-    <p class="hint" style="margin:10px 0 0">①〜④以外の画面（数字・設定・画像など）は、必要なときだけ開けば大丈夫です。</p>
+    <p class="hint" style="margin:10px 0 0">①〜④以外の画面（数字＝「記録」／あなた設定＝「あなた」／鍵＝「設定」）は、必要なときだけ開けば大丈夫です。</p>
   </div>
 </div>
 
@@ -611,14 +630,14 @@ window.addEventListener("unhandledrejection", function(e){
     <div id="deskEmpty" class="empty">左のストックから1本を開くと、ここに本文と検査結果が出ます</div>
     <div id="deskBody" style="display:none">
       <div class="stations" id="stations">
-        <div class="station" data-s="idle" data-name="企画"><span class="nm">企画</span><span class="st">待機</span></div>
-        <div class="station" data-s="idle" data-name="需要"><span class="nm">需要</span><span class="st">待機</span></div>
-        <div class="station" data-s="idle" data-name="出典"><span class="nm">出典</span><span class="st">待機</span></div>
-        <div class="station" data-s="idle" data-name="構成"><span class="nm">構成</span><span class="st">待機</span></div>
-        <div class="station" data-s="idle" data-name="本文"><span class="nm">本文</span><span class="st">待機</span></div>
-        <div class="station" data-s="idle" data-name="検査"><span class="nm">検査</span><span class="st">待機</span></div>
-        <div class="station" data-s="idle" data-name="図解"><span class="nm">図解</span><span class="st">待機</span></div>
-        <div class="station" data-s="idle" data-name="SNS"><span class="nm">SNS</span><span class="st">待機</span></div>
+        <div class="station" data-s="idle" data-role="editor" data-name="企画"><span class="nm">企画</span><span class="st">待機</span></div>
+        <div class="station" data-s="idle" data-role="analyst" data-name="需要"><span class="nm">需要</span><span class="st">待機</span></div>
+        <div class="station" data-s="idle" data-role="researcher" data-name="出典"><span class="nm">出典</span><span class="st">待機</span></div>
+        <div class="station" data-s="idle" data-role="digger" data-name="構成"><span class="nm">構成</span><span class="st">待機</span></div>
+        <div class="station" data-s="idle" data-role="writer" data-name="本文"><span class="nm">本文</span><span class="st">待機</span></div>
+        <div class="station" data-s="idle" data-role="qa" data-name="検査"><span class="nm">検査</span><span class="st">待機</span></div>
+        <div class="station" data-s="idle" data-role="designer" data-name="図解"><span class="nm">図解</span><span class="st">待機</span></div>
+        <div class="station" data-s="idle" data-role="sns" data-name="SNS"><span class="nm">SNS</span><span class="st">待機</span></div>
       </div>
       <div class="verdicts" id="verdict"></div>
       <div class="issues" id="issues"></div>
@@ -1243,6 +1262,18 @@ function isLightSkipped(roleId){
   return LIGHT_SKIP.some(l => hay.includes(l) || hay.toLowerCase().includes(l.toLowerCase()));
 }
 /* ============================================================
+   表示用の名前 ── 運営者が付けた呼び名があればそれを使う
+   （AIへ送る指示の中身は変えません。画面の表示だけが変わります）
+   ============================================================ */
+function roleName(id){
+  let o = {};
+  try{ o = JSON.parse(localStorage.getItem("ml_names") || "null") || {}; }catch(_){ o = {}; }
+  const v = String(o[id] == null ? "" : o[id]).trim();
+  if(v) return v;
+  const r = ROLES[id];
+  return (r && r.label) || String(id);
+}
+/* ============================================================
    あなたらしさ（文体）設定 ── 9人全員の指示の末尾に足す
    保存先: localStorage の ml_style（この端末の中だけ）
    ============================================================ */
@@ -1352,7 +1383,7 @@ async function runPipeline(topic, genre, reader, research, resume){
 
   const doStep = async (idx, key, roleId, mk, temp) => {
     if(F[key]){ setStation(idx,"skip"); logLine(`  ↺ ${key} は前回の結果を再利用します（API回数を節約）`); return F[key]; }
-    setStation(idx,"run"); logLine(`▶ ${ROLES[roleId].label} … 実行中`);
+    setStation(idx,"run"); logLine(`▶ ${roleName(roleId)} … 実行中`);
     const out = await step(roleId, mk(), temp);
     F[key] = out; setStation(idx,"done"); saveDraft(d);
     return out;
@@ -1374,11 +1405,11 @@ async function runPipeline(topic, genre, reader, research, resume){
     let draft = await doStep(4, "04_記事本文.md", "writer",
       () => base + `\n## 企画\n${plan}\n## 需要分析\n${demand}\n## 出典\n${researchMd}\n## 構成案\n${dig}\n\n本文を書いてください。最後に『## note投稿メタ』を必ず付けてください。`, 0.9);
 
-    setStation(5,"run"); logLine(`▶ ${ROLES.qa.label} … 検査中`);
+    setStation(5,"run"); logLine(`▶ ${roleName("qa")} … 検査中`);
     let checks = qaCheck(draft, researchMd, topic);
     const qaText = await step("qa", base + `\n## 本文\n${draft}\n## 機械チェック結果\n${JSON.stringify(checks, null, 2)}\n\nレビューしてください。`);
     if(checks.verdict === "FAIL" && !F["04_記事本文_改訂版.md"]){
-      logLine("  ↺ 検査でダメ出し → 書き直します");
+      logLine(`  ↺ ${roleName("qa")}のダメ出し → ${roleName("writer")}が書き直します`);
       setStation(4,"rev");
       F["04_記事本文_改訂版.md"] = await step("writer", base
         + `\n## 前回の本文\n${draft}\n## 検査の指摘\n${qaText}\n## 機械チェック\n${JSON.stringify(checks, null, 2)}\n\n指摘をすべて直した改訂版を書いてください。『## note投稿メタ』も更新すること。`);
@@ -2373,11 +2404,11 @@ setTimeout(() => { try{ paintKey(); }catch(_){} }, 800);
    通信ラボ 運用ボード（追加レイヤー）
    ============================================================ */
 (function(){
-  const MAP0 = {"keyPanel": "設定", "mobilePanel": "設定"};
-  const NEWMAP = {boardPanel:"ホーム", homePanel:"ホーム",snsPanel:"発信",stylePanel:"設定",apPanel:"承認",kpiPanel:"記録", workPanel1:"作業", workPanel2:"作業", workPanel3:"作業",costPanel:"記録",
+  const MAP0 = {"keyPanel": "設定"};
+  const NEWMAP = {boardPanel:"ホーム", homePanel:"ホーム",snsPanel:"発信",stylePanel:"あなた",namePanel:"あなた",apPanel:"承認",kpiPanel:"記録", workPanel1:"作業", workPanel2:"作業", workPanel3:"作業",costPanel:"記録",
                   affiPanel:"記録",personaPanel:"記録",acctPanel:"記録",
                   imgPanel:"記録",qaPanel2:"記録"};
-  const TABS = ["ホーム","作業","承認","発信","記録","設定"];
+  const TABS = ["ホーム","作業","承認","発信","記録","あなた","設定"];
   const E = id => document.querySelector("#"+id);
   const esc = s => String(s==null?"":s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
   const INIP = {};
@@ -2412,6 +2443,7 @@ setTimeout(() => { try{ paintKey(); }catch(_){} }, 800);
     if(name === "AIコスト") paintCost();
     if(name === "アフィ") paintAffi();
     if(name === "発信"){ try{ paintSns(); }catch(_){} }
+    if(name === "あなた"){ try{ paintNames(); }catch(_){} }
   }
   function buildNav(){
     const n = E("bnav"); if(!n) return;
@@ -2433,7 +2465,8 @@ setTimeout(() => { try{ paintKey(); }catch(_){} }, 800);
     box.innerHTML = ROLESET.map(([k,label]) => {
       const r = ROLES[k] || {};
       const body = String(r.body || "");
-      return '<div class="worker" data-s="idle"><i></i><b>'+esc(label)+'</b>'
+      const rn = (typeof window.roleName === "function") ? window.roleName(k) : label;
+      return '<div class="worker" data-s="idle"><i></i><b>'+esc(rn)+'</b>'
         + '<span style="color:var(--faint);font-size:11.5px;flex:1">'
         + (body.length ? body.length+"字の指示" : "未読込") + '</span></div>';
     }).join("")
@@ -2615,7 +2648,7 @@ setTimeout(() => { try{ paintKey(); }catch(_){} }, 800);
   buildNav(); paintWorkers(); paintKpi(); paintCost(); paintAffi(); paintQa();
   bindText(["peWho","peNeed","peWord"], "ml_persona");
   bindText(["acX","acNote","acGh","acDrive"], "ml_acct");
-  const KEY = {"ホーム":"home","作業":"work","承認":"ap","発信":"sns","記録":"rec","設定":"setup"};
+  const KEY = {"ホーム":"home","作業":"work","承認":"ap","発信":"sns","記録":"rec","あなた":"me","設定":"setup"};
   const h0 = (location.hash||"").replace("#","");
   const t0 = Object.keys(KEY).find(k => KEY[k] === h0);
   showTab(t0 || "ホーム");
@@ -2875,6 +2908,64 @@ setTimeout(() => { try{ paintKey(); }catch(_){} }, 800);
     snRuns(); snRender();
   })();
 
+  /* ============================================================
+     AI担当者の名前（表示だけに使う。AIへの指示は変えない）
+     ============================================================ */
+  var NAMEDEF = [["trend","トレンド編集者（ネタ選別）"],["editor","編集長（企画）"],
+                 ["analyst","需要分析"],["researcher","リサーチ（出典）"],["digger","深掘り（構成）"],
+                 ["writer","執筆（本文）"],["qa","校閲（検査）"],["designer","図解・画像"],["sns","SNS運用"]];
+  function nmGet(){
+    var o = {};
+    try{ o = JSON.parse(localStorage.getItem("ml_names") || "null") || {}; }catch(_){ o = {}; }
+    return (o && typeof o === "object") ? o : {};
+  }
+  function paintNames(){
+    var o = nmGet();
+    var host = E("nameRows");
+    if(host && !host.innerHTML){
+      host.innerHTML = NAMEDEF.map(function(p, i){
+        return '<label class="f"><span>' + (i+1) + '. ' + esc(p[1]) + '</span>'
+          + '<input data-nm="' + p[0] + '" maxlength="12" value="' + esc(String(o[p[0]]||"")) + '"'
+          + ' placeholder="空欄なら「' + esc(p[1]) + '」のまま"></label>';
+      }).join("");
+    } else if(host){
+      host.querySelectorAll("[data-nm]").forEach(function(el){
+        el.value = String(o[el.getAttribute("data-nm")] || "");
+      });
+    }
+    /* 作業画面の9つの枠の見出しを差し替える */
+    document.querySelectorAll(".station").forEach(function(st){
+      var role = st.getAttribute("data-role") || "";
+      var base = st.getAttribute("data-name") || "";
+      var v = String(o[role] || "").trim() || base;
+      var nm = st.querySelector(".nm"); if(nm) nm.textContent = v;
+      if(role) st.setAttribute("data-name", v);
+    });
+    try{ paintWorkers(); }catch(_){}
+  }
+  function nmSave(){
+    var o = {};
+    document.querySelectorAll("#nameRows [data-nm]").forEach(function(el){
+      var v = String(el.value || "").trim().slice(0, 12);
+      if(v) o[el.getAttribute("data-nm")] = v;
+    });
+    LS.set("ml_names", o);
+    paintNames();
+    toast("名前を保存しました。作業画面とログの表示が変わります。");
+  }
+  function nmClear(){
+    LS.set("ml_names", {});
+    var host = E("nameRows"); if(host) host.innerHTML = "";
+    try{ paintWorkers(); }catch(_){}
+    paintNames();
+    toast("全部、元の名前に戻しました。");
+  }
+  (function(){
+    var b = E("nmSave"); if(b) b.onclick = nmSave;
+    var c = E("nmClear"); if(c) c.onclick = nmClear;
+    paintNames();
+  })();
+
   window.__boardShow = showTab;
 })();
 </script>
@@ -3060,6 +3151,7 @@ input,select,textarea{font-size:16px}
     var h = (location.hash || "").replace("#", "");
     if(h === "rec"){ curTab = "記録"; setTimeout(paintRec, 60); }
     paintHome();
+    try{ paintNames(); }catch(_){}
     if(document.getElementById("homePanel") && document.getElementById("homePanel").offsetParent !== null){ curTab = "ホーム"; }
   }
   boot(); setTimeout(boot, 900);
