@@ -639,6 +639,27 @@ try{
   STOREOK = (localStorage.getItem(probe) === "1");
   localStorage.removeItem(probe);
 }catch(e){ STOREOK = false; }
+/* ===== 「このURLで、保存が本当に残っているか」を記録して画面に出す =====
+   ここが毎回「1回目」になるURLは、リロードのたびに別の場所として扱われています
+   （＝保存が残らないURL。リンクの期限付きURLや、毎回変わるURLがこれに当たります）。 */
+const SEEN = (function(){
+  const now = Date.now();
+  let s = LS.get("ml_seen", null);
+  if(!s || typeof s.count !== "number" || s.host !== location.host){
+    s = { first: now, count: 0, host: location.host, path: location.pathname };
+  }
+  s.count += 1; s.last = now; s.path = location.pathname;
+  LS.set("ml_seen", s);
+  return s;
+})();
+function seenText(){
+  const d = new Date(SEEN.first);
+  const ymd = d.getFullYear() + "/" + (d.getMonth()+1) + "/" + d.getDate() + " " +
+              String(d.getHours()).padStart(2,"0") + ":" + String(d.getMinutes()).padStart(2,"0");
+  return "開いているURL: <b style='font-family:var(--mono);font-size:11.5px'>" + location.host + location.pathname + "</b><br>"
+       + "このURLでの利用: <b style='font-family:var(--mono)'>" + SEEN.count + "回目</b>（初回 " + ymd + "）"
+       + (SEEN.count <= 1 ? " <b style='color:var(--warn)'>← 毎回ここが1回目なら、このURLは保存が残りません</b>" : "");
+}
 
 let RUNS   = LS.get("ml_runs", {});
 let LEDGER = LS.get("ml_ledger", { topics:[], rejects:[] });
@@ -1384,6 +1405,7 @@ function paintKey(){
               ? 'この端末に <b style="color:var(--signal)">保存済み</b>です。同じブラウザで同じURLを開くかぎり、次からは入力を求めません。'
               : '<b style="color:var(--stop)">このブラウザは設定を保存できません。</b>下の「更新するとキーが消えるとき」をお読みください。'))
       : 'まだ保存されていません。<b>1回だけ</b>貼り付けて「保存して確認」を押せば、この端末に記憶します（以後は不要）。';
+    if(typeof seenText === "function") kn.innerHTML += '<div style="margin-top:7px;padding-top:7px;border-top:1px solid var(--line);color:var(--dim)">' + seenText() + '</div>';
     const ik = $("#inKey");
     if(ik) ik.placeholder = ok ? (CONF.__site ? "共通設定を使用中（変えるときだけ入力）" : "保存済み（変えるときだけ入力）") : "AIza...";
   }
@@ -1744,6 +1766,8 @@ function envCheck(){
     ["スリープ防止(wakeLock)", yn("wakeLock" in navigator)],
     ["タッチ操作", yn(("ontouchstart" in window) || navigator.maxTouchPoints > 0)],
     ["画面サイズ", window.innerWidth + " × " + window.innerHeight + " px" + (window.innerWidth <= 760 ? "（スマホ用表示）" : "（パソコン用表示）")],
+    ["開いているURL", "<b style='font-family:var(--mono);font-size:11px'>" + location.host + location.pathname + "</b>"],
+    ["このURLでの利用回数", "<b style='font-family:var(--mono)'>" + SEEN.count + "回目</b>" + (SEEN.count <= 1 ? ' <span style="color:var(--warn)">（毎回1回目ならこのURLは保存が残りません）</span>' : "")],
     ["ブラウザ情報", (navigator.userAgent || "").slice(0,140)]
   ];
   let h = '<div class="eyebrow">この端末の状態</div><div class="verdicts" style="display:block">';
@@ -1835,6 +1859,7 @@ function cycleTheme(){
   envWarn();
   restoreForm();
   paintKey();
+  if(typeof SEEN !== 'undefined') paintKey();
   paintQuota();
   const lc = $("#inLight");
   if(lc){ lc.checked = !!CONF.light;
