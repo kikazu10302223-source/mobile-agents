@@ -323,7 +323,6 @@ hr{border:none;border-top:1px solid var(--line);margin:22px 0}
 </style>
 </head>
 <body onload="window.__ML_LOADED=1">
-<div id="trybar"><b>v14.0</b>（2026-09-30）：ホーム4ステップ／発信タブ／<b>「あなた」タブ</b>（文体・担当者の名前・スマホのコツ）。うまく動かないときは<a href="board_v13.html">旧版に戻す</a>。</div>
 <script>
 /* どんな失敗も見逃さないための記録係（いちばん最初に読み込む） */
 window.__MLERR = [];
@@ -364,7 +363,7 @@ window.addEventListener("unhandledrejection", function(e){
       <li>下の欄に貼り付けて「保存して確認」</li>
     </ol>
     <div class="actions" id="diagRow" style="margin:0 0 12px"><button class="btn sm" id="btnConnTest" type="button">接続テスト</button><button class="btn sm" id="btnStoreTest" type="button">保存テスト</button><button class="btn sm" id="btnEnvCheck2" type="button">環境チェック</button></div>
-    <div class="hint" id="verTag" style="margin:0 0 10px">本番 v14.0：2026-09-30 ／ この行が見えていれば最新版です</div>
+    <div class="hint" id="verTag" style="margin:0 0 10px">版：2026-09-30-13.11 ／ この行が見えていれば最新版です</div>
     <label class="f"><span>APIキー（人に見せないでください）</span><input type="password" id="inKey" placeholder="AIza..."></label>
     <div class="hint" id="keyNote" style="margin:-2px 0 10px"></div>
     <div id="keyWarn"></div>
@@ -412,8 +411,8 @@ window.addEventListener("unhandledrejection", function(e){
 </div>
 
 <!-- スマホで使うときの案内 -->
-<div class="panel" id="mobilePanel">
-  <div class="ph"><span class="n">MOBILE</span><h2>スマホで使うときのコツ（4つ）</h2></div>
+<div class="panel" id="mobilePanel" style="display:none">
+  <div class="ph"><span class="n">MOBILE</span><h2>スマホで使うときの3つのコツ</h2></div>
   <div class="pb" style="font-size:13.5px">
     <ol style="margin:0;padding-left:22px">
       <li><b>画面を閉じない。</b>生成中に画面が暗くなったり、他のアプリに切り替わると、ブラウザが止められて中断します。中止しても <b>「続きから再開」</b>で、終わった役割は再利用できます。</li>
@@ -425,127 +424,8 @@ window.addEventListener("unhandledrejection", function(e){
   </div>
 </div>
 
-<!-- 発信（SNS）：X／Instagram／TikTok の投稿文を作る -->
-<div class="panel" id="snsPanel">
-  <div class="ph"><span class="n">SNS</span><h2>発信（X・Instagram・TikTokの文面を作る）</h2>
-    <p>記事1本から、媒体ごとの投稿文を作ります。<b>自動投稿はできません</b>が、貼るだけの状態まで持っていきます。</p></div>
-  <div class="pb">
-    <div class="cards">
-      <div class="card"><div class="k">X</div><div class="v" style="font-size:19px">投稿文</div><small>140字×3案</small></div>
-      <div class="card"><div class="k">Instagram</div><div class="v" style="font-size:19px">キャプション</div><small>タグ付き</small></div>
-      <div class="card"><div class="k">TikTok</div><div class="v" style="font-size:19px">動画の台本</div><small>20〜30秒</small></div>
-    </div>
-    <label class="f"><span>どの記事から作りますか</span>
-      <select id="snRun"><option value="">（貼り付けて作る）</option></select></label>
-    <label class="f"><span>本文を貼り付ける（記事を選べば空のままでOK。ここに入れるとこちらを使います）</span>
-      <textarea id="snText" rows="4" placeholder="記事の本文をここに貼り付けても作れます"></textarea></label>
-    <div class="actions" style="margin-top:10px">
-      <button class="btn primary" id="snMakeX" type="button">Xの投稿文を作る</button>
-      <button class="btn primary" id="snMakeIG" type="button">Instagramを作る</button>
-      <button class="btn primary" id="snMakeTT" type="button">TikTok台本を作る</button>
-    </div>
-    <div class="hint" id="snNote" style="margin:6px 0 12px"></div>
-    <div id="snOut"><div class="hint">まだ作っていません。上のボタンから作ってください。</div></div>
-    <div class="sncard" style="margin-top:14px"><h4>貼り付け先の開き方</h4>
-      <ul style="margin:6px 0 0;padding-left:20px;font-size:14px;line-height:1.95">
-        <li><b>X</b>：「Xの投稿画面を開く」を押すと、文面が入った状態でXが開きます（あとは投稿を押すだけ）</li>
-        <li><b>Instagram</b>：「＋」→ 投稿を作成 → キャプション欄を長押し → ペースト</li>
-        <li><b>TikTok</b>：「＋」で撮影 → テロップと読み上げ原稿を見ながら録画 → キャプションに貼る</li>
-        <li><b>note</b>：記事は今までどおり「承認」タブからコピーして貼ります</li>
-      </ul></div>
-    <details style="margin:14px 0 0;border:1px solid var(--line);border-radius:10px;padding:10px 12px">
-      <summary style="cursor:pointer;font-size:13.5px;font-weight:700">なぜ自動投稿・予約投稿ができないのか</summary>
-      <div style="margin-top:9px;font-size:13px;line-height:1.9;color:var(--dim)">
-        各SNSに自動で投稿するには、次の3つが必要です。<br>
-        <b style="color:var(--ink)">1. 各社での開発者登録と審査</b>：Instagramはプロアカウント＋Facebookアプリ、TikTokはContent Posting API（投稿用の公式窓口）の審査が必要です。<br>
-        <b style="color:var(--ink)">2. 秘密の鍵をしまうサーバー</b>：この仕組みはブラウザだけで動いており、鍵を安全に置く場所がありません。公開ページに鍵を置くのは事故のもとなので、やりません。<br>
-        <b style="color:var(--ink)">3. Xは従量課金</b>：2026年9月時点で、テキスト1投稿が0.015ドル、<b>リンク付きは0.20ドル</b>（1ドル155円なら約31円）。しかもブラウザから直接呼ぶとCORS（別サイト間の通信を制限する仕組み）で拒否されます（出典: <a href="https://docs.x.com/x-api/getting-started/pricing" target="_blank" rel="noopener noreferrer">X API 料金表</a>）。<br>
-        <b style="color:var(--ink)">現実的な選択</b>：文面はこの画面で作り、貼り付けは手で行う。予約投稿まで自動化したいときは、SocialDog・Buffer・Meta Business Suite などの予約投稿サービスに渡すのが安全で安上がりです。
-      </div>
-    </details>
-  </div>
-</div>
-
-<!-- 文体（あなたらしさ）設定 -->
-<div class="panel" id="stylePanel">
-  <div class="ph"><span class="n">VOICE</span><h2>あなたらしさ（文体・人物）設定</h2>
-    <p>ここに書いた内容は、<b>9人の担当すべてに毎回渡されます</b>。<b>いまは全部空欄です。</b>ご自身の言葉で入れて「保存する」を押してください（入れるほど「あなたの文章」に近づきます）。</p></div>
-  <div class="pb">
-    <div class="cards">
-      <div class="card"><div class="k">いまの状態</div><div class="v" style="font-size:18px">空欄</div><small>入力して保存すると反映</small></div>
-      <div class="card"><div class="k">反映される範囲</div><div class="v" style="font-size:18px">9人全員</div><small>企画〜SNSまで</small></div>
-      <div class="card"><div class="k">保存先</div><div class="v" style="font-size:18px">この端末</div><small>サーバーへは送りません</small></div>
-    </div>
-    <label class="f"><span>一人称（記事の中で自分を何と呼ぶか）</span><input id="stP1" placeholder="私／僕／俺"></label>
-    <label class="f"><span>口調・語尾</span><textarea id="stTone" rows="2" placeholder="例：やさしい敬語。専門用語は言い換えを添える。たまに本音を混ぜる。"></textarea></label>
-    <label class="f"><span>性格・立場（読者から見たあなた）</span><textarea id="stChara" rows="2" placeholder="例：店頭で7年働いてきた実務者。誇張しない。困っている人の味方。"></textarea></label>
-    <label class="f"><span>背景・経歴（記事の説得材料として使ってよいこと）</span><textarea id="stBg" rows="3" placeholder="例：携帯・通信の仕事を7年。店頭で契約・乗り換え・料金相談を担当。&#10;※勤務先が特定される情報・お客様の情報は書かないでください。"></textarea></label>
-    <label class="f"><span>想定読者（誰に向けて書くか）</span><textarea id="stReader" rows="2" placeholder="例：20〜50代。料金の見直し・乗り換え・端末の買い替えを考えている人。金額と条件にうるさい。"></textarea></label>
-    <label class="f"><span>よく使う言い回し・口癖（任意）</span><textarea id="stWords" rows="2" placeholder="例：「ここが落とし穴です」「店頭ではこう聞かれます」。空欄でも大丈夫です。"></textarea></label>
-    <label class="f"><span>書かないこと（任意）</span><textarea id="stNg" rows="2" placeholder="例：「絶対」「最安」などの断定。読者を見下す言い方。勤務先・他社を貶す表現。&#10;（空欄でも、断定禁止・PR表記などのルールは9人の指示に元から入っています）"></textarea></label>
-    <label class="f"><span>文体の見本：あなたが過去に書いた文章を1〜3本そのまま貼る（いちばん効きます）</span>
-      <textarea id="stSample" rows="6" placeholder="自分のnoteの記事やXの投稿をそのまま貼ってください。文の長さ・リズム・語尾をAIが真似します。"></textarea></label>
-    <div class="actions" style="margin-top:0">
-      <button class="btn primary" id="stSave" type="button">保存する</button>
-      <button class="btn sm" id="stShow" type="button">いまAIに渡す文を見る</button>
-      <button class="btn sm" id="stReset" type="button">すべて空にする</button>
-    </div>
-    <div class="hint" id="stOut" style="white-space:pre-wrap;font-family:var(--mono);font-size:11.5px;max-height:240px;overflow:auto"></div>
-    <details style="margin:12px 0 0;border:1px solid var(--line);border-radius:10px;padding:10px 12px">
-      <summary style="cursor:pointer;font-size:13.5px;font-weight:700">別の端末に移す（書き出し／読み込み）</summary>
-      <div style="margin-top:9px;font-size:13px;color:var(--dim)">「書き出す」で出たコードをコピーし、別の端末で貼って「読み込む」を押します。</div>
-      <textarea id="stIO" rows="3" placeholder="ここに設定コードが出ます／貼り付けます"
-        style="width:100%;margin-top:9px;background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:9px;font-size:11.5px;font-family:var(--mono);color:var(--ink)"></textarea>
-      <div class="actions" style="margin-top:8px">
-        <button class="btn sm" id="stExp" type="button">書き出す</button>
-        <button class="btn sm" id="stImp" type="button">読み込む</button>
-      </div>
-    </details>
-    <div class="warnb"><b>注意</b>：この内容は<b>この端末の中だけ</b>に保存されます。記事を作るときに、GoogleのAIへ送られます。<b>勤務先を特定される情報、お客様の情報、住所・電話番号などは書かないでください。</b></div>
-  </div>
-</div>
-
-<!-- AI担当者の名前（あなたタブ） -->
-<div class="panel" id="namePanel">
-  <div class="ph"><span class="n">NAMES</span><h2>AI担当者の名前（好きな呼び名でOK）</h2>
-    <p>9人の担当に、あなたが呼びたい名前を付けられます。<b>作業画面の9つの枠・実行ログ・オフィス一覧の表示が、付けた名前に変わります。</b></p></div>
-  <div class="pb">
-    <div class="cards">
-      <div class="card"><div class="k">呼び名を付けると</div><div class="v" style="font-size:18px">見やすくなる</div><small>誰が働いているか一目で分かる</small></div>
-      <div class="card"><div class="k">空欄のとき</div><div class="v" style="font-size:18px">既定の名前</div><small>元の呼び名のまま</small></div>
-      <div class="card"><div class="k">AIの中身</div><div class="v" style="font-size:18px">変えない</div><small>指示の中身はそのまま</small></div>
-    </div>
-    <div id="nameRows"></div>
-    <div class="actions" style="margin-top:0">
-      <button class="btn primary" id="nmSave" type="button">名前を保存する</button>
-      <button class="btn sm" id="nmClear" type="button">全部もとの名前に戻す</button>
-    </div>
-    <div class="hint">例：「ネタ係」「リサーチさん」「書き手」「最後のチェック係」など。12字まで。<b>付けた名前は、この端末の表示だけに使われます</b>（AIへ送る役割の指示は変わりません）。</div>
-  </div>
-</div>
-
 <!-- ① AIにネタを選ばせる -->
-<!-- ホーム：今日やること（案A） -->
-<div class="panel" id="homePanel">
-  <div class="ph"><span class="n">HOME</span><h2>今日やること（この順番で押すだけ）</h2>
-    <p>「あなた」タブに<b>文体（あなたらしさ）・担当者の名前・スマホのコツ</b>をまとめました。ふだんはこの4つだけで進められます。</p></div>
-  <div class="pb">
-    <div class="cards" id="homeState"></div>
-    <div class="steps">
-      <button class="step" type="button" onclick="__mlStep(1)">
-        <b>① ネタを選ぶ</b><small>AIに候補を出させて、書く1本を決めます（約5秒）</small><i>ひらく →</i></button>
-      <button class="step" type="button" onclick="__mlStep(2)">
-        <b>② 記事を作る</b><small>9人の担当が順番に働きます（3〜8分。画面は閉じないでください）</small><i>ひらく →</i></button>
-      <button class="step" type="button" onclick="__mlStep(3)">
-        <b>③ 承認する</b><small>店頭体験を足して、noteへ出す許可を出します</small><i>ひらく →</i></button>
-      <button class="step" type="button" onclick="__mlStep(4)">
-        <b>④ 発信する</b><small>X・Instagram・TikTokの文面を作ります</small><i>ひらく →</i></button>
-    </div>
-    <p class="hint" style="margin:10px 0 0">①〜④以外の画面（数字＝「記録」／あなた設定＝「あなた」／鍵＝「設定」）は、必要なときだけ開けば大丈夫です。</p>
-  </div>
-</div>
-
-<div class="panel" id="workPanel1">
+<div class="panel">
   <div class="ph"><span class="n">STEP 1</span><h2>AIにネタを集めさせる（材料を渡して選別）</h2>
     <p>材料が無くても、AIの知識と切り口だけで提案させられます（その場合は【仮説】扱い）</p></div>
   <div class="pb">
@@ -566,7 +446,7 @@ window.addEventListener("unhandledrejection", function(e){
 </div>
 
 <!-- ② ネタを直接入力して1本作る -->
-<div class="panel" id="workPanel2">
+<div class="panel">
   <div class="ph"><span class="n">STEP 2-A</span><h2>ネタを直接入力して1本作る</h2></div>
   <div class="pb">
     <label class="f"><span>テーマ（自由に書いてOK。例：光回線の乗り換えで損しない手順）</span>
@@ -594,7 +474,7 @@ window.addEventListener("unhandledrejection", function(e){
 </div>
 
 <!-- ③ まとめて仕込む -->
-<div class="panel" id="workPanel3">
+<div class="panel">
   <div class="ph"><span class="n">STEP 2-B</span><h2>まとめて仕込む（ストックを作る）</h2></div>
   <div class="pb">
     <p style="font-size:13px;line-height:1.8;margin:0 0 10px;color:var(--dim)">1行に1テーマを書いて押すと、上から順に記事を作り、<b>承認待ちのストック</b>にたまります。1本終わるごとに保存するので、途中で止まっても作った分は残ります。</p>
@@ -630,14 +510,14 @@ window.addEventListener("unhandledrejection", function(e){
     <div id="deskEmpty" class="empty">左のストックから1本を開くと、ここに本文と検査結果が出ます</div>
     <div id="deskBody" style="display:none">
       <div class="stations" id="stations">
-        <div class="station" data-s="idle" data-role="editor" data-name="企画"><span class="nm">企画</span><span class="st">待機</span></div>
-        <div class="station" data-s="idle" data-role="analyst" data-name="需要"><span class="nm">需要</span><span class="st">待機</span></div>
-        <div class="station" data-s="idle" data-role="researcher" data-name="出典"><span class="nm">出典</span><span class="st">待機</span></div>
-        <div class="station" data-s="idle" data-role="digger" data-name="構成"><span class="nm">構成</span><span class="st">待機</span></div>
-        <div class="station" data-s="idle" data-role="writer" data-name="本文"><span class="nm">本文</span><span class="st">待機</span></div>
-        <div class="station" data-s="idle" data-role="qa" data-name="検査"><span class="nm">検査</span><span class="st">待機</span></div>
-        <div class="station" data-s="idle" data-role="designer" data-name="図解"><span class="nm">図解</span><span class="st">待機</span></div>
-        <div class="station" data-s="idle" data-role="sns" data-name="SNS"><span class="nm">SNS</span><span class="st">待機</span></div>
+        <div class="station" data-s="idle" data-name="企画"><span class="nm">企画</span><span class="st">待機</span></div>
+        <div class="station" data-s="idle" data-name="需要"><span class="nm">需要</span><span class="st">待機</span></div>
+        <div class="station" data-s="idle" data-name="出典"><span class="nm">出典</span><span class="st">待機</span></div>
+        <div class="station" data-s="idle" data-name="構成"><span class="nm">構成</span><span class="st">待機</span></div>
+        <div class="station" data-s="idle" data-name="本文"><span class="nm">本文</span><span class="st">待機</span></div>
+        <div class="station" data-s="idle" data-name="検査"><span class="nm">検査</span><span class="st">待機</span></div>
+        <div class="station" data-s="idle" data-name="図解"><span class="nm">図解</span><span class="st">待機</span></div>
+        <div class="station" data-s="idle" data-name="SNS"><span class="nm">SNS</span><span class="st">待機</span></div>
       </div>
       <div class="verdicts" id="verdict"></div>
       <div class="issues" id="issues"></div>
@@ -1261,47 +1141,6 @@ function isLightSkipped(roleId){
   const hay = String(roleId) + " " + String(r.label || "");
   return LIGHT_SKIP.some(l => hay.includes(l) || hay.toLowerCase().includes(l.toLowerCase()));
 }
-/* ============================================================
-   表示用の名前 ── 運営者が付けた呼び名があればそれを使う
-   （AIへ送る指示の中身は変えません。画面の表示だけが変わります）
-   ============================================================ */
-function roleName(id){
-  let o = {};
-  try{ o = JSON.parse(localStorage.getItem("ml_names") || "null") || {}; }catch(_){ o = {}; }
-  const v = String(o[id] == null ? "" : o[id]).trim();
-  if(v) return v;
-  const r = ROLES[id];
-  return (r && r.label) || String(id);
-}
-/* ============================================================
-   あなたらしさ（文体）設定 ── 9人全員の指示の末尾に足す
-   保存先: localStorage の ml_style（この端末の中だけ）
-   ============================================================ */
-function styleBlock(){
-  let s = {};
-  try{ s = JSON.parse(localStorage.getItem("ml_style") || "null") || {}; }catch(_){ s = {}; }
-  const g = k => String(s[k] == null ? "" : s[k]).trim();
-  if(!g("p1") && !g("tone") && !g("chara") && !g("bg") && !g("reader") && !g("words") && !g("ng") && !g("sample")) return "";
-  let t = "\n\n---\n## 書き手の人物と文体（いちばん優先して守る）\n"
-        + "これから書く文章の**書き手は、次の人物**です。語り口・視点・価値観・読者との距離感を、この人物に合わせてください。\n";
-  if(g("p1"))     t += "- 一人称: 「" + g("p1") + "」（読者に呼びかけるときは「あなた」）\n";
-  if(g("tone"))   t += "- 口調・語尾: " + g("tone") + "\n";
-  if(g("chara"))  t += "- 性格・立場: " + g("chara") + "\n";
-  if(g("bg"))     t += "- 背景・経歴（記事の説得材料として使ってよい）: " + g("bg") + "\n";
-  if(g("reader")) t += "- 想定読者: " + g("reader") + "\n";
-  if(g("words"))  t += "- よく使う言い回し（自然に混ぜる。多用はしない）: " + g("words") + "\n";
-  if(g("ng"))     t += "- 書かないこと（禁止）: " + g("ng") + "\n";
-  if(g("sample")){
-    t += "\n### 文体の見本（文の長さ・リズム・語尾・読者との距離感を真似る。内容や事実は真似しない）\n"
-       + "```\n" + g("sample").slice(0, 3000) + "\n```\n";
-  }
-  t += "\n**この人物設定は、ほかのどんな指示よりも優先します。**\n"
-     + "ただし次のルールは文体よりも必ず優先します: 金額に基準日を書く／「実質◯円」は内訳を添える／"
-     + "キャンペーンは終了日を書く／契約条件の注意書きを入れる／"
-     + "比較優良表示（最安・No.1・絶対・必ず）を書かない／PR表記を入れる／"
-     + "店頭体験は【ここにあなたの店頭体験をひとつ】と空欄のまま残す。\n";
-  return t;
-}
 async function step(roleId, user, temp){
   const r = ROLES[roleId];
   if(!r) throw new Error(`役割プロンプトが見つかりません: ${roleId}`);
@@ -1309,7 +1148,7 @@ async function step(roleId, user, temp){
     if(PACE_HOOK) PACE_HOOK(`  ※ 軽量モード: 「${r.label}」を省略しました（回数制限を避けるため。あとで単体でも実行できます）`);
     return "（軽量モードのため省略しました。必要なときは、この役割だけを単体で実行してください）";
   }
-  const sys = `あなたは「${r.label}」です。\n\n${r.body}\n\n${COMMON_RULES}${styleBlock()}`;
+  const sys = `あなたは「${r.label}」です。\n\n${r.body}\n\n${COMMON_RULES}`;
   return await gemini(sys, user, temp);
 }
 let STOP = false;
@@ -1383,7 +1222,7 @@ async function runPipeline(topic, genre, reader, research, resume){
 
   const doStep = async (idx, key, roleId, mk, temp) => {
     if(F[key]){ setStation(idx,"skip"); logLine(`  ↺ ${key} は前回の結果を再利用します（API回数を節約）`); return F[key]; }
-    setStation(idx,"run"); logLine(`▶ ${roleName(roleId)} … 実行中`);
+    setStation(idx,"run"); logLine(`▶ ${ROLES[roleId].label} … 実行中`);
     const out = await step(roleId, mk(), temp);
     F[key] = out; setStation(idx,"done"); saveDraft(d);
     return out;
@@ -1405,11 +1244,11 @@ async function runPipeline(topic, genre, reader, research, resume){
     let draft = await doStep(4, "04_記事本文.md", "writer",
       () => base + `\n## 企画\n${plan}\n## 需要分析\n${demand}\n## 出典\n${researchMd}\n## 構成案\n${dig}\n\n本文を書いてください。最後に『## note投稿メタ』を必ず付けてください。`, 0.9);
 
-    setStation(5,"run"); logLine(`▶ ${roleName("qa")} … 検査中`);
+    setStation(5,"run"); logLine(`▶ ${ROLES.qa.label} … 検査中`);
     let checks = qaCheck(draft, researchMd, topic);
     const qaText = await step("qa", base + `\n## 本文\n${draft}\n## 機械チェック結果\n${JSON.stringify(checks, null, 2)}\n\nレビューしてください。`);
     if(checks.verdict === "FAIL" && !F["04_記事本文_改訂版.md"]){
-      logLine(`  ↺ ${roleName("qa")}のダメ出し → ${roleName("writer")}が書き直します`);
+      logLine("  ↺ 検査でダメ出し → 書き直します");
       setStation(4,"rev");
       F["04_記事本文_改訂版.md"] = await step("writer", base
         + `\n## 前回の本文\n${draft}\n## 検査の指摘\n${qaText}\n## 機械チェック\n${JSON.stringify(checks, null, 2)}\n\n指摘をすべて直した改訂版を書いてください。『## note投稿メタ』も更新すること。`);
@@ -2168,7 +2007,7 @@ function envCheck(){
 function applyTheme(pref){
   let th;
   if(pref === "light" || pref === "dark") th = pref;
-  else th = "light";   /* 既定は明るい配色（案B） */
+  else th = (window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches) ? "light" : "dark";
   document.documentElement.setAttribute("data-theme", th);
   const lab = (th === "light" ? "表示：明" : "表示：暗");
   const b = $("#btnTheme"); if(b) b.textContent = lab;
@@ -2404,11 +2243,11 @@ setTimeout(() => { try{ paintKey(); }catch(_){} }, 800);
    通信ラボ 運用ボード（追加レイヤー）
    ============================================================ */
 (function(){
-  const MAP0 = {"keyPanel": "設定"};
-  const NEWMAP = {boardPanel:"ホーム", homePanel:"ホーム",snsPanel:"発信",stylePanel:"あなた",namePanel:"あなた",mobilePanel:"あなた",apPanel:"承認",kpiPanel:"記録", workPanel1:"作業", workPanel2:"作業", workPanel3:"作業",costPanel:"記録",
-                  affiPanel:"記録",personaPanel:"記録",acctPanel:"記録",
-                  imgPanel:"記録",qaPanel2:"記録"};
-  const TABS = ["ホーム","作業","承認","発信","記録","あなた","設定"];
+  const MAP0 = {"keyPanel": "設定", "mobilePanel": "設定"};
+  const NEWMAP = {boardPanel:"オフィス",apPanel:"承認",kpiPanel:"KPI",costPanel:"AIコスト",
+                  affiPanel:"アフィ",personaPanel:"ペルソナ",acctPanel:"アカウント",
+                  imgPanel:"画像",qaPanel2:"QA"};
+  const TABS = ["オフィス","承認","ネタ帳","QA","KPI","AIコスト","アフィ","ペルソナ","アカウント","画像","設定","すべて"];
   const E = id => document.querySelector("#"+id);
   const esc = s => String(s==null?"":s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
   const INIP = {};
@@ -2418,7 +2257,6 @@ setTimeout(() => { try{ paintKey(); }catch(_){} }, 800);
     return Array.from(document.querySelectorAll(".panel")).filter(p => p.id || true);
   }
   function gname(p){
-    if(p.id === "recBar") return "記録";
     if(NEWMAP[p.id]) return NEWMAP[p.id];
     if(MAP0[p.id]) return MAP0[p.id];
     const h = (p.querySelector("h2")||{}).textContent || "";
@@ -2442,8 +2280,6 @@ setTimeout(() => { try{ paintKey(); }catch(_){} }, 800);
     if(name === "KPI") paintKpi();
     if(name === "AIコスト") paintCost();
     if(name === "アフィ") paintAffi();
-    if(name === "発信"){ try{ paintSns(); }catch(_){} }
-    if(name === "あなた"){ try{ paintNames(); }catch(_){} }
   }
   function buildNav(){
     const n = E("bnav"); if(!n) return;
@@ -2465,8 +2301,7 @@ setTimeout(() => { try{ paintKey(); }catch(_){} }, 800);
     box.innerHTML = ROLESET.map(([k,label]) => {
       const r = ROLES[k] || {};
       const body = String(r.body || "");
-      const rn = (typeof window.roleName === "function") ? window.roleName(k) : label;
-      return '<div class="worker" data-s="idle"><i></i><b>'+esc(rn)+'</b>'
+      return '<div class="worker" data-s="idle"><i></i><b>'+esc(label)+'</b>'
         + '<span style="color:var(--faint);font-size:11.5px;flex:1">'
         + (body.length ? body.length+"字の指示" : "未読込") + '</span></div>';
     }).join("")
@@ -2648,10 +2483,10 @@ setTimeout(() => { try{ paintKey(); }catch(_){} }, 800);
   buildNav(); paintWorkers(); paintKpi(); paintCost(); paintAffi(); paintQa();
   bindText(["peWho","peNeed","peWord"], "ml_persona");
   bindText(["acX","acNote","acGh","acDrive"], "ml_acct");
-  const KEY = {"ホーム":"home","作業":"work","承認":"ap","発信":"sns","記録":"rec","あなた":"me","設定":"setup"};
+  const KEY = {"オフィス":"office","承認":"ap","ネタ帳":"topics","QA":"qa","KPI":"kpi","AIコスト":"cost","アフィ":"affi","ペルソナ":"persona","アカウント":"acct","画像":"img","設定":"setup","すべて":"all"};
   const h0 = (location.hash||"").replace("#","");
   const t0 = Object.keys(KEY).find(k => KEY[k] === h0);
-  showTab(t0 || "ホーム");
+  showTab(t0 || "オフィス");
 
   E("kAdd").onclick = () => {
     const parts = (E("kIn").value||"").split("|").map(s => Number(String(s).replace(/[^0-9.-]/g,"")) || 0);
@@ -2676,296 +2511,6 @@ setTimeout(() => { try{ paintKey(); }catch(_){} }, 800);
   E("acSave").onclick = () => saveText(["acX","acNote","acGh","acDrive"], "ml_acct");
   E("qaSave").onclick = () => toast("チェックは自動保存されています。");
   E("qaClear").onclick = () => { LS.set("ml_qa7", [false,false,false,false,false,false,false]); paintQa(); };
-  /* ============================================================
-     文体（あなたらしさ）設定
-     ============================================================ */
-  var STF = [["p1","stP1"],["tone","stTone"],["chara","stChara"],["bg","stBg"],
-             ["reader","stReader"],["words","stWords"],["ng","stNg"],["sample","stSample"]];
-  var ST_DEF = {
-    p1:"", tone:"", chara:"", bg:"", reader:"", words:"", ng:"", sample:""
-  };
-  function stGet(){
-    var s = {};
-    try{ s = JSON.parse(localStorage.getItem("ml_style") || "null") || {}; }catch(_){ s = {}; }
-    var o = {};
-    STF.forEach(function(p){
-      o[p[0]] = (s[p[0]] == null ? String(ST_DEF[p[0]] || "") : String(s[p[0]]));
-    });
-    return o;
-  }
-  function stFill(){
-    var o = stGet();
-    STF.forEach(function(p){ var el = E(p[1]); if(el) el.value = o[p[0]]; });
-  }
-  function stSave(){
-    var o = {};
-    STF.forEach(function(p){ var el = E(p[1]); o[p[0]] = el ? el.value : ""; });
-    LS.set("ml_style", o);
-    toast("保存しました。次の記事づくりから反映されます。");
-  }
-  function stReset(){
-    LS.set("ml_style", {});
-    stFill(); stPreview();
-    toast("すべて空にしました。「保存する」を押すと反映されます。");
-  }
-  function stPreview(){
-    var el = E("stOut"); if(!el) return;
-    var f = window.styleBlock;
-    if(typeof f !== "function"){
-      el.textContent = "（この機能は読み込まれませんでした。画面を開き直してください）"; return;
-    }
-    var t = "";
-    try{ t = f() || ""; }catch(_){ t = ""; }
-    el.textContent = t || "（まだ何も入っていません。上の欄に入力して「保存する」を押すと、ここに表示されます）";
-  }
-  function stExport(){
-    var el = E("stIO"); if(!el) return;
-    try{
-      el.value = "MLSTYLE1:" + btoa(unescape(encodeURIComponent(JSON.stringify(stGet()))));
-      toast("下の枠に出ました。コピーして次の端末に貼ってください。");
-    }catch(_){ toast("書き出せませんでした。"); }
-  }
-  function stImport(){
-    var el = E("stIO"); if(!el) return;
-    var v = String(el.value || "").trim().replace(/^MLSTYLE1:/, "");
-    if(!v){ toast("枠が空です。先に「書き出す」を押すか、コードを貼ってください。"); return; }
-    try{
-      var o = JSON.parse(decodeURIComponent(escape(atob(v))));
-      LS.set("ml_style", o); stFill(); stPreview(); toast("読み込みました。");
-    }catch(_){ toast("コードを読み取れませんでした。コピーし直してください。"); }
-  }
-
-  /* ============================================================
-     発信（SNS）：X／Instagram／TikTok の投稿文を作る
-     ============================================================ */
-  var SNS_K = "ml_sns";
-  var SNS_TITLE = { x:"X（旧Twitter）の投稿文", ig:"Instagramのキャプション", tt:"TikTokの台本" };
-  var SNS_BASE = "あなたは通信・モバイル専門メディアのSNS運用担当です。渡された記事から、媒体ごとの投稿文を作ります。\n\n"
-    + "## 全媒体で守ること\n"
-    + "- **記事に書かれていない数字・事実を足さない。** 記事から取れないものは【要確認】と書く。\n"
-    + "- 金額を出すときは、基準日（例: 2026年9月時点）を添える。\n"
-    + "- **煽らない。**「最安」「絶対」「必ず」「衝撃」「知らないと損」は使わない（景品表示法）。\n"
-    + "- 記事のタイトルをそのまま入れる。URLは【記事URL】と書いて人間が貼れるようにする（勝手にURLを作らない）。\n"
-    + "- 広告・アフィリエイトを含む文面は、いちばん上に「PR」と書く（ステマ規制）。\n"
-    + "- 特定のキャリア・店舗・個人を貶す表現は書かない。\n"
-    + "- 読者が次に取れる行動を1つ入れる（保存する・公式で確認する・記事を読む）。\n"
-    + "- 出力は、そのままコピーして貼れる**完成形**にする。前置き・説明・挨拶は書かない。\n";
-
-  var SNS_SPEC = {
-    x: "\n## 作るもの（X＝旧Twitter）\n"
-     + "- 3案つくる。**A: 速報型**（変化を伝える）／**B: 比較型**（数字を出す）／**C: 体験型**（店頭の実感）。\n"
-     + "- 案ごとに「【A】」のように見出しを付け、案と案の間は「---」で区切る。\n"
-     + "- 各案は**全角140字以内**（日本語は1文字＝1カウント、改行も1文字）。案の最後に（◯字）と文字数を書く。\n"
-     + "- 1行目で結論を言い切る。改行は2〜3回。同じ語尾を3回続けない。\n"
-     + "- ハッシュタグは1〜3個（大きいタグ1個＋固有のタグ1〜2個）。\n"
-     + "- C（体験型）は、店頭の一場面を入れる場所を【ここにあなたの店頭体験をひとつ】と空けておく。\n",
-    ig: "\n## 作るもの（Instagram）\n"
-     + "- 1案つくる。\n"
-     + "- 1行目（最初の125字までが折り返し前に見える）で「誰の・何が分かるか」を書く。\n"
-     + "- 本文は1〜2文ごとに改行して読みやすく。絵文字は2〜4個まで、文末に置く。\n"
-     + "- 長さの目安は600〜1,200字（長すぎると読まれない）。最後に（◯字）と文字数を書く。\n"
-     + "- 最後に行動の呼びかけを1行（例: 保存しておくと、料金の見直しのときに見返せます）。\n"
-     + "- ハッシュタグは10個前後。大きいタグ5個＋固有のタグ5個を、本文のあとにまとめて置く。\n"
-     + "- 画像に載せる文字（アイキャッチ用）を2案、15字以内で最後に添える。\n"
-     + "- 【ここにあなたの店頭体験をひとつ】を1か所入れる。\n",
-    tt: "\n## 作るもの（TikTokの縦動画）\n"
-     + "- 20〜30秒の縦動画の台本を1本つくる。\n"
-     + "- 【つかみ 0〜3秒】【本題 3〜20秒】【締め 20〜30秒】の3つに区切って書く。\n"
-     + "- 各パートに**「話す言葉（読み上げ原稿）」**と**「画面に出すテロップ」**を分けて書く。テロップは1つ8〜14字。\n"
-     + "- 最初の3秒で「誰が得するか」を言い切る（最後まで見られるかがここで決まる）。\n"
-     + "- ハッシュタグ3〜5個。キャプションは1〜2行で短く。\n"
-     + "- 同じ台本をリール・YouTubeショートに流用するときの注意を1行添える。\n"
-     + "- 【ここにあなたの店頭体験をひとつ】を1か所入れる。\n"
-  };
-
-  var snBusy = false;
-  function snAll(){
-    var o = { x:"", ig:"", tt:"", at:"" };
-    try{ o = Object.assign(o, JSON.parse(localStorage.getItem(SNS_K) || "null") || {}); }catch(_){}
-    return o;
-  }
-  function snSrc(){
-    var ta = E("snText");
-    var pasted = ta ? String(ta.value || "").trim() : "";
-    if(pasted) return pasted;
-    var sel = E("snRun"), id = sel && sel.value;
-    if(!id) return "";
-    var r = (RUNS || {})[id] || {}, F = r.files || {};
-    return F["note_paste.md"] || F["04_記事本文_改訂版.md"] || F["04_記事本文.md"] || "";
-  }
-  function snRuns(){
-    var sel = E("snRun"); if(!sel) return;
-    var keep = sel.value;
-    var ids = [];
-    try{ ids = Object.keys(RUNS || {}).sort().reverse(); }catch(_){ ids = []; }
-    sel.innerHTML = '<option value="">（貼り付けて作る）</option>'
-      + ids.map(function(id){
-          var r = (RUNS || {})[id] || {};
-          var head = (r.status === "approved" ? "公開済み " : "");
-          return '<option value="' + esc(id) + '">' + esc(head + (r.topic || id)) + '</option>';
-        }).join("");
-    if(keep) sel.value = keep;
-    if(!sel.value && ids.length) sel.value = ids[0];
-    snPick();
-  }
-  function snPick(){
-    var sel = E("snRun"), ta = E("snText"), note = E("snNote");
-    if(!sel || !note) return;
-    var id = sel.value;
-    if(ta) ta.value = "";
-    if(!id){ note.textContent = "記事を選ぶか、下の欄に本文を貼ってください。"; return; }
-    var r = (RUNS || {})[id] || {}, F = r.files || {};
-    var body = F["note_paste.md"] || F["04_記事本文_改訂版.md"] || F["04_記事本文.md"] || "";
-    note.textContent = body
-      ? "「" + (r.topic || id) + "」の本文（" + body.length + "字）を使います。"
-      : "この回には本文がまだありません。下の欄に本文を貼ってください。";
-  }
-  function snRender(){
-    var out = E("snOut"); if(!out) return;
-    var d = snAll(), parts = [];
-    [["x","X（旧Twitter）"],["ig","Instagram"],["tt","TikTok"]].forEach(function(p){
-      var t = String(d[p[0]] || "");
-      if(!t) return;
-      var cnt = t.replace(/\s/g, "").length;
-      parts.push('<div class="sncard"><h4>' + p[1] + '</h4>'
-        + '<div class="cnt">' + t.length + '字（空白を除くと ' + cnt + '字）'
-        + (p[0] === "x" ? ' ／ Xは全角140字が上限の目安です' : '')
-        + (d.at ? ' ／ 作成 ' + esc(d.at) : '') + '</div>'
-        + '<div class="txt">' + esc(t) + '</div>'
-        + '<div class="actions" style="margin:0">'
-        + '<button class="btn sm primary" type="button" data-sncopy="' + p[0] + '">コピー</button>'
-        + '<button class="btn sm" type="button" data-snshare="' + p[0] + '">共有（LINEなど）</button>'
-        + (p[0] === "x" ? '<button class="btn sm" type="button" data-snopen="x">Xの投稿画面を開く</button>' : '')
-        + '</div></div>');
-    });
-    out.innerHTML = parts.length ? parts.join("")
-      : '<div class="hint">まだ作っていません。上のボタンから作ってください。</div>';
-    out.querySelectorAll("[data-sncopy]").forEach(function(b){
-      b.onclick = async function(){
-        var ok = await copyText(snAll()[b.getAttribute("data-sncopy")] || "");
-        toast(ok ? "コピーしました。アプリに貼り付けてください。"
-                 : "コピーできませんでした。枠を長押し→全選択→コピーしてください。");
-      };
-    });
-    out.querySelectorAll("[data-snshare]").forEach(function(b){
-      b.onclick = async function(){
-        var t = snAll()[b.getAttribute("data-snshare")] || "";
-        if(navigator.share){ try{ await navigator.share({ text: t }); return; }catch(_){} }
-        var ok = await copyText(t);
-        toast(ok ? "この端末は共有が使えないので、コピーしました。" : "共有できませんでした。");
-      };
-    });
-    out.querySelectorAll("[data-snopen]").forEach(function(b){
-      b.onclick = function(){
-        var t = String(snAll().x || "").slice(0, 280);
-        var u = "https://twitter.com/intent/tweet?text=" + encodeURIComponent(t);
-        try{ window.open(u, "_blank", "noopener"); }catch(_){ location.href = u; }
-      };
-    });
-  }
-  function paintSns(){ try{ snRuns(); }catch(_){} try{ snRender(); }catch(_){} }
-  async function snGen(kind){
-    if(snBusy){ toast("いま作っています。少し待ってください。"); return; }
-    var body = snSrc();
-    if(body.length < 120){
-      toast("材料が足りません。記事を選ぶか、本文を貼ってください。");
-      try{ if(typeof __mlStep === "function") __mlStep(2); }catch(_){}
-      return;
-    }
-    var f = window.gemini;
-    if(typeof f !== "function"){ toast("AIの呼び出し口が見つかりません。画面を開き直してください。"); return; }
-    if(window.CONF && !CONF.key && !window.TRIAL){ toast("先に「設定」でキーを入れてください。"); return; }
-    var out = E("snOut");
-    snBusy = true;
-    if(out) out.innerHTML = '<div class="sncard"><b>' + esc(SNS_TITLE[kind]) + 'を作っています…</b>'
-      + '<div class="cnt">30秒〜2分ほどかかります。画面は閉じないでください。</div></div>';
-    var sys = SNS_BASE + SNS_SPEC[kind];
-    try{ if(typeof window.styleBlock === "function") sys += window.styleBlock(); }catch(_){}
-    try{
-      var txt = await f(sys, "## 記事の本文\n" + body.slice(0, 12000) + "\n\n上記の形式で作ってください。", 0.8);
-      var all = snAll();
-      all[kind] = String(txt || "");
-      all.at = new Date().toISOString().slice(0,16).replace("T"," ");
-      LS.set(SNS_K, all);
-      snRender();
-      toast(SNS_TITLE[kind] + "ができました。");
-    }catch(e){
-      if(out) out.innerHTML = '<div class="sncard"><b>作れませんでした</b>'
-        + '<div class="cnt">' + esc(String((e && e.message) || e).split("\n")[0]) + '</div>'
-        + '<div class="cnt">「設定」タブの「接続テスト」でキーを確かめてから、もう一度お試しください。</div></div>';
-    }finally{ snBusy = false; }
-  }
-
-  /* ---- 文体・発信の配線 ---- */
-  (function(){
-    /* 最初は空欄のまま。ご自身が入力して「保存する」を押したときだけ記録します */
-    stFill();
-    var w = [["stSave",stSave],["stReset",stReset],["stShow",stPreview],["stExp",stExport],["stImp",stImport]];
-    w.forEach(function(p){ var b = E(p[0]); if(b) b.onclick = p[1]; });
-    var m = [["snMakeX","x"],["snMakeIG","ig"],["snMakeTT","tt"]];
-    m.forEach(function(p){ var b = E(p[0]); if(b) b.onclick = function(){ snGen(p[1]); }; });
-    var sel = E("snRun"); if(sel) sel.onchange = snPick;
-    snRuns(); snRender();
-  })();
-
-  /* ============================================================
-     AI担当者の名前（表示だけに使う。AIへの指示は変えない）
-     ============================================================ */
-  var NAMEDEF = [["trend","トレンド編集者（ネタ選別）"],["editor","編集長（企画）"],
-                 ["analyst","需要分析"],["researcher","リサーチ（出典）"],["digger","深掘り（構成）"],
-                 ["writer","執筆（本文）"],["qa","校閲（検査）"],["designer","図解・画像"],["sns","SNS運用"]];
-  function nmGet(){
-    var o = {};
-    try{ o = JSON.parse(localStorage.getItem("ml_names") || "null") || {}; }catch(_){ o = {}; }
-    return (o && typeof o === "object") ? o : {};
-  }
-  function paintNames(){
-    var o = nmGet();
-    var host = E("nameRows");
-    if(host && !host.innerHTML){
-      host.innerHTML = NAMEDEF.map(function(p, i){
-        return '<label class="f"><span>' + (i+1) + '. ' + esc(p[1]) + '</span>'
-          + '<input data-nm="' + p[0] + '" maxlength="12" value="' + esc(String(o[p[0]]||"")) + '"'
-          + ' placeholder="空欄なら「' + esc(p[1]) + '」のまま"></label>';
-      }).join("");
-    } else if(host){
-      host.querySelectorAll("[data-nm]").forEach(function(el){
-        el.value = String(o[el.getAttribute("data-nm")] || "");
-      });
-    }
-    /* 作業画面の9つの枠の見出しを差し替える */
-    document.querySelectorAll(".station").forEach(function(st){
-      var role = st.getAttribute("data-role") || "";
-      var base = st.getAttribute("data-name") || "";
-      var v = String(o[role] || "").trim() || base;
-      var nm = st.querySelector(".nm"); if(nm) nm.textContent = v;
-      if(role) st.setAttribute("data-name", v);
-    });
-    try{ paintWorkers(); }catch(_){}
-  }
-  function nmSave(){
-    var o = {};
-    document.querySelectorAll("#nameRows [data-nm]").forEach(function(el){
-      var v = String(el.value || "").trim().slice(0, 12);
-      if(v) o[el.getAttribute("data-nm")] = v;
-    });
-    LS.set("ml_names", o);
-    paintNames();
-    toast("名前を保存しました。作業画面とログの表示が変わります。");
-  }
-  function nmClear(){
-    LS.set("ml_names", {});
-    var host = E("nameRows"); if(host) host.innerHTML = "";
-    try{ paintWorkers(); }catch(_){}
-    paintNames();
-    toast("全部、元の名前に戻しました。");
-  }
-  (function(){
-    var b = E("nmSave"); if(b) b.onclick = nmSave;
-    var c = E("nmClear"); if(c) c.onclick = nmClear;
-    paintNames();
-  })();
-
   window.__boardShow = showTab;
 })();
 </script>
@@ -3025,141 +2570,5 @@ setTimeout(() => { try{ paintKey(); }catch(_){} }, 800);
   setTimeout(fix, 1500);
 })();
 </script>
-
-<style>
-/* 案B：読みやすさ優先（文字を大きく・ボタンを大きく） */
-body{font-size:17px;line-height:1.9}
-.ph h2{font-size:18px}
-.ph p,.hint,.warnb{font-size:14.5px}
-.f>span{font-size:14px}
-label{font-size:14.5px}
-input,select,textarea{font-size:16px}
-.btn{font-size:15px;min-height:54px;padding:13px 16px}
-.btn.sm{font-size:13.5px;min-height:44px;padding:10px 12px}
-.cand .acts .btn,.mbar .btn{min-height:48px}
-/* 案A：ホームの3ステップ */
-.steps{display:flex;flex-direction:column;gap:11px;margin:4px 0 0}
-.step{display:grid;grid-template-columns:1fr auto;gap:4px 12px;text-align:left;align-items:center;
-  background:var(--surface2);border:1px solid var(--line);border-left:4px solid var(--signal);
-  border-radius:12px;padding:15px 17px;cursor:pointer;color:var(--ink);font-size:16px;
-  min-height:74px;transition:.15s}
-.step:hover{border-color:var(--signal)}
-.step b{font-size:17.5px;grid-column:1}
-.step small{grid-column:1;font-size:13.5px;color:var(--dim);line-height:1.65}
-.step i{grid-column:2;grid-row:1 / span 2;font-style:normal;font-size:13.5px;color:var(--signal);font-weight:700;white-space:nowrap}
-/* 記録タブの中の切り替え */
-.recbar{display:flex;gap:7px;flex-wrap:wrap;padding:12px 13px 4px}
-.recbar button{background:var(--surface2);border:1px solid var(--line);border-radius:99px;
-  padding:8px 15px;font-size:13.5px;cursor:pointer;color:var(--dim);min-height:40px}
-.recbar button.on{background:var(--signal);border-color:var(--signal);color:#06120C;font-weight:700}
-#trybar{background:#1D2A22;border-bottom:1px solid var(--line);color:#CFE7D8;font-size:13px;
-  padding:9px 13px;text-align:center}
-#trybar a{color:#8FE0B4;font-weight:700}
-/* 発信（SNS）と文体設定 */
-.sncard{background:var(--surface2);border:1px solid var(--line);border-radius:12px;padding:13px 15px;margin:0 0 12px}
-.sncard h4{margin:0 0 6px;font-size:16px}
-.sncard .cnt{font-size:12.5px;color:var(--dim);line-height:1.7}
-.sncard .txt{white-space:pre-wrap;background:var(--bg);border:1px solid var(--line);border-radius:9px;
-  padding:11px;font-size:15px;line-height:1.85;margin:8px 0}
-#snOut .actions .btn,{min-height:44px}
-#stOut{background:var(--surface2);border:1px solid var(--line);border-radius:9px;padding:10px;margin-top:8px}
-#stOut:empty{display:none}
-</style>
-<script>
-/* ===== ホーム（案A）＋記録タブの切り替え＋既定の明るい配色 ===== */
-(function(){
-  function navTo(name){
-    try{ if(typeof window.__boardShow === "function") window.__boardShow(name); }catch(_){}
-    try{ setTimeout(paintRec, 30); }catch(_){}
-  }
-  function open(name, sel){
-    navTo(name);
-    setTimeout(function(){
-      var el = sel && document.querySelector(sel);
-      if(el){
-        try{ el.scrollIntoView({behavior:"smooth", block:"center"}); }catch(_){}
-        if(el.focus) try{ el.focus(); }catch(_){}
-      }
-    }, 120);
-  }
-  window.__mlStep = function(n){
-    if(n === 1) open("作業", "#btnTrend");
-    else if(n === 2) open("作業", "#inTopic");
-    else if(n === 3) open("承認", "#apCards");
-    else open("発信", "#snMakeX");
-  };
-  /* ホームの状態表示 */
-  function paintHome(){
-    var box = document.getElementById("homeState"); if(!box) return;
-    var key = "", await_ = 0, topics = 0;
-    try{ key = String((JSON.parse(localStorage.getItem("ml_conf") || "{}") || {}).key || ""); }catch(_){}
-    try{
-      var rs = JSON.parse(localStorage.getItem("ml_runs") || "{}") || {};
-      Object.keys(rs).forEach(function(k){ if(rs[k] && rs[k].status === "awaiting") await_++; });
-    }catch(_){}
-    try{
-      var lg = JSON.parse(localStorage.getItem("ml_ledger") || "{}") || {};
-      topics = (lg.topics || []).length;
-    }catch(_){}
-    box.innerHTML =
-      '<div class="card"><div class="k">APIキー</div><div class="v" style="font-size:19px">'
-        + (key ? "設定済み" : "未設定") + '<small>' + (key ? "キー" + key.length + "文字" : "「設定」から入れてください") + '</small></div></div>'
-      + '<div class="card"><div class="k">承認待ち</div><div class="v">' + await_ + '<small>本（③で承認します）</small></div></div>'
-      + '<div class="card"><div class="k">ネタ帳の記録</div><div class="v">' + topics + '<small>件</small></div></div>';
-  }
-  /* 記録タブ：中身を1つずつ表示 */
-  var REC = [["kpiPanel","KPI"],["costPanel","AIコスト"],["affiPanel","アフィ"],
-             ["personaPanel","ペルソナ"],["acctPanel","アカウント"],["imgPanel","画像"],["qaPanel2","QA"]];
-  var recSel = "kpiPanel", curTab = "";
-  function paintRec(){
-    if(curTab !== "記録") return;
-    var host = document.getElementById("recBar");
-    if(!host){
-      host = document.createElement("div");
-      host.id = "recBar"; host.className = "panel recbar";
-      var first = document.getElementById("kpiPanel");
-      if(first && first.parentNode) first.parentNode.insertBefore(host, first);
-    }
-    if(host){
-      host.innerHTML = REC.map(function(p){
-        return '<button type="button" data-rec="' + p[0] + '" class="' + (p[0] === recSel ? "on" : "") + '">' + p[1] + '</button>';
-      }).join("");
-      host.querySelectorAll("button[data-rec]").forEach(function(b){
-        b.onclick = function(){ recSel = b.getAttribute("data-rec"); paintRec(); };
-      });
-    }
-    REC.forEach(function(p){
-      var el = document.getElementById(p[0]);
-      if(el) el.style.display = (p[0] === recSel) ? "" : "none";
-    });
-  }
-  /* ナビを押したら「いまのタブ」を記録する */
-  var nav = document.getElementById("bnav");
-  if(nav){
-    nav.addEventListener("click", function(e){
-      var b = e.target && e.target.closest ? e.target.closest(".nb") : null;
-      if(!b) return;
-      curTab = b.getAttribute("data-t") || curTab;
-      setTimeout(paintRec, 30);
-    }, true);
-  }
-  /* 起動時 */
-  function boot(){
-    try{
-      if(!localStorage.getItem("ml_theme")) applyTheme("light");
-    }catch(_){}
-    var h = (location.hash || "").replace("#", "");
-    var H2T = {"home":"ホーム","work":"作業","ap":"承認","sns":"発信","rec":"記録","me":"あなた","setup":"設定"};
-    var hn = H2T[h];
-    if(hn){ curTab = hn; navTo(hn); }
-    else { navTo("ホーム"); }
-    paintHome();
-    try{ paintNames(); }catch(_){}
-    if(document.getElementById("homePanel") && document.getElementById("homePanel").offsetParent !== null){ curTab = "ホーム"; }
-  }
-  boot(); setTimeout(boot, 900);
-})();
-</script>
-
 </body>
 </html>
