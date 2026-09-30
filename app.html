@@ -314,6 +314,24 @@ hr{border:none;border-top:1px solid var(--line);margin:22px 0}
     </ol>
     <label class="f"><span>APIキー（人に見せないでください）</span><input type="password" id="inKey" placeholder="AIza..."></label>
     <div class="hint" id="keyNote" style="margin:-2px 0 10px"></div>
+    <div id="keyWarn"></div>
+    <details style="margin:0 0 12px;border:1px solid var(--line);border-radius:10px;padding:10px 12px">
+      <summary style="cursor:pointer;font-size:13.5px;font-weight:700">更新するとキーが消えるとき／別の端末に移すとき</summary>
+      <div style="margin-top:9px;font-size:13px;line-height:1.85;color:var(--dim)">
+        <b style="color:var(--ink)">A. サイト共通にする（おすすめ・更新でも消えません）</b><br>
+        リポジトリの <code>config.js</code> を1回だけ編集して、<code>key: ""</code> の中にあなたのキーを書きます。
+        PCでもスマホでも、全ページが同じキーで動きます。<b>ただし公開リポジトリなので、URLを知っている人は中身を読めます。</b>
+        このサイト専用のキーを作り、有料プランにしないでください。<br><br>
+        <b style="color:var(--ink)">B. 設定コードで移す（端末ごとに1回・人に見せない）</b><br>
+        下の枠へ「書き出す」→ 出たコードをコピー → 別の端末で貼って「読み込む」。
+      </div>
+      <textarea id="expo" rows="3" placeholder="ここに設定コードが出ます／貼り付けます"
+        style="width:100%;margin-top:9px;background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:9px;font-size:11.5px;font-family:var(--mono);color:var(--ink)"></textarea>
+      <div class="actions" style="margin-top:8px">
+        <button class="btn sm" id="btnExp">書き出す</button>
+        <button class="btn sm" id="btnImp">読み込む</button>
+      </div>
+    </details>
     <label style="display:flex;gap:9px;align-items:flex-start;font-size:13px;margin:4px 0 12px;cursor:pointer">
       <input type="checkbox" id="inPace" checked style="width:auto;margin-top:3px">
       <span>慎重モード（1回ごとに6秒あけて、回数制限（429）を避ける）</span>
@@ -504,6 +522,7 @@ hr{border:none;border-top:1px solid var(--line);margin:22px 0}
 <div id="toast"></div>
 <div id="resume"></div>
 
+<script src="config.js"></script>
 <script>
 /* ============================================================
    1. 基本の道具
@@ -563,12 +582,47 @@ function md(src){
    2. 保存されるデータ
    ============================================================ */
 let CONF   = LS.get("ml_conf", { key:"", model:"", pace:6 });
+/* ===== サイト共通設定（config.js）を読み込む ===== */
+const SITE = (window.ML_CONFIG && String(window.ML_CONFIG.key || "").trim())
+  ? window.ML_CONFIG : null;
+if(SITE){
+  CONF.key   = String(SITE.key).trim();
+  if(SITE.model) CONF.model = String(SITE.model);
+  CONF.pace  = (SITE.pace === undefined || SITE.pace === null) ? CONF.pace : Number(SITE.pace);
+  CONF.light = !!SITE.light;
+  CONF.__site = true;
+}
+/* ===== 保存領域が使えるかを調べる（更新で消える原因の切り分け） ===== */
+let STOREOK = true;
+try{
+  const probe = "__ml_probe";
+  localStorage.setItem(probe, "1");
+  STOREOK = (localStorage.getItem(probe) === "1");
+  localStorage.removeItem(probe);
+}catch(e){ STOREOK = false; }
+
 let RUNS   = LS.get("ml_runs", {});
 let LEDGER = LS.get("ml_ledger", { topics:[], rejects:[] });
 let DRAFT  = LS.get("ml_draft", null);
 let TRIAL  = false;
 let CUR = null, TAB = "04_記事本文.md";
-function saveConf(){ LS.set("ml_conf", CONF); }
+function saveConf(){
+  LS.set("ml_conf", CONF);
+  /* 書いた直後に読み返して、本当に残ったかを確認する（黙って消えるのを防ぐ） */
+  if(CONF.key){
+    let back = null;
+    try{ back = JSON.parse(localStorage.getItem("ml_conf") || "null"); }catch(_){ back = null; }
+    if(!back || back.key !== CONF.key){
+      STOREOK = false;
+      if(typeof toast === "function") toast("このブラウザはサイトデータを保存できない設定のようです。config.js で固定してください。");
+      const w = $("#keyWarn");
+      if(w) w.innerHTML = '<div style="border:1px solid var(--stop);background:var(--stop-soft);border-radius:10px;padding:10px 12px;font-size:13px;line-height:1.75;margin-bottom:10px">'
+        + '<b style="color:var(--stop)">このブラウザは、入力した設定を保存できません。</b><br>'
+        + 'シークレットモード、または「終了時にサイトデータを削除」の設定が原因です。<br>'
+        + '<b>確実な解決策は config.js にキーを書くこと</b>です（このページの下に手順があります）。</div>';
+    }
+  }
+}
 function saveRuns(){ LS.set("ml_runs", RUNS); }
 function saveLedger(){ LS.set("ml_ledger", LEDGER); }
 
@@ -653,6 +707,12 @@ function waitFor(msg, attempt){
   const m = String(msg).match(/retryDelay\D{0,6}(\d+(?:\.\d+)?)s/);
   if(m) w = Math.max(w, Math.ceil(parseFloat(m[1])) + 3);
   return w + Math.floor(Math.random()*8);
+}
+/* ===== 設定コード（キーと設定を1行にまとめて、別の端末へ移す） ===== */
+function encCode(o){ return "ML1." + btoa(unescape(encodeURIComponent(JSON.stringify(o)))); }
+function decCode(s){
+  s = String(s||"").trim().replace(/^ML1\./,"").replace(/\s+/g,"");
+  return JSON.parse(decodeURIComponent(escape(atob(s))));
 }
 function brief(m){ m = String(m).replace(/https?:\/\/\S+/g,"").replace(/\s+/g," ").trim();
   return m.length > 220 ? m.slice(0,220) + "…" : m; }
@@ -1279,12 +1339,50 @@ function paintKey(){
   const kn = $("#keyNote");
   if(kn){
     kn.innerHTML = ok
-      ? 'この端末に <b style="color:var(--signal)">保存済み</b>です。同じブラウザで同じURLを開くかぎり、次からは入力を求めません。'
+      ? (CONF.__site
+          ? 'いまは <b style="color:var(--signal)">サイト共通設定（config.js）</b>のキーで動きます。<b>全ページ・全端末で同じ</b>です。'
+          : (STOREOK
+              ? 'この端末に <b style="color:var(--signal)">保存済み</b>です。同じブラウザで同じURLを開くかぎり、次からは入力を求めません。'
+              : '<b style="color:var(--stop)">このブラウザは設定を保存できません。</b>下の「更新するとキーが消えるとき」をお読みください。'))
       : 'まだ保存されていません。<b>1回だけ</b>貼り付けて「保存して確認」を押せば、この端末に記憶します（以後は不要）。';
-    const ik = $("#inKey"); if(ik) ik.placeholder = ok ? "保存済み（変えるときだけ入力）" : "AIza...";
+    const ik = $("#inKey");
+    if(ik) ik.placeholder = ok ? (CONF.__site ? "共通設定を使用中（変えるときだけ入力）" : "保存済み（変えるときだけ入力）") : "AIza...";
   }
 }
 $("#btnOpenKey").onclick = () => { $("#keyPanel").scrollIntoView({behavior:"smooth", block:"start"}); $("#inKey").focus(); };
+
+/* ===== 設定コードの書き出し／読み込み ===== */
+if($("#btnExp")) $("#btnExp").onclick = () => {
+  const box = $("#expo");
+  box.value = encCode({k:CONF.key, m:CONF.model, p:(CONF.pace===undefined?6:CONF.pace),
+                       l:!!CONF.light, t:LS.get("ml_theme","auto")});
+  box.focus(); box.select();
+  toast("書き出しました。コピーして、別の端末の同じ欄に貼ってください。");
+};
+if($("#btnImp")) $("#btnImp").onclick = () => {
+  const box = $("#expo");
+  try{
+    const o = decCode(box.value);
+    if(o.k) CONF.key = String(o.k);
+    if(o.m) CONF.model = String(o.m);
+    if(o.p !== undefined) CONF.pace = Number(o.p);
+    CONF.light = !!o.l;
+    saveConf();
+    if(o.t) applyTheme(o.t);
+    paintKey();
+    toast("設定を読み込みました。以後はこの端末で入力を求めません。");
+  }catch(e){ toast("コードを読み取れませんでした。コピーし直してください。"); }
+};
+/* ===== 入力した瞬間に自動保存する（保存ボタンを押し忘れても消えない） ===== */
+if($("#inKey")){
+  let tk = null;
+  $("#inKey").addEventListener("input", () => {
+    const v = ($("#inKey").value || "").trim();
+    if(tk) clearTimeout(tk);
+    tk = setTimeout(() => { if(v){ CONF.key = v; delete CONF.__site; saveConf(); paintKey(); } }, 700);
+  });
+}
+
 $("#btnShowHow").onclick = () => window.open("https://kikazu10302223-source.github.io/mobile-agents/guide.html", "_blank");
 $("#inPace").onchange = e => {
   CONF.pace = e.target.checked ? 6 : 0; saveConf();
@@ -1656,7 +1754,7 @@ function cycleTheme(){
     tb2.className = "btn sm"; tb2.id = "btnTheme"; tb2.textContent = "表示：暗";
     tb2.onclick = cycleTheme;
     key.parentNode.insertBefore(tb2, b.nextSibling);
-    applyTheme(LS.get("ml_theme", "auto"));
+    applyTheme(LS.get("ml_theme", (window.ML_CONFIG && window.ML_CONFIG.theme) || "auto"));
     injectThemeFab();
     key.parentNode.insertBefore(b, key.nextSibling);
   }
