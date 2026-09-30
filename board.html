@@ -355,6 +355,7 @@ hr{border:none;border-top:1px solid var(--line);margin:22px 0}
     <label class="f"><span>APIキー（人に見せないでください）</span><input type="password" id="inKey" placeholder="AIza..."></label>
     <div class="hint" id="keyNote" style="margin:-2px 0 10px"></div>
     <div id="keyWarn"></div>
+    <div id="saveTestOut" style="margin:0 0 12px"></div>
     <details style="margin:0 0 12px;border:1px solid var(--line);border-radius:10px;padding:10px 12px">
       <summary style="cursor:pointer;font-size:13.5px;font-weight:700">更新するとキーが消えるとき／別の端末に移すとき</summary>
       <div style="margin-top:9px;font-size:13px;line-height:1.85;color:var(--dim)">
@@ -562,6 +563,7 @@ hr{border:none;border-top:1px solid var(--line);margin:22px 0}
 <div id="toast"></div>
 <div id="resume"></div>
 
+<script src="config.js"></script>
 <script>
 /* ============================================================
    1. 基本の道具
@@ -621,6 +623,20 @@ function md(src){
    2. 保存されるデータ
    ============================================================ */
 let CONF   = LS.get("ml_conf", { key:"", model:"", pace:6 });
+/* 本体の保存が空になっていたら、予備から復元する（保存が消える事故への保険） */
+(function(){
+  if(CONF.key) return;
+  try{
+    const b = JSON.parse(localStorage.getItem("ml_conf_bak") || "null");
+    if(b && b.key){
+      CONF.key = b.key;
+      if(b.model) CONF.model = b.model;
+      if(b.pace !== undefined) CONF.pace = b.pace;
+      CONF.light = !!b.light;
+      CONF.__restored = true;
+    }
+  }catch(_){}
+})();
 /* ===== サイト共通設定（config.js）を読み込む ===== */
 const SITE = (window.ML_CONFIG && String(window.ML_CONFIG.key || "").trim())
   ? window.ML_CONFIG : null;
@@ -668,6 +684,11 @@ let TRIAL  = false;
 let CUR = null, TAB = "04_記事本文.md";
 function saveConf(){
   LS.set("ml_conf", CONF);
+  try{
+    localStorage.setItem("ml_conf_bak", JSON.stringify(
+      { key:CONF.key || "", model:CONF.model || "", pace:(CONF.pace === undefined ? 6 : CONF.pace),
+        light:!!CONF.light, at:new Date().toISOString() }));
+  }catch(_){}
   /* 書いた直後に読み返して、本当に残ったかを確認する（黙って消えるのを防ぐ） */
   if(CONF.key){
     let back = null;
@@ -1727,6 +1748,38 @@ FORM_IDS.forEach(id => {
 
 /* この端末で動くか調べる（うまく動かないときの切り分け用） */
 /* キーが保存されない原因を、開いた瞬間に知らせる */
+/* ===== 保存テスト：保存が本当に残るかを数値で確かめる ===== */
+function storeTest(){
+  const out = [];
+  try{
+    localStorage.setItem("__t1", "ABC");
+    out.push("書き込みテスト: " + (localStorage.getItem("__t1") === "ABC" ? "OK（保存できます）" : "失敗"));
+    localStorage.removeItem("__t1");
+  }catch(e){ out.push("書き込みテスト: 例外 " + (e && e.name)); }
+  const raw = localStorage.getItem("ml_conf");
+  let par = null, bad = false;
+  try{ par = raw ? JSON.parse(raw) : null; }catch(e){ bad = true; }
+  out.push("本体 ml_conf: " + (raw ? raw.length + "文字" : "値なし") + (bad ? "（解析できません）" : ""));
+  out.push("　キーの長さ: " + ((par && par.key) ? par.key.length + "文字" : "なし"));
+  out.push("　モデル: " + ((par && par.model) || "なし"));
+  const bk = localStorage.getItem("ml_conf_bak");
+  let bp = null;
+  try{ bp = bk ? JSON.parse(bk) : null; }catch(e){}
+  out.push("予備 ml_conf_bak: " + (bk ? bk.length + "文字" : "値なし")
+    + "（キーの長さ " + ((bp && bp.key) ? bp.key.length : 0) + "文字）");
+  out.push("保存項目の総数: " + localStorage.length);
+  out.push("開いているURL: " + location.host + location.pathname);
+  out.push("いま画面が認識しているキー: " + ((CONF.key ? CONF.key.length + "文字" : "なし")) + (CONF.__restored ? "（予備から復元）" : ""));
+  const el = $("#saveTestOut");
+  if(el) el.innerHTML = '<div style="border:1px solid var(--line);background:var(--bg);border-radius:10px;'
+    + 'padding:10px 12px;font-size:12.5px;line-height:1.85;font-family:var(--mono);white-space:pre-wrap">'
+    + out.join("<br>") + '</div>'
+    + '<div style="font-size:12.5px;color:var(--dim);margin-top:7px;line-height:1.8">'
+    + 'この数値をそのまま貼っていただければ、原因を特定できます。<br>'
+    + '「キーの長さ」が<b>0文字</b>なら、保存されていないのではなく<b>どこかで空に上書き</b>されています。<br>'
+    + '<b>更新してから、もう一度このボタンを押して</b>、数値がどう変わるかを教えてください。</div>';
+  toast("保存テストの結果を表示しました。");
+}
 function envWarn(){
   const msgs = [];
   let inFrame = false;
@@ -1840,6 +1893,10 @@ function cycleTheme(){
     tb2.className = "btn sm"; tb2.id = "btnTheme"; tb2.textContent = "表示：暗";
     tb2.onclick = cycleTheme;
     key.parentNode.insertBefore(tb2, b.nextSibling);
+    const cb = $("#btnClearKey");
+    if(cb){ const sb = document.createElement("button");
+      sb.className = "btn sm"; sb.textContent = "保存テスト"; sb.onclick = storeTest;
+      cb.parentNode.insertBefore(sb, cb.nextSibling); }
     applyTheme(LS.get("ml_theme", (window.ML_CONFIG && window.ML_CONFIG.theme) || "auto"));
     injectThemeFab();
     key.parentNode.insertBefore(b, key.nextSibling);
@@ -1988,7 +2045,6 @@ function cycleTheme(){
   </div>
 </div>
 
-<script src="config.js"></script>
 <script>
 /* ============================================================
    通信ラボ 運用ボード（追加レイヤー）
