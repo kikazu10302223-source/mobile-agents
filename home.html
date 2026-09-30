@@ -323,7 +323,7 @@ hr{border:none;border-top:1px solid var(--line);margin:22px 0}
 </style>
 </head>
 <body onload="window.__ML_LOADED=1">
-<div id="trybar"><b>v14.1</b>（2026-09-30）：<b>毎日18時のAI自動仕込みのネタが、サイトのネタ欄に自動で入ります</b>。うまく動かないときは<a href="board_v13.html">旧版に戻す</a>。</div>
+<div id="trybar"><b>v14.2</b>（2026-09-30）：<b>見やすさを整理</b>しました（タブ2段・作業は1つずつ開く・右上は「⋯」・作品一覧は承認タブへ）。<a href="board_v13.html">旧版に戻す</a>。</div>
 <script>
 /* どんな失敗も見逃さないための記録係（いちばん最初に読み込む） */
 window.__MLERR = [];
@@ -347,9 +347,14 @@ window.addEventListener("unhandledrejection", function(e){
 <div class="top">
   <div class="brand"><i></i><div>通信ラボ<small>MOBILE / HIKARI / DEVICE</small></div></div>
   <div class="spacer"></div>
-  <div class="status"><span class="dot off" id="apiDot"></span><span id="apiTxt">APIキー未設定</span></div>
-  <button class="btn sm" id="btnOpenKey">キーを設定</button>
-  <button class="btn sm" id="btnShowHow">使い方</button>
+  <div class="status" id="apiBox" title="押すとAPIキーの設定を開きます"><span class="dot off" id="apiDot"></span><span id="apiTxt">APIキー未設定</span></div>
+  <button class="btn sm" id="btnMore" type="button" aria-expanded="false">⋯</button>
+  <div class="moremenu" id="moreMenu" hidden>
+    <button class="btn sm" id="btnOpenKey" type="button">APIキーを設定</button>
+    <button class="btn sm" id="btnShowHow" type="button">つかいかた</button>
+    <button class="btn sm" id="bTheme" type="button">表示：暗</button>
+    <button class="btn sm" id="mEnv" type="button">環境チェック</button>
+  </div>
 </div>
 
 <div class="wrap">
@@ -364,7 +369,7 @@ window.addEventListener("unhandledrejection", function(e){
       <li>下の欄に貼り付けて「保存して確認」</li>
     </ol>
     <div class="actions" id="diagRow" style="margin:0 0 12px"><button class="btn sm" id="btnConnTest" type="button">接続テスト</button><button class="btn sm" id="btnStoreTest" type="button">保存テスト</button><button class="btn sm" id="btnEnvCheck2" type="button">環境チェック</button></div>
-    <div class="hint" id="verTag" style="margin:0 0 10px">本番 v14.1：2026-09-30 ／ この行が見えていれば最新版です</div>
+    <div class="hint" id="verTag" style="margin:0 0 10px">本番 v14.2：2026-09-30 ／ この行が見えていれば最新版です</div>
     <label class="f"><span>APIキー（人に見せないでください）</span><input type="password" id="inKey" placeholder="AIza..."></label>
     <div class="hint" id="keyNote" style="margin:-2px 0 10px"></div>
     <div id="keyWarn"></div>
@@ -626,9 +631,8 @@ window.addEventListener("unhandledrejection", function(e){
   </div>
 </div>
 
-<hr>
-
-<!-- 作業台 -->
+<!-- 作業台（承認タブの中） -->
+<div class="panel" id="deskPanel">
 <div class="desk">
   <div class="col">
     <div class="ch"><b>ストック</b><span class="eyebrow" id="runCount"></span></div>
@@ -676,6 +680,8 @@ window.addEventListener("unhandledrejection", function(e){
     </div>
   </div>
 </div>
+</div>
+
 
 <p class="foot">通信ラボ ── 通信・モバイル・光回線・デバイスの記事をAI9役で作り、承認待ちまでためる仕組み<br>
 金額には基準日を。アフィリエイトにはPR表記を。そして、あなたの店頭体験をひとつ。</p>
@@ -2415,7 +2421,7 @@ setTimeout(() => { try{ paintKey(); }catch(_){} }, 800);
    ============================================================ */
 (function(){
   const MAP0 = {"keyPanel": "設定"};
-  const NEWMAP = {boardPanel:"ホーム", homePanel:"ホーム",snsPanel:"発信",stylePanel:"あなた",namePanel:"あなた",mobilePanel:"あなた",apPanel:"承認",kpiPanel:"記録", workPanel1:"作業", workPanel2:"作業", workPanel3:"作業",costPanel:"記録",
+  const NEWMAP = {boardPanel:"ホーム", homePanel:"ホーム",snsPanel:"発信",stylePanel:"あなた",namePanel:"あなた",mobilePanel:"あなた",apPanel:"承認",deskPanel:"承認",kpiPanel:"記録", workPanel1:"作業", workPanel2:"作業", workPanel3:"作業",costPanel:"記録",
                   affiPanel:"記録",personaPanel:"記録",acctPanel:"記録",
                   imgPanel:"記録",qaPanel2:"記録"};
   const TABS = ["ホーム","作業","承認","発信","記録","あなた","設定"];
@@ -2454,16 +2460,32 @@ setTimeout(() => { try{ paintKey(); }catch(_){} }, 800);
     if(name === "アフィ") paintAffi();
     if(name === "発信"){ try{ paintSns(); }catch(_){} }
     if(name === "あなた"){ try{ paintNames(); }catch(_){} }
-    if(name === "作業"){ try{ pullAuto(false); paintAuto(); }catch(_){} }
+    if(name === "作業"){ try{ pullAuto(false); paintAuto(); }catch(_){} try{ workApply(); }catch(_){} }
   }
   function buildNav(){
     const n = E("bnav"); if(!n) return;
-    n.innerHTML = TABS.map(t => '<button class="nb" data-t="'+t+'">'+t+'</button>').join("")
-      + '<a class="nb" href="' + location.href.replace(/[^/]*$/,"") + 'guide.html" style="text-decoration:none;display:inline-flex;align-items:center">つかいかた</a>'
-      + '<button class="nb" id="bTheme" style="margin-left:auto">表示：暗</button>';
+    var MAIN = ["ホーム","作業","承認","発信"], SUB = ["記録","あなた","設定"];
+    var mk = t => '<button class="nb" data-t="' + t + '">' + t + '</button>';
+    n.innerHTML =
+        '<div class="nbrow nbrow-main">' + MAIN.map(mk).join("") + '</div>'
+      + '<div class="nbrow nbrow-sub"><span class="nblbl">まとめ</span>' + SUB.map(mk).join("")
+      + '<a class="nb" href="' + location.href.replace(/[^/]*$/,"") + 'guide.html" style="text-decoration:none;display:inline-flex;align-items:center">つかいかた</a></div>';
     n.querySelectorAll(".nb[data-t]").forEach(b => b.onclick = () => showTab(b.dataset.t));
-    const tb = E("bTheme"); if(tb) tb.onclick = cycleTheme;
+    const tb = E("bTheme"); if(tb) tb.onclick = function(){ try{ cycleTheme(); }catch(_){ } };
   }
+  /* ---- ⋯ メニュー（上部バーの整理） ---- */
+  function moreOpenFor(v){
+    var m = E("moreMenu"), b = E("btnMore");
+    if(m) m.hidden = !v;
+    if(b) b.setAttribute("aria-expanded", String(!!v));
+  }
+  (function(){
+    var b = E("btnMore"); if(b) b.onclick = function(ev){ ev.stopPropagation(); moreOpenFor(E("moreMenu") && E("moreMenu").hidden); };
+    var ab = E("apiBox"); if(ab) ab.onclick = function(){ try{ moreOpenFor(false); showTab("設定"); }catch(_){ } };
+    var me = E("mEnv"); if(me) me.onclick = function(){ var x = E("btnEnvCheck2"); if(x) x.click(); };
+    document.addEventListener("click", function(){ moreOpenFor(false); });
+    var mm = E("moreMenu"); if(mm) mm.addEventListener("click", function(e){ e.stopPropagation(); });
+  })();
 
   /* ---- オフィス：9人のワーカー ---- */
   const ROLESET = [["trend","トレンド編集者"],["editor","編集長"],["analyst","需要分析"],
@@ -2977,6 +2999,41 @@ setTimeout(() => { try{ paintKey(); }catch(_){} }, 800);
     paintNames();
   })();
 
+  /* ---- 作業タブ：1つずつ開く（折りたたみ） ---- */
+  var WORKP = ["workPanel1","workPanel2","workPanel3"];
+  var workOpen = "", workPicked = false;
+  function workDef(){
+    var q = E("qTopics"), v = q ? String(q.value || "").trim() : "";
+    return v ? "workPanel3" : "workPanel1";
+  }
+  function workApply(){
+    var cur = workPicked ? workOpen : workDef();
+    WORKP.forEach(function(id){
+      var p = E(id); if(!p) return;
+      p.classList.add("workfold");
+      var h = p.querySelector(".ph"), b = p.querySelector(".pb");
+      if(h && !h.getAttribute("data-fold")){
+        h.setAttribute("data-fold","1");
+        var s = document.createElement("span");
+        s.className = "foldTgl"; h.appendChild(s);
+        h.addEventListener("click", function(ev){
+          var t = ev.target;
+          if(t && t.closest && t.closest("a,button,input,textarea,select")) return;
+          var now = (workPicked ? workOpen : workDef());
+          workPicked = true;
+          workOpen = (now === id) ? "x-nothing" : id;
+          workApply();
+        });
+      }
+      var on = (id === cur);
+      if(b) b.style.display = on ? "" : "none";
+      p.classList.toggle("folded", !on);
+      var tg = h && h.querySelector(".foldTgl");
+      if(tg) tg.textContent = on ? "▼ 閉じる" : "▶ 開く（押すと表示）";
+    });
+  }
+  window.__foldWork = function(id){ workPicked = true; workOpen = id; workApply(); };
+
   /* ============================================================
      AIの自動仕込み（ネタ配信）をGitHubのIssue経由で受け取る
      ============================================================ */
@@ -3090,6 +3147,7 @@ setTimeout(() => { try{ paintKey(); }catch(_){} }, 800);
         if(p) p.onclick = function(){ pullAuto(true); };
       }
     }
+    try{ workApply(); }catch(_){ }
     var note = document.getElementById("autoNote");
     if(note){
       note.innerHTML = n
@@ -3226,6 +3284,24 @@ input,select,textarea{font-size:16px}
 #snOut .actions .btn,{min-height:44px}
 #stOut{background:var(--surface2);border:1px solid var(--line);border-radius:9px;padding:10px;margin-top:8px}
 #stOut:empty{display:none}
+
+/* ===== v14.2：見やすさの修正（タブ2段・⋯メニュー・作業の折りたたみ） ===== */
+.bnav{flex-wrap:wrap;row-gap:6px;padding-bottom:8px}
+.nbrow{display:flex;flex-wrap:wrap;gap:6px;align-items:center;width:100%}
+.nbrow-sub .nb{font-size:12.5px;min-height:36px;padding:6px 11px}
+.nblbl{font-size:11px;color:var(--faint);letter-spacing:.06em;margin-right:1px}
+.top{position:relative;gap:7px}
+.top .status{padding:6px 10px;font-size:12px;border:1px solid var(--line);border-radius:999px;cursor:pointer}
+.top .status .dot{margin-right:6px}
+.moremenu[hidden]{display:none}
+.moremenu{position:absolute;right:10px;top:calc(100% + 7px);z-index:70;min-width:200px;background:var(--surface);
+  border:1px solid var(--line);border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:8px;
+  box-shadow:0 10px 26px rgba(0,0,0,.34)}
+.moremenu .btn{justify-content:flex-start;text-align:left;width:100%}
+.workfold .ph{cursor:pointer}
+.foldTgl{display:inline-block;margin-top:7px;font-size:12.5px;font-weight:700;color:var(--signal)}
+.panel.folded .pb{display:none}
+.panel.folded .ph{padding-bottom:10px}
 </style>
 <script>
 /* ===== ホーム（案A）＋記録タブの切り替え＋既定の明るい配色 ===== */
@@ -3245,8 +3321,8 @@ input,select,textarea{font-size:16px}
     }, 120);
   }
   window.__mlStep = function(n){
-    if(n === 1) open("作業", "#btnTrend");
-    else if(n === 2) open("作業", "#inTopic");
+    if(n === 1){ try{ window.__foldWork("workPanel1"); }catch(_){} open("作業", "#btnTrend"); }
+    else if(n === 2){ try{ window.__foldWork("workPanel2"); }catch(_){} open("作業", "#inTopic"); }
     else if(n === 3) open("承認", "#apCards");
     else open("発信", "#snMakeX");
   };
