@@ -352,6 +352,8 @@ hr{border:none;border-top:1px solid var(--line);margin:22px 0}
       <li>「APIキーを作成」を押して、出てきた <code>AIza…</code> をコピー</li>
       <li>下の欄に貼り付けて「保存して確認」</li>
     </ol>
+    <div class="actions" id="diagRow" style="margin:0 0 12px"></div>
+    <div class="hint" id="verTag" style="margin:0 0 10px">版：2026-09-30-13.5 ／ この行が見えていれば最新版です</div>
     <label class="f"><span>APIキー（人に見せないでください）</span><input type="password" id="inKey" placeholder="AIza..."></label>
     <div class="hint" id="keyNote" style="margin:-2px 0 10px"></div>
     <div id="keyWarn"></div>
@@ -1990,7 +1992,7 @@ function cycleTheme(){
 })();
 /* ===== ボタンをキー設定画面に確実に足す（上部バーの有無に依存しない） ===== */
 (function(){
-  const row = document.querySelector("#keyPanel .actions");
+  const row = document.querySelector("#diagRow") || document.querySelector("#keyPanel .actions");
   if(!row) return;
   const mk = (id, label, fn) => {
     if(document.getElementById(id)) return null;
