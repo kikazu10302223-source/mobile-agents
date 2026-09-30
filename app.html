@@ -1399,7 +1399,18 @@ function paintKey(){
     if(ik) ik.placeholder = ok ? (CONF.__site ? "共通設定を使用中（変えるときだけ入力）" : "保存済み（変えるときだけ入力）") : "AIza...";
   }
 }
-$("#btnOpenKey").onclick = () => { $("#keyPanel").scrollIntoView({behavior:"smooth", block:"start"}); $("#inKey").focus(); };
+/* 「キーを設定」ボタン：隠れているときは、まず設定タブを開いてから移動する */
+function openKeyPanel(){
+  const kp = $("#keyPanel"); if(!kp) return;
+  const hidden = (kp.offsetParent === null) || kp.style.display === "none";
+  if(hidden && typeof window.__boardShow === "function") window.__boardShow("設定");
+  setTimeout(() => {
+    try{ kp.scrollIntoView({behavior:"smooth", block:"start"}); }catch(_){ window.scrollTo(0, 0); }
+    const k = $("#inKey"); if(k && k.focus){ try{ k.focus(); }catch(_){} }
+  }, 90);
+}
+window.openKeyPanel = openKeyPanel;
+$("#btnOpenKey").onclick = openKeyPanel;
 
 /* ===== 設定コードの書き出し／読み込み ===== */
 if($("#btnExp")) $("#btnExp").onclick = () => {
@@ -1765,8 +1776,7 @@ function envWarn(){
   const c = w.querySelector("#swClose"); if(c) c.onclick = () => w.remove();
   const h = w.querySelector("#swHow");
   if(h) h.onclick = () => {
-    if(typeof window.__boardShow === "function") window.__boardShow("設定");
-    const kp = $("#keyPanel"); if(kp && kp.scrollIntoView) kp.scrollIntoView({behavior:"smooth", block:"start"});
+    if(typeof openKeyPanel === "function") openKeyPanel();
     toast("「キーを設定」→『更新するとキーが消えるとき』をお読みください。");
   };
 }
