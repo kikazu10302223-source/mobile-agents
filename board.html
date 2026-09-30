@@ -834,8 +834,8 @@ function seenText(){
   const ymd = d.getFullYear() + "/" + (d.getMonth()+1) + "/" + d.getDate() + " " +
               String(d.getHours()).padStart(2,"0") + ":" + String(d.getMinutes()).padStart(2,"0");
   return "開いているURL: <b style='font-family:var(--mono);font-size:11.5px'>" + location.host + location.pathname + "</b><br>"
-       + "このURLでの利用: <b style='font-family:var(--mono)'>" + SEEN.count + "回目</b>（初回 " + ymd + "）"
-       + (SEEN.count <= 1 ? " <b style='color:var(--warn)'>← 毎回ここが1回目なら、このURLは保存が残りません</b>" : "");
+       + "このサイトでの利用: <b style='font-family:var(--mono)'>" + SEEN.count + "回目</b>（初回 " + ymd + "）"
+       + (SEEN.count <= 1 ? " <b style='color:var(--warn)'>← 毎回ここが1回目なら、このサイトの保存が残っていません（別のサイトとして開いている可能性）</b>" : "");
 }
 
 let RUNS   = LS.get("ml_runs", {});
