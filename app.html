@@ -18,7 +18,20 @@
   --stop:#FF6B6B; --stop-soft:rgba(255,107,107,.12);
   --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
   --r:12px;
+  --head:var(--head); --veil:var(--veil);
 }
+/* ===== 明るい配色（ホワイトモード） ===== */
+html[data-theme="light"]{
+  --bg:#F4F6FA; --surface:#FFFFFF; --surface2:#EDF1F7; --line:#D6DEE9;
+  --ink:#111A24; --dim:#48566A; --faint:#7A889B;
+  --signal:#0B8F62; --signal-soft:rgba(11,143,98,.12);
+  --link:#0B5FD0; --link-soft:rgba(11,95,208,.12);
+  --warn:#9A6200; --warn-soft:rgba(154,98,0,.14);
+  --stop:#C0392B; --stop-soft:rgba(192,57,43,.12);
+  --head:rgba(244,246,250,.95);
+  --veil:rgba(17,26,36,.42);
+}
+
 *{box-sizing:border-box}
 html{margin:0;padding:0;-webkit-text-size-adjust:100%}
 body{margin:0;padding:0}
@@ -31,7 +44,7 @@ a{color:var(--link)}
 .wrap{max-width:1280px;margin:0 auto;padding:16px 16px 80px}
 
 /* ── 上部バー ── */
-.top{position:sticky;top:0;z-index:20;background:rgba(11,16,23,.92);backdrop-filter:blur(8px);
+.top{position:sticky;top:0;z-index:20;background:var(--head);backdrop-filter:blur(8px);
   border-bottom:1px solid var(--line);padding:12px 16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
 .brand{display:flex;align-items:center;gap:9px;font-weight:700;letter-spacing:.02em}
 .brand i{width:10px;height:10px;border-radius:3px;background:var(--signal);display:block;
@@ -219,7 +232,7 @@ code{background:var(--surface2);padding:1px 6px;border-radius:5px;font-family:va
 @media (max-width:760px){
   .mbar{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:40;gap:7px;
     padding:9px 11px calc(9px + env(safe-area-inset-bottom));
-    background:rgba(11,16,23,.96);backdrop-filter:blur(10px);border-top:1px solid var(--line)}
+    background:var(--head);backdrop-filter:blur(10px);border-top:1px solid var(--line)}
   .mbar .btn{flex:1;min-height:46px;font-size:13.5px;padding:10px 8px}
   .mbar .btn.mini{flex:0 0 auto;min-width:52px;font-size:12.5px}
 }
@@ -260,7 +273,7 @@ code{background:var(--surface2);padding:1px 6px;border-radius:5px;font-family:va
   padding:11px 18px;font-size:13.5px;transition:.25s;pointer-events:none;z-index:60;max-width:90vw;text-align:center}
 #toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
 #resume{display:none;position:fixed;right:16px;bottom:16px;z-index:50;max-width:330px;
-  background:var(--surface2);border:1px solid var(--warn);border-radius:12px;padding:13px 15px;box-shadow:0 8px 30px rgba(0,0,0,.45)}
+  background:var(--surface2);border:1px solid var(--warn);border-radius:12px;padding:13px 15px;box-shadow:0 8px 30px var(--veil)}
 #resume b{color:var(--warn)}
 hr{border:none;border-top:1px solid var(--line);margin:22px 0}
 .foot{color:var(--faint);font-size:12px;text-align:center;margin-top:26px;line-height:1.9}
@@ -294,6 +307,7 @@ hr{border:none;border-top:1px solid var(--line);margin:22px 0}
       <li>下の欄に貼り付けて「保存して確認」</li>
     </ol>
     <label class="f"><span>APIキー（人に見せないでください）</span><input type="password" id="inKey" placeholder="AIza..."></label>
+    <div class="hint" id="keyNote" style="margin:-2px 0 10px"></div>
     <label style="display:flex;gap:9px;align-items:flex-start;font-size:13px;margin:4px 0 12px;cursor:pointer">
       <input type="checkbox" id="inPace" checked style="width:auto;margin-top:3px">
       <span>慎重モード（1回ごとに6秒あけて、回数制限（429）を避ける）</span>
@@ -1256,6 +1270,13 @@ function paintKey(){
   $("#apiDot").className = "dot " + (ok ? "on" : (TRIAL ? "on" : "off"));
   $("#apiTxt").textContent = ok ? (CONF.model || "モデル未設定") : (TRIAL ? "練習モード（APIなし）" : "APIキー未設定");
   const pc = $("#inPace"); if(pc && CONF.pace !== undefined) pc.checked = !!CONF.pace;
+  const kn = $("#keyNote");
+  if(kn){
+    kn.innerHTML = ok
+      ? 'この端末に <b style="color:var(--signal)">保存済み</b>です。同じブラウザで同じURLを開くかぎり、次からは入力を求めません。'
+      : 'まだ保存されていません。<b>1回だけ</b>貼り付けて「保存して確認」を押せば、この端末に記憶します（以後は不要）。';
+    const ik = $("#inKey"); if(ik) ik.placeholder = ok ? "保存済み（変えるときだけ入力）" : "AIza...";
+  }
 }
 $("#btnOpenKey").onclick = () => { $("#keyPanel").scrollIntoView({behavior:"smooth", block:"start"}); $("#inKey").focus(); };
 $("#btnShowHow").onclick = () => window.open("つかいかた_モバイル.html", "_blank");
@@ -1584,12 +1605,40 @@ function envCheck(){
   toast("調べました。結果を画面の先頭に出しました。");
 }
 
+/* 明暗テーマ（ダーク／ホワイト）— 目に合わせて切り替えられます */
+function applyTheme(pref){
+  let th;
+  if(pref === "light" || pref === "dark") th = pref;
+  else th = (window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches) ? "light" : "dark";
+  document.documentElement.setAttribute("data-theme", th);
+  const b = $("#btnTheme"); if(b) b.textContent = (th === "light" ? "表示：明" : "表示：暗");
+  const m = document.querySelector('meta[name="theme-color"]');
+  if(m) m.setAttribute("content", th === "light" ? "#F4F6FA" : "#0B1017");
+  LS.set("ml_theme", pref || "auto");
+  return th;
+}
+function cycleTheme(){
+  const cur = LS.get("ml_theme", "auto");
+  const now = document.documentElement.getAttribute("data-theme");
+  const next = (cur !== "auto") ? (cur === "dark" ? "light" : "dark") : (now === "light" ? "dark" : "light");
+  applyTheme(next);
+  try{
+    const mc = document.querySelector('meta[name="color-scheme"]');
+    if(!mc){ const n = document.createElement("meta"); n.name = "color-scheme"; n.content = "dark light"; document.head.appendChild(n); }
+  }catch(_){}
+  toast(next === "light" ? "明るい配色にしました。" : "暗い配色にしました。");
+}
 /* 環境チェックのボタンを上部バーに足す */
 (function(){
   const key = $("#btnOpenKey"), top = $(".top");
   if(top && key){
     const b = document.createElement("button");
     b.className = "btn sm"; b.textContent = "環境チェック"; b.onclick = envCheck;
+    const tb2 = document.createElement("button");
+    tb2.className = "btn sm"; tb2.id = "btnTheme"; tb2.textContent = "表示：暗";
+    tb2.onclick = cycleTheme;
+    key.parentNode.insertBefore(tb2, b.nextSibling);
+    applyTheme(LS.get("ml_theme", "auto"));
     key.parentNode.insertBefore(b, key.nextSibling);
   }
 })();
