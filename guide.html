@@ -1,251 +1,653 @@
 <!doctype html>
-<html lang="ja">
+<html lang="ja" data-theme="light">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>つかいかた ── 通信ラボ</title>
+<script>
+/* 配色は開いた瞬間に決めます（画面がちらつかないように、ここで読み込みます） */
+(function(){try{var t=localStorage.getItem('ml_guide_theme');if(t==='dark'){document.documentElement.setAttribute('data-theme','dark')}}catch(e){}})();
+</script>
 <style>
-:root{--bg:#0B1017;--surface:#141B26;--line:#243040;--ink:#E9EFF7;--dim:#9BABC2;--faint:#66768C;--signal:#3DDC97;--signal-soft:rgba(61,220,151,.12);--warn:#F5A623;--warn-soft:rgba(245,166,35,.12);--stop:#FF6B6B;--stop-soft:rgba(255,107,107,.12);--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+:root{
+  --bg:#F4F7FA; --surface:#FFFFFF; --surface2:#EEF3F8; --line:#DCE4EC;
+  --ink:#15202B; --dim:#55677C; --faint:#8B99A8;
+  --signal:#0E9C67; --signal-soft:rgba(14,156,103,.10);
+  --warn:#A05A00; --warn-soft:rgba(160,90,0,.10);
+  --stop:#C4362F; --stop-soft:rgba(196,54,47,.09);
+  --chip:#E7EEF5; --bartop:rgba(244,247,250,.94);
+  --shadow:0 1px 2px rgba(16,32,48,.05),0 6px 18px rgba(16,32,48,.05);
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+html[data-theme="dark"]{
+  --bg:#0B1017; --surface:#141B26; --surface2:#1B2431; --line:#243040;
+  --ink:#E9EFF7; --dim:#9BABC2; --faint:#66768C;
+  --signal:#3DDC97; --signal-soft:rgba(61,220,151,.12);
+  --warn:#F5A623; --warn-soft:rgba(245,166,35,.12);
+  --stop:#FF6B6B; --stop-soft:rgba(255,107,107,.12);
+  --chip:#1B2431; --bartop:rgba(11,16,23,.94);
+  --shadow:0 1px 2px rgba(0,0,0,.35),0 8px 22px rgba(0,0,0,.25);
+}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);line-height:1.9;font-size:15px;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP","Yu Gothic UI",sans-serif}
-.wrap{max-width:920px;margin:0 auto;padding:26px 18px 90px}
-h1{font-size:25px;line-height:1.5;margin:0 0 6px}
-h2{font-size:19px;margin:36px 0 12px;padding-bottom:8px;border-bottom:2px solid var(--line)}
-h3{font-size:16px;margin:20px 0 6px;color:var(--signal)}
-.sub{color:var(--dim);font-size:14px;margin:0 0 24px}
-.toc{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 22px}
-table{width:100%;border-collapse:collapse;margin:12px 0;font-size:14px;background:var(--surface)}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-size:17px;line-height:1.9;
+ font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP","Yu Gothic UI",sans-serif}
+/* ── 上のバー（さがす・開閉・配色） ── */
+header.top{position:sticky;top:0;z-index:30;background:var(--bartop);backdrop-filter:blur(10px);
+ -webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.topin{max-width:920px;margin:0 auto;padding:9px 16px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.brand{font-weight:800;font-size:15px;letter-spacing:.02em;margin-right:auto}
+.brand span{color:var(--dim);font-weight:600}
+#q{flex:1 1 220px;min-width:160px;min-height:42px;padding:0 13px;font-size:16px;color:var(--ink);
+ background:var(--surface);border:1px solid var(--line);border-radius:10px;font-family:inherit}
+.tbtn{min-height:42px;padding:0 13px;font-size:14px;font-weight:700;color:var(--ink);background:var(--surface);
+ border:1px solid var(--line);border-radius:10px;cursor:pointer;font-family:inherit}
+.tbtn:active{background:var(--surface2)}
+#hit{max-width:920px;margin:0 auto;padding:0 16px;font-size:14px;color:var(--dim)}
+#hit.on{padding-bottom:9px}
+/* ── 本文 ── */
+.wrap{max-width:920px;margin:0 auto;padding:22px 16px 100px}
+h1{font-size:26px;line-height:1.45;margin:6px 0 4px}
+.sub{color:var(--dim);font-size:15px;margin:0 0 18px}
+.quick{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px;box-shadow:var(--shadow)}
+.quick h2{margin:0 0 8px;font-size:16px;color:var(--signal)}
+.quick p{margin:8px 0}
+.flow{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin:12px 0 4px}
+.step{background:var(--surface2);border:1px solid var(--line);border-radius:12px;padding:11px 13px}
+.step b{display:block;color:var(--signal);font-size:12.5px;letter-spacing:.06em;font-family:var(--mono)}
+.step span{font-size:14px;color:var(--dim)}
+.toc{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin:14px 0 6px;box-shadow:var(--shadow)}
+.toc>b{display:block;font-size:14px;color:var(--dim);margin-bottom:9px}
+.tocgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:8px}
+.tocgrid button{text-align:left;min-height:48px;padding:8px 12px;font-size:14.5px;font-weight:600;color:var(--ink);
+ background:var(--surface2);border:1px solid var(--line);border-radius:10px;cursor:pointer;font-family:inherit;line-height:1.5}
+.tocgrid button i{display:block;color:var(--dim);font-weight:500;font-style:normal;font-size:12.5px}
+.tocgrid button:active{background:var(--signal-soft)}
+/* ── 折りたたみ（押すと下に開く） ── */
+details.sec{background:var(--surface);border:1px solid var(--line);border-radius:14px;margin:12px 0;
+ box-shadow:var(--shadow);overflow:hidden;scroll-margin-top:86px}
+details.sec>summary{list-style:none;cursor:pointer;display:grid;grid-template-columns:40px 1fr auto;gap:10px 12px;
+ align-items:center;padding:14px 16px;min-height:56px}
+details.sec>summary::-webkit-details-marker{display:none}
+details.sec>summary:hover{background:var(--surface2)}
+details.sec[open]>summary{border-bottom:1px solid var(--line)}
+.n{width:40px;height:40px;border-radius:12px;background:var(--signal-soft);color:var(--signal);
+ font-family:var(--mono);font-weight:700;display:grid;place-items:center;font-size:15px}
+.tt{min-width:0}
+.tt b{display:block;font-size:17.5px;line-height:1.5}
+.tt small{display:block;color:var(--dim);font-size:13.5px;margin-top:1px;line-height:1.6}
+.rt{display:flex;align-items:center;gap:9px}
+.bg{white-space:nowrap;font-size:11.5px;padding:3px 9px;border-radius:999px;background:var(--chip);color:var(--dim);font-weight:700}
+.bg.now{background:var(--signal-soft);color:var(--signal)}
+.bg.dan{background:var(--stop-soft);color:var(--stop)}
+.ar{color:var(--faint);font-size:12px;transition:transform .18s}
+details[open] .ar{transform:rotate(90deg)}
+.bd{padding:8px 18px 22px}
+.bd>h3{font-size:16px;margin:20px 0 6px;color:var(--signal)}
+.bd>h3:first-child{margin-top:14px}
+.lead{font-size:16px;border-left:4px solid var(--signal);background:var(--signal-soft);
+ padding:11px 14px;border-radius:0 12px 12px 0;margin:12px 0}
+.lec{border:1px dashed var(--signal);background:var(--signal-soft);border-radius:12px;padding:13px 15px;margin:14px 0}
+.hint{background:var(--surface2);border:1px solid var(--line);border-radius:12px;padding:13px 15px;margin:14px 0}
+.warn{border-left:4px solid var(--warn);background:var(--warn-soft);padding:12px 15px;border-radius:0 12px 12px 0;margin:14px 0}
+.stop{border-left:4px solid var(--stop);background:var(--stop-soft);padding:12px 15px;border-radius:0 12px 12px 0;margin:14px 0}
+.tag{display:inline-block;font-size:11.5px;font-weight:800;letter-spacing:.06em;padding:2px 9px;border-radius:999px;
+ background:var(--surface);border:1px solid var(--line);color:var(--signal);margin-right:7px;vertical-align:1px}
+.tag.w{color:var(--warn)} .tag.s{color:var(--stop)}
+.lec p:first-of-type,.hint p:first-of-type,.warn p:first-of-type,.stop p:first-of-type{margin-top:2px}
+.tw{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:12px 0}
+table{width:100%;border-collapse:collapse;font-size:14.5px;background:var(--surface);min-width:520px}
 th,td{border:1px solid var(--line);padding:9px 11px;text-align:left;vertical-align:top}
-th{background:#1B2431;white-space:nowrap}
-code,pre{font-family:var(--mono)}
-code{background:var(--surface);padding:1px 6px;border-radius:5px;font-size:13px;border:1px solid var(--line)}
-pre{background:#050A10;border:1px solid var(--line);padding:13px 15px;border-radius:10px;overflow-x:auto;font-size:13px;color:#CBD8EA}
-.note{border-left:3px solid var(--signal);background:var(--signal-soft);padding:12px 16px;border-radius:0 10px 10px 0;margin:14px 0}
-.warn{border-left:3px solid var(--warn);background:var(--warn-soft);padding:12px 16px;border-radius:0 10px 10px 0;margin:14px 0}
-.stop{border-left:3px solid var(--stop);background:var(--stop-soft);padding:12px 16px;border-radius:0 10px 10px 0;margin:14px 0}
-.flow{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:14px 0}
-.step{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
-.step b{display:block;color:var(--signal);font-size:12.5px;letter-spacing:.05em;font-family:var(--mono)}
-.step span{font-size:13.5px;color:var(--dim)}
-ol,ul{padding-left:24px}
+th{background:var(--surface2);white-space:nowrap;font-size:14px}
+ol,ul{padding-left:23px}
 li{margin:6px 0}
+code{font-family:var(--mono);background:var(--surface2);padding:1px 6px;border-radius:6px;font-size:13.5px;border:1px solid var(--line)}
+pre{background:var(--surface2);border:1px solid var(--line);padding:12px 14px;border-radius:11px;overflow-x:auto;
+ font-family:var(--mono);font-size:13.5px;color:var(--ink)}
+dl.term{margin:12px 0}
+dl.term>div{border-top:1px solid var(--line);padding:10px 0}
+dl.term>div:first-child{border-top:0}
+dl.term dt{font-weight:800;font-size:15px}
+dl.term dt em{font-style:normal;color:var(--faint);font-family:var(--mono);font-size:12px;margin-left:6px;font-weight:600}
+dl.term dd{margin:2px 0 0;color:var(--dim);font-size:14.5px}
 .chk{list-style:none;padding-left:0}
-.chk li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:9px 13px;margin:7px 0;font-size:14px}
-.chk li::before{content:"☐ ";color:var(--signal);font-weight:700}
-.small{font-size:13px;color:var(--faint)}
-a{color:#5AA9FF}
+.chk li{background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:9px 13px;margin:7px 0;font-size:15px}
+.chk li::before{content:"☐ ";color:var(--signal);font-weight:800}
+.small{font-size:13.5px;color:var(--faint)}
+a{color:#2E7DD1}
+html[data-theme="dark"] a{color:#5AA9FF}
+footer{max-width:920px;margin:0 auto;padding:0 16px 70px;color:var(--faint);font-size:13.5px}
+mark{background:var(--signal-soft);color:inherit;border-radius:4px;padding:0 2px}
+@media (max-width:560px){
+  body{font-size:16.5px}
+  h1{font-size:22px}
+  .topin{padding:8px 12px}
+  .brand{width:100%;margin:0}
+  .wrap{padding:18px 12px 90px}
+  .bd{padding:6px 14px 20px}
+  details.sec>summary{padding:12px 13px;grid-template-columns:36px 1fr auto;gap:8px 10px}
+  .n{width:36px;height:36px;border-radius:10px;font-size:14px}
+  .tt b{font-size:16.5px}
+  .bg{display:none}
+}
 </style>
 </head>
 <body>
+
+<header class="top">
+  <div class="topin">
+    <div class="brand">通信ラボ <span>／ つかいかた</span></div>
+    <input id="q" type="search" placeholder="さがす（例：429、note、ホーム画面、バックアップ）" aria-label="さがす">
+    <button class="tbtn" id="openAll" type="button">全部ひらく</button>
+    <button class="tbtn" id="closeAll" type="button">全部とじる</button>
+    <button class="tbtn" id="theme" type="button">暗くする</button>
+  </div>
+  <div id="hit"></div>
+</header>
+
 <div class="wrap">
 <h1>つかいかた ── 通信ラボ</h1>
-<p class="sub">AI9役で通信・モバイルの記事を作り、あなたが魂を入れ、承認待ちまでストックする。1本 30〜45分。</p>
+<p class="sub">AIが9人で記事の下書きを作り、あなたが店頭体験を足して仕上げます。1本 30〜45分。むずかしい言葉は <a href="#s14">14. ことばの意味</a> で説明しています。<br>
+見出しを<b>押すと下に開きます</b>。読みたいところだけ開いてください。</p>
 
-<div class="toc"><b>もくじ</b>
-<ol>
-<li>全体の流れ</li>
-<li>準備（最初の1回）</li>
-<li>ネタを集める（AIが選別する）</li>
-<li>ネタを直接入力して1本作る</li>
-<li>まとめて仕込む（ストック）</li>
-<li>承認する（あなたの出番）</li>
-<li>noteに投稿する</li>
-<li>仕事のルール（通信分野の7か条）</li>
-<li>止まったときの直し方</li>
-<li>スマホ・タブレットで使う</li>
-</ol></div>
-
-<p style="background:#FFF7E8;border:1px solid #EAD3A3;border-radius:8px;padding:11px 13px;line-height:1.95;font-size:14px"><b>v14.2（2026-09-30）：画面を整理しました</b><br>タブは<b>2段</b>になりました（ふだん＝ホーム／作業／承認／発信、まとめ＝記録／あなた／設定＋つかいかた）。「作業」タブは<b>1つずつ開く形</b>（見出しを押すと開閉）で、開いているものだけが表示されます。右上は<b>「⋯」</b>にまとめ（APIキーを設定／つかいかた／表示の切替／環境チェック）、<b>作品一覧（ストックと本文）は「承認」タブの中</b>に移りました（他のタブでは下に出ません）。<br><br><b>v14.1で変更しました（2026-09-30）：自動仕込みが「ネタ配信」になりました</b><br>毎日18時の自動実行が作るのは、<b>記事本文ではなくネタ候補（3件）</b>です。届いたネタは<b>GitHubのIssue</b>（配信の受け取り）として保存され、サイトを開くと「<b>作業</b>」タブの「<b>まとめて仕込む</b>」の<b>ネタ欄に自動で1行ずつ増えます</b>。そこから「まとめて作る」を押すと、9人の担当が記事を書きます。<br>ホーム画面にも「<b>AIから届いたネタ：◯件</b>」のカードが出ます。「いま取り込む」で手動取り込み、「STEP 1 の材料欄へ送る」でネタ選別の材料に、「取り込みをリセット」で自動追加分だけを消せます。<br>記事本文をAI Driveに置く運用は<b>終了</b>しました（配信のバックアップだけAI Driveに残します）。</p>
-
-<p style="background:#EEF7F1;border:1px solid #B9DFC9;border-radius:8px;padding:11px 13px;line-height:1.95;font-size:14px"><b>v14.0で追加しました（2026-09-30）</b><br>&#9312; ホーム画面が「今日やること」の<b>4ステップ</b>になりました（ネタを選ぶ &#8594; 記事を作る &#8594; 承認する &#8594; 発信する）。<br>&#9313; <b>「発信」タブ</b>が増えました。X・Instagram・TikTokの文面を作れます（貼り付けは手で行います）。<br>&#9314; <b>「あなた」タブ</b>が増えました。文体（あなたらしさ）設定・AI担当者9人の名前・スマホで使うときのコツがここにまとまりました。<br>&#9315; タブは7つ：<b>ホーム／作業／承認／発信／記録／あなた／設定</b>。<br>&#9316; 前の画面に戻したいときは <a href="board_v13.html">旧版（v13.11）</a> を開いてください。</p>
-
-<h2>1. 全体の流れ</h2>
+<div class="quick">
+<h2>30秒でわかる全体像</h2>
+<p>たとえるなら、<b>あなたは新聞社の社長で、AIは9人の編集部</b>です。社長が全部の記事を書く必要はありません。社長の仕事は<b>3つだけ</b> ── <b>①どのネタで書くかを決める</b>、<b>②仕上がりにダメ出し（承認）をする</b>、<b>③世に出す（発信する）</b>。残りの「調べる・書く・直す」は編集部がやります。</p>
 <div class="flow">
-<div class="step"><b>STEP 1</b><span>ネタを集める（AIが5分）</span></div>
-<div class="step"><b>STEP 2</b><span>仕込む（5〜15分）</span></div>
+<div class="step"><b>STEP 1</b><span>ネタを選ぶ（AIが約5秒）</span></div>
+<div class="step"><b>STEP 2</b><span>記事を作る（3〜8分・自動）</span></div>
 <div class="step"><b>STEP 3</b><span>あなたが加筆（10分）</span></div>
 <div class="step"><b>STEP 4</b><span>承認する（1分）</span></div>
 <div class="step"><b>STEP 5</b><span>noteに投稿（10分）</span></div>
 </div>
-<p>働くのは<b>9人</b> ── トレンド編集者（ネタ選別）・編集長・需要分析・リサーチ・深掘り・執筆・QA・図解・SNS。<br>
-加えて<b>機械</b>が2つ働きます。ネタの<u>材料集め</u>（AIの回数を使わない）と、記事の<u>自動検査</u>です。</p>
+<p class="small">この5つが、サイトのトップ（ホーム）にある「今日やること」の4ステップ＋note投稿に対応しています。</p>
+<p><b>働くのは次の9人</b>です。<br>
+トレンド編集者（ネタ選別）／編集長（指示出し）／需要分析（読者の関心）／リサーチ（事実集め）／深掘り（切り口）／執筆（本文）／QA（Quality Assurance＝品質チェック）／図解（画像の指示）／SNS（投稿文）。<br>
+これに<b>機械（プログラム）が2つ</b>加わります。ネタの<b>材料集め</b>（AIの回数を消費しません）と、記事の<b>自動検査</b>です。</p>
+<p><b>おすすめの回し方</b>：夜にPCで<b>まとめて仕込む</b>（STEP 1〜2）→ 翌朝スマホで<b>承認と発信</b>（STEP 3〜5）。理由は、作っている間は画面を閉じられないからです。夜のまとまった時間に仕込んで、承認は朝のスキマ時間に、が一番ラクです。</p>
+</div>
 
-<h2>2. 準備（最初の1回だけ）</h2>
+<nav class="toc">
+<b>もくじ（押すとその項目が開きます）</b>
+<div class="tocgrid">
+<button type="button" data-go="s1">1. 準備（最初の1回だけ）<i>APIキーを入れる・練習モード</i></button>
+<button type="button" data-go="s2">2. ネタを集める<i>材料を渡す・AIに選ばせる</i></button>
+<button type="button" data-go="s3">3. 毎日届く「ネタ配信」<i>自動で入ってくるネタの受け取り方</i></button>
+<button type="button" data-go="s4">4. ネタを直接入力して1本作る<i>思いつきをすぐ形にする</i></button>
+<button type="button" data-go="s5">5. まとめて仕込む<i>ストック＝記事の作り置き</i></button>
+<button type="button" data-go="s6">6. 承認する<i>あなたの出番・店頭体験を足す</i></button>
+<button type="button" data-go="s7">7. 発信する<i>X・Instagram・TikTokの文面</i></button>
+<button type="button" data-go="s8">8. 「あなた」タブ<i>文体・担当者の名前・スマホのコツ</i></button>
+<button type="button" data-go="s9">9. noteに投稿する<i>画像・タグ・有料ライン</i></button>
+<button type="button" data-go="s10">10. 仕事のルール（7か条）<i>法令と信頼を守る</i></button>
+<button type="button" data-go="s11">11. スマホ・タブレットで使う<i>中断させない使い方</i></button>
+<button type="button" data-go="s12">12. 止まったときの直し方<i>429・503・404 など</i></button>
+<button type="button" data-go="s13">13. キーが消えるとき<i>設定コードで固定する</i></button>
+<button type="button" data-go="s14">14. ことばの意味<i>略語のかんたん辞典</i></button>
+<button type="button" data-go="s15">15. 更新情報<i>v14.0〜v14.2で変わったこと</i></button>
+</div>
+</nav>
+
+<!-- 1 -->
+<details class="sec" id="s1">
+<summary><span class="n">1</span><span class="tt"><b>準備（最初の1回だけ）</b><small>APIキーを入れて「つながった」ことを確認します</small></span><span class="rt"><span class="bg">最初だけ</span><span class="ar">▶</span></span></summary>
+<div class="bd">
+<p class="lead">ひとことで言うと ── <b>AIを使うための「法人カード」を1枚、サイトに登録する</b>作業です。1回やれば、次からは不要です。</p>
+<h3>手順</h3>
 <ol>
-<li><code>https://kikazu10302223-source.github.io/mobile-agents/app.html</code> をダブルクリック（インストール不要・ブラウザで動きます）</li>
-<li>右上の <b>「キーを設定」</b> を押す</li>
-<li><a href="https://aistudio.google.com/api-keys" target="_blank" rel="noopener noreferrer">Google AI Studio</a> でAPIキーを作り、<code>AIza…</code> を貼る</li>
-<li><b>「保存して確認」</b> を押す → 「使えるモデルを◯件…」と出れば成功</li>
+<li><code>https://kikazu10302223-source.github.io/mobile-agents/board.html</code> を開く（インストール不要。ブラウザだけで動きます）</li>
+<li>右上の <b><code>● APIキー未設定</code></b> を押す（右上の <b>「⋯」</b> を押して <b>「APIキーを設定」</b> でも同じ画面が開きます）</li>
+<li><a href="https://aistudio.google.com/api-keys" target="_blank" rel="noopener noreferrer">Google AI Studio</a> でキーを作り、<code>AQ…</code> または <code>AIza…</code> で始まる文字列を貼る</li>
+<li><b>「保存して確認」</b> を押す → <b>「使えるモデルを◯件…」</b>と出れば成功です</li>
 </ol>
-<div class="warn"><b>無料プランの場合</b>：1分・1日あたりの回数に上限があります。この仕組みは<b>1回ごとに6秒あける「慎重モード」</b>を最初からONにしています。また<b>無料プランでは入力内容がGoogleの製品改善に使われます</b>。売るための企画を外部に出したくない場合は、有料プラン（従量課金）をご検討ください。</div>
-<p class="small">キーを入れずに動作だけ試すこともできます：<code>https://kikazu10302223-source.github.io/mobile-agents/app.html?trial=1</code> で開くと練習モード（AIは呼ばず、見本の出力）になります。</p>
+<div class="hint"><span class="tag">ヒント</span>ブックマークと「ホーム画面に追加」は、<b>必ず同じURL（board.html）</b>にしてください。ブラウザの保存場所はURLごとに分かれているため、URLが1文字でも違うと、キーを入れたのに「未設定」に見えます（→ <a href="#s13">13. キーが消えるとき</a>）。</div>
+<div class="hint"><span class="tag">レクチャー</span><b>キーを入れずに練習する方法</b>：URLのうしろに <code>?trial=1</code> を付けて開くと<b>練習モード</b>になります。AIは呼ばずに「練習モードの出力です。実際の文章ではありません」という見本が返るので、画面の動きや操作を無料で練習できます。例：<code>board.html?trial=1</code></div>
+<div class="warn"><span class="tag w">無料プランの場合</span>1分あたり・1日あたりの回数に上限があります。この仕組みは<b>1回ごとに6秒あける「慎重モード」</b>を最初からONにしています。また<b>無料プランでは入力内容がGoogleの製品改善に使われます</b>。売るための企画を外に出したくない場合は、有料プラン（従量課金＝使った分だけ払う方式）をご検討ください。</div>
+<div class="hint"><span class="tag">レクチャー</span><b>キーは何のために要るのか</b>：キーは「あなたがAIを使う権利の証明書」です。カードを出さないとレジを通れないのと同じで、キーがないとAIは答えを返してくれません。<b>人に見せてはいけないもの</b>なので、このサイトでは画面のどこにも表示しない作りにしています。</div>
+</div>
+</details>
 
-<h2>3. ネタを集める（AIが選別する）</h2>
-<h3>3-1. 材料を用意する（任意・推奨）</h3>
+<!-- 2 -->
+<details class="sec" id="s2">
+<summary><span class="n">2</span><span class="tt"><b>ネタを集める（AIに選ばせる）</b><small>材料を渡すと、切り口まで付いた候補が5〜10件出ます</small></span><span class="rt"><span class="bg">毎日</span><span class="ar">▶</span></span></summary>
+<div class="bd">
+<p class="lead">ひとことで言うと ── <b>編集部に「今日のニュースの束」を渡す</b>だけ。書くネタを決めるのはAIですが、どの束を渡すかであなたの色が出ます。</p>
+<h3>2-1. 材料を用意する（任意・推奨）</h3>
 <p>黒い画面（ターミナル）でこのフォルダに移動し、次を実行します。</p>
 <pre>python3 trend_collect.py --plain --out 材料.txt</pre>
-<p><code>材料.txt</code> を開いて全文コピーし、画面の <b>「材料」欄に貼り付け</b>ます。<br>
-この材料は、ITmedia Mobile / はてなブックマーク / Yahoo!ニュース / 総務省 の公開フィードから集めた「いま動いている話題」です（2026年9月時点で応答を確認済み）。</p>
-<table>
+<p><code>材料.txt</code> を開いて全文コピーし、サイトの <b>「材料」欄に貼り付け</b>ます。この材料は、ITmedia Mobile／はてなブックマーク／Yahoo!ニュース／総務省 の公開フィード（配信の受け口）から集めた「いま動いている話題」です（2026年9月時点で応答を確認済み）。</p>
+<div class="tw"><table>
 <tr><th>やること</th><th>コマンド</th></tr>
 <tr><td>材料を集める（AIに貼る用）</td><td><code>python3 trend_collect.py --plain --out 材料.txt</code></td></tr>
 <tr><td>取得先が生きているか確認</td><td><code>python3 trend_collect.py --check</code></td></tr>
 <tr><td>語で絞る（例：光回線）</td><td><code>python3 trend_collect.py --keyword 光回線 --plain</code></td></tr>
 <tr><td>自分で拾った断片を混ぜる</td><td><code>python3 trend_collect.py --paste x_posts.txt --plain</code></td></tr>
-</table>
-<div class="stop"><b>X（旧Twitter）からの自動収集はできません。</b>2026年2月にX APIは従量課金へ移行し、新規では実質的に無料枠が無くなりました。さらにXの利用規約が自動収集を禁止しています。<br>
-代わりに、あなたが目で拾った投稿を<b>数行コピーして <code>x_posts.txt</code> に貼り</b>、材料に混ぜてください。現場の嗅覚がそのまま活きます。</div>
-
-<h3>3-2. AIに選ばせる</h3>
+</table></div>
+<div class="stop"><span class="tag s">できないこと</span><b>X（旧Twitter）からの自動収集はできません。</b>2026年2月にXのAPI（外部サービスがXを利用するための窓口）は従量課金へ移り、個人では実質的に無料枠が無くなりました。加えてXの利用規約が自動収集を禁止しています。<br>
+代わりに、あなたが目で拾った投稿を<b>数行コピーして <code>x_posts.txt</code> に貼り</b>、材料に混ぜてください。<b>現場の嗅覚がそのまま活きます。</b>売り場でお客様が口にした言葉は、どの自動収集よりも強い材料です。</div>
+<h3>2-2. AIに選ばせる</h3>
 <ol>
-<li>「AIにネタを集めさせる」欄の材料を貼る（<b>空でもOK</b>。その場合はAIが記憶から提案し、【仮説】【要確認】と明記します）</li>
-<li><b>「ネタを選ばせる（5〜10件）」</b> を押す</li>
+<li>「AIにネタを集めさせる」欄に材料を貼る（<b>空でもOK</b>。その場合はAIが知識から提案し、【仮説】【要確認】と明記します）</li>
+<li><b>「ネタを選ばせる（5〜10件）」</b>を押す（約5秒）</li>
 <li>ネタ候補がカードで出ます。各カードには<b>切り口・話題度・賞味期限・先に確認すべき一次情報・根拠</b>が付きます</li>
-<li><b>「このネタで作る」</b> を押すと制作が始まります。<b>「ネタ帳に足す」</b> でまとめ仕込みに回せます</li>
+<li><b>「このネタで作る」</b>を押すと制作が始まります。<b>「ネタ帳に足す」</b>なら、あとでまとめて仕込めます</li>
 </ol>
+<div class="hint"><span class="tag">ヒント</span><b>賞味期限が短いネタは、その日のうちに。</b>キャンペーン開始・新機種発表・値上げなどは、数日で価値が落ちます。逆に「乗り換えの手順」「料金の見方」のような<b>賞味期限が長いネタ</b>は、ストックに作り置きしておくと、ネタが無い日に助かります。</div>
+<div class="hint"><span class="tag">レクチャー</span>AIの候補が的を外すときは、<b>材料を変えるより「書き足し」</b>が効きます。材料欄のうしろに「<b>今月いちばん多い相談は◯◯</b>」「<b>光回線の乗り換えで聞かれること</b>」のように、あなたの現場の一言を足してから選ばせてみてください。</div>
+</div>
+</details>
 
-<h2>4. ネタを直接入力して1本作る</h2>
+<!-- 3 -->
+<details class="sec" id="s3">
+<summary><span class="n">3</span><span class="tt"><b>毎日届く「ネタ配信」（自動で入ってきます）</b><small>毎日18時にネタ候補が届き、サイトを開くとネタ欄に増えます</small></span><span class="rt"><span class="bg now">毎日18時</span><span class="ar">▶</span></span></summary>
+<div class="bd">
+<p class="lead">ひとことで言うと ── <b>毎日18時に、AIが「今日のおすすめネタ3〜5件」を社内掲示板に貼っておいてくれる</b>仕組みです。あなたは貼られた紙を取るだけです。</p>
+<h3>届く場所</h3>
+<p>配信は <b>GitHub（ギットハブ＝プログラム置き場）の「Issue（イシュー＝掲示板の付箋）」</b> に届きます。<br>
+<a href="https://github.com/kikazu10302223-source/mobile-agents/issues" target="_blank" rel="noopener noreferrer">受け取り場所を開く（Issue一覧）</a></p>
+<p>サイトはその付箋を自動で読みに行き、<b>「作業」タブ →「まとめて仕込む」のネタ欄に1行ずつ増やします</b>。ホーム画面には「<b>AIから届いたネタ：◯件</b>」のカードが出ます。</p>
+<h3>ボタンの意味</h3>
+<div class="tw"><table>
+<tr><th>ボタン</th><th>やること</th></tr>
+<tr><td><b>いま取り込む</b></td><td>いますぐ取りに行きます。自動で入らないときはこれを押してください（自動でも、開いた1.2秒後・5秒後・12秒後に取りに行きます）</td></tr>
+<tr><td><b>STEP 1 の材料欄へ送る</b></td><td>届いたネタを「材料」として渡し、AIに<b>選別させ直します</b>。切り口を変えたいときに</td></tr>
+<tr><td><b>取り込みをリセット</b></td><td>自動で追加した行だけを消します（あなたが自分で書いたネタ帳は消えません）</td></tr>
+</table></div>
+<div class="hint"><span class="tag">ヒント</span><b>同じ配信が二重に入ることはありません。</b>一度取り込んだ配信は「既読」として記録され、次に開いたときは増えません。取り込みは<b>30分に1回まで</b>にしてあるので、何度も開いてもサイトが重くなりません。</div>
+<div class="warn"><span class="tag w">つまずきやすいところ</span>開いた直後に取り込みが終わっていないことがあります。その場合は<b>「いま取り込む」</b>を押すか、少し待ってから「作業」タブを開いてみてください（作業タブを開くと、もう一度取りに行きます）。</div>
+<h3>配信が止まって見えるとき</h3>
+<ul>
+<li>配信は<b>平日18時</b>の自動実行です（土日祝は動きません）。連休明けは、前回ぶんがまとめて入ります。</li>
+<li>配信そのものが無いときは、Issue一覧が空でないか確認してください（配信タイトルは <code>[ネタ配信] 2026-09-30（3件）</code> の形です）。</li>
+<li>配信の中身は毎回AI Drive（<code>/通信ラボ/2026-W40/</code> など週ごとのフォルダ）にもバックアップされます。</li>
+</ul>
+</div>
+</details>
+
+<!-- 4 -->
+<details class="sec" id="s4">
+<summary><span class="n">4</span><span class="tt"><b>ネタを直接入力して1本作る</b><small>思いついた1本を、その場で書かせます</small></span><span class="rt"><span class="bg">随時</span><span class="ar">▶</span></span></summary>
+<div class="bd">
+<p class="lead">ひとことで言うと ── <b>「これ書いて」と編集部に直接頼む</b>やり方です。売り場で「あ、これ記事になる」と思った瞬間に使います。</p>
+<h3>手順</h3>
 <ol>
 <li>テーマを入力（例：光回線の乗り換えで損しない手順）</li>
-<li>ジャンルを選ぶ（モバイル/通信、光回線、デバイス、料金・契約 など）</li>
-<li>想定読者・調べたいことを入れると、精度が上がります（任意）</li>
-<li><b>「このテーマで作る」</b> を押す</li>
+<li>ジャンルを選ぶ（モバイル／通信、光回線、デバイス、料金・契約 など）</li>
+<li>想定読者・調べたいことを入れると精度が上がります（任意）</li>
+<li><b>「このテーマで作る」</b>を押す</li>
 </ol>
-<p>8つの役割が順に働き、最後に検査まで済ませて<b>ストックへたまります</b>。</p>
+<p>8つの役割が順に働き、最後に自動検査まで済ませて<b>ストックへたまります</b>（1本 3〜8分）。</p>
+<div class="hint"><span class="tag">ヒント</span>テーマは<b>「誰の・何を・どうする」</b>まで書くと当たります。<br>
+△「格安SIM」→ ○「<b>格安SIMに乗り換えたい人が、最初に確認すべき3つ</b>」<br>
+お客様に説明するときの言い方を、そのままテーマにするのがコツです。</div>
+<div class="warn"><span class="tag w">つまずきやすいところ</span>作り始めたら<b>画面を閉じないでください。</b>他のアプリに切り替えたり、スマホが眠ると、ブラウザが止められて中断します（→ 中断したときは <a href="#s12">12. 止まったときの直し方</a>）。</div>
+</div>
+</details>
 
-<h2>5. まとめて仕込む（ストック）</h2>
+<!-- 5 -->
+<details class="sec" id="s5">
+<summary><span class="n">5</span><span class="tt"><b>まとめて仕込む（ストック＝記事の作り置き）</b><small>ネタを3〜5行ぶん渡して、夜のうちに何本も作らせます</small></span><span class="rt"><span class="bg">夜</span><span class="ar">▶</span></span></summary>
+<div class="bd">
+<p class="lead">ひとことで言うと ── <b>冷蔵庫の作り置き</b>です。夜に3〜5本ぶん仕込んでおけば、あとで「今日は書く時間がない」という日を助けてくれます。</p>
+<h3>手順</h3>
 <ol>
-<li>ネタ帳に1行1テーマで3〜5行を貼る（AIの候補から「ネタ帳に足す」でもOK）</li>
-<li><b>「まとめて作る（ストックへ）」</b> を押す</li>
+<li>ネタ帳に1行1テーマで3〜5行を貼る（<a href="#s2">AIの候補</a>から「ネタ帳に足す」でもOK／<a href="#s3">自動配信</a>のネタもここに入ります）</li>
+<li><b>「まとめて作る（ストックへ）」</b>を押す</li>
 </ol>
-<table>
+<div class="tw"><table>
 <tr><th>ボタン</th><th>意味</th></tr>
-<tr><td>中止する</td><td>次の1本が終わってから安全に止まります</td></tr>
-<tr><td>ストックを書き出す</td><td>全記事＋検査＋SNS投稿を1ファイルに。こまめに退避してください</td></tr>
-<tr><td>ストックを空にする</td><td>ブラウザの保存を整理します（消えるので先に書き出しを）</td></tr>
-</table>
-<div class="note">ストックはブラウザの中に保存されます。<b>20〜30本を超えると保存容量に近づきます</b>。また<b>ブラウザのデータを消すとストックも消えます</b>。月に一度は「書き出す」を押してください。</div>
+<tr><td>中止する</td><td>いま書いている1本が終わってから、安全に止まります</td></tr>
+<tr><td>ストックを書き出す</td><td>全記事＋検査＋SNS投稿文を1ファイルにまとめます（Markdown＝人が読む用のテキスト）</td></tr>
+<tr><td>バックアップ（引き継ぎ用）</td><td>端末を変えるとき用のファイル（JSON＝機械が読み書きする形）を保存します</td></tr>
+<tr><td>ストックを空にする</td><td>ブラウザの保存を整理します（消えるので、先に書き出しを）</td></tr>
+</table></div>
+<div class="warn"><span class="tag w">大事な注意</span>ストックは<b>ブラウザの中</b>に保存されます。つまり<b>「冷蔵庫」はあなたの端末の中</b>にあります。<br>
+・<b>20〜30本を超えると保存容量に近づきます</b>（月に一度は「書き出す」を押して退避してください）<br>
+・<b>ブラウザのデータを消すとストックも消えます</b>。引き継ぎは「バックアップ（引き継ぎ用）」のJSONで行います（Markdownの書き出しは読み込めません）</div>
+<div class="hint"><span class="tag">レクチャー</span><b>作っている最中は、9人の進み具合が枠で見えます。</b>どの役割が終わったかが色で分かるので、「あと少しだな」と待ち時間の目安になります。すでに終わった役割は、中断しても<b>やり直しになりません</b>（AIの回数も使いません）。</div>
+</div>
+</details>
 
-<h2>6. 承認する（あなたの出番）</h2>
-<p>左の「ストック」から1本を開きます。やることは3つです。</p>
+<!-- 6 -->
+<details class="sec" id="s6">
+<summary><span class="n">6</span><span class="tt"><b>承認する（あなたの出番・ここが勝負）</b><small>店頭体験を1つ足して、「投稿してよい」を決めます</small></span><span class="rt"><span class="bg now">毎回</span><span class="ar">▶</span></span></summary>
+<div class="bd">
+<p class="lead">ひとことで言うと ── <b>校閲の判子を押す</b>場所です。AIの文章は「よくできた下書き」。同じ料理でも、<b>実際に店で食べた人の一口コメント</b>がある方が選ばれます。それがあなたの店頭体験です。</p>
+<h3>手順（3つだけ）</h3>
 <ol>
-<li><b>本文を読む</b>（「検査レポート」タブでERRORが残っていないか確認）</li>
-<li><b>あなたの店頭体験を1つ足す</b> ── 実際にお客様から聞かれたこと、手続きでつまずく点、店頭とオンラインの違い。<b>これが他サイトとの決定的な差</b>です</li>
-<li><b>「承認する」</b>（却下するときは理由を必ず書く。理由は次回の企画に自動で反映されます）</li>
+<li><b>本文を読む</b>（「検査レポート」タブで ERROR が残っていないか確認します）</li>
+<li><b>あなたの店頭体験を1つ足す</b> ── 実際にお客様から聞かれたこと、手続きでつまずく点、店頭とオンラインの違い</li>
+<li><b>「承認する」</b>を押す（却下するときは<b>理由を必ず書きます</b>。理由は次回の企画に自動で反映されます）</li>
 </ol>
+<p><b>承認ゲートの考え方</b>（画面にも書いてあります）：<br>
+「AIはここから先へ進めません。店頭体験を足して、承認してください。承認＝公開の許可ではなく、<b>『投稿してよい』というあなたの決裁</b>です。」</p>
+<div class="hint"><span class="tag">レクチャー</span>店頭体験の入れ方の例（そのまま使えます）<br>
+・「<b>店頭では、こう聞かれることが多い</b>：◯◯と聞かれたら△△と説明しています」<br>
+・「<b>ここでつまずく人が多い</b>：本人確認の書類が古いと当日手続きできません」<br>
+・「<b>オンラインと店頭の違い</b>：店頭はその場で初期設定まで終わりますが、待ち時間が発生します」<br>
+<b>体験は1つで十分です。</b>多いほど強いですが、捏造（作り話）は絶対にしないでください。あなたの名前で出る記事です。</div>
+<div class="warn"><span class="tag w">つまずきやすいところ</span>「承認待ち」が増えてきたら、<b>却下や保留も遠慮なく使ってください。</b>書き直しの指示を出してもいいですが、<b>理由を書いて却下する</b>のが一番早く、その理由が次回の精度を上げます。</div>
+</div>
+</details>
 
-<h2>7. 発信する（X・Instagram・TikTok）</h2>
-<p>記事ができたら、それを人に届ける入口を作ります。「発信」タブの3つのボタンだけで進みます。</p>
+<!-- 7 -->
+<details class="sec" id="s7">
+<summary><span class="n">7</span><span class="tt"><b>発信する（X・Instagram・TikTok）</b><small>記事を人に届ける文面を、3つのボタンで作ります</small></span><span class="rt"><span class="bg">随時</span><span class="ar">▶</span></span></summary>
+<div class="bd">
+<p class="lead">ひとことで言うと ── <b>同じ料理を、SNSという別の店頭に並べる</b>作業です。中身は同じでも、盛り付け（文字数と切り口）は店ごとに変えます。</p>
+<h3>手順</h3>
 <ol>
-<li>「<b>発信</b>」タブを開きます。</li>
-<li>「どの記事から作りますか」で記事を選びます（選ぶと「本文&#9675;&#9675;字を使います」と表示されます）。手元の原稿を使うときは、下の欄に貼り付けても作れます。</li>
-<li>作りたい媒体のボタンを押します（Xの投稿文を作る／Instagramを作る／TikTok台本を作る）。30秒〜2分ほどでできます。</li>
-<li><b>コピー</b>を押して、各アプリに貼り付けます。Xは<b>「Xの投稿画面を開く」</b>を押すと、文面が入った状態でXが開きます（あとは投稿を押すだけです）。</li>
+<li><b>「発信」</b>タブを開きます</li>
+<li>「どの記事から作りますか」で記事を選びます（選ぶと「本文◯◯字を使います」と出ます）。手元の原稿を使うときは、下の欄に貼り付けても作れます</li>
+<li>作りたい媒体のボタンを押します（<b>Xの投稿文を作る／Instagramを作る／TikTok台本を作る</b>）。30秒〜2分ほどでできます</li>
+<li><b>コピー</b>を押して各アプリに貼り付けます。Xは<b>「Xの投稿画面を開く」</b>を押すと、文面が入った状態でXが開きます（あとは投稿ボタンを押すだけ）</li>
 </ol>
-<p><b>X</b>は投稿文を3案（速報型・比較型・体験型）作ります。無料アカウントの文字数は全角140字なので、超えないように作らせています。<b>Instagram</b>はキャプション（1行目でつかむ）とタグ10個前後、画像に載せる文字を2案作ります。<b>TikTok</b>は20〜30秒の縦動画の台本を、つかみ・本題・締めに区切り、読み上げ原稿と画面テロップに分けて作ります。</p>
-<p><b>自動投稿・予約投稿はできません。</b>理由は3つです。(1) InstagramとTikTokは各社の審査と開発者登録が必要です。(2) この仕組みはブラウザだけで動くため、秘密の鍵（アクセストークン）を安全にしまっておくサーバーがありません。公開ページに鍵を置くのは事故のもとなので、やりません。(3) Xは従量課金で、ブラウザから直接呼ぶとCORS（別サイト間の通信を制限する仕組み）で拒否されます。<br>予約投稿まで自動化したいときは、SocialDog・Buffer・Meta Business Suite などの予約投稿サービスに渡すのが、安全で安上がりです。</p>
+<h3>媒体ごとの中身</h3>
+<div class="tw"><table>
+<tr><th>媒体</th><th>作られるもの</th></tr>
+<tr><td><b>X</b></td><td>投稿文を<b>3案</b>（速報型・比較型・体験型）。無料アカウントの文字数は全角140字なので、超えないように作らせています</td></tr>
+<tr><td><b>Instagram</b></td><td>キャプション（1行目でつかむ）とタグ10個前後、画像に載せる文字を2案</td></tr>
+<tr><td><b>TikTok</b></td><td>20〜30秒の縦動画の台本（つかみ・本題・締め）。読み上げ原稿と画面テロップに分けて出します</td></tr>
+</table></div>
+<div class="stop"><span class="tag s">できないこと</span><b>自動投稿・予約投稿はできません。</b>理由は3つです。<br>
+<b>(1)</b> InstagramとTikTokは各社の審査と開発者登録が必要です。<br>
+<b>(2)</b> この仕組みはブラウザだけで動くため、秘密の鍵（アクセストークン）を安全にしまっておくサーバーがありません。公開ページに鍵を置くのは事故のもとなので、やりません。<br>
+<b>(3)</b> Xは従量課金で、ブラウザから直接呼ぶと CORS（別サイト間の通信を制限する仕組み）で拒否されます。<br>
+予約投稿まで自動化したいときは、SocialDog・Buffer・Meta Business Suite などの予約投稿サービスに渡すのが、安全で安上がりです。</div>
 <p>どの媒体にも共通で、<b>記事に書いていない数字を足さない／金額には基準日を書く／「最安」「絶対」を使わない／広告は「PR」と明記する</b>というルールで作らせています。記事のURLは勝手に作らず「【記事URL】」と空けてあるので、ご自身で貼ってください。</p>
+<div class="hint"><span class="tag">ヒント</span><b>3案の使い分け</b>：速報型＝発表当日に、比較型＝検討中の人に、体験型＝あなたの店頭ネタがあるとき。同じ記事でも日を変えて出せば、別の読者に届きます。</div>
+</div>
+</details>
 
-<h2>8. 「あなた」タブ（文体・担当者の名前・スマホのコツ）</h2>
-<p>あなた自身のこと（文章の書き方・呼び名・使い方）は、<b>「あなた」タブ</b>にまとめてあります。<b>設定タブはAPIキーの設定だけ</b>です。</p>
-<p><b>(1) あなたらしさ（文体・人物）設定</b><br>一人称（私／僕／俺）、口調・語尾、性格・立場、背景・経歴、想定読者、よく使う言い回し、書かないこと、そして<b>文体の見本</b>を入れられます。<b>最初は全部空欄</b>なので、ご自身の言葉で入れて「保存する」を押してください。<br>入れた内容は、<b>9人の担当すべてに毎回渡されます</b>。<b>いちばん効くのは「文体の見本」</b>にご自身のnoteやXの投稿をそのまま貼ることです（文の長さ・リズム・語尾を真似します）。<br>空欄でも大丈夫です。金額の基準日・「実質&#9675;円」の内訳・PR表記などの法令ルールは、9人の指示に元から入っています。<br>「<b>いまAIに渡す文を見る</b>」を押すと、実際にAIへ送られる文がそのまま表示されます。<b>書き出し／読み込み</b>で、別の端末へ移せます。保存先は<b>この端末の中だけ</b>です。</p>
-<p><b>(2) AI担当者の名前</b><br>9人の担当に、あなたが呼びたい名前を付けられます（12字まで）。付けた名前は<b>作業画面の9つの枠・実行ログ・オフィス一覧</b>の表示に使われます。「ネタ係」「書き手」「最後のチェック係」など、分かりやすい名前をどうぞ。<b>空欄にすれば元の名前に戻り</b>、「全部もとの名前に戻す」ボタンもあります。<br>表示だけが変わり、<b>AIへ送る役割の指示の中身は変わりません</b>ので、品質は落ちません。</p>
-<p><b>(3) スマホで使うときのコツ</b><br>4つあります。(1) <b>生成中は画面を閉じない</b>（他のアプリに切り替えると止まります。中止しても「続きから再開」で終わった分を再利用できます）。(2) <b>ホーム画面に追加</b>すると1タップで開けます（iPhoneでは、7日間開かないと設定が消えるSafariの仕様を避けられます）。(3) <b>充電しながら</b>まとめて仕込む。(4) 入力は「<b>&#9998; 大きく入力する</b>」から。キーボードのマイクボタンで<b>音声入力</b>も使えます。</p>
+<!-- 8 -->
+<details class="sec" id="s8">
+<summary><span class="n">8</span><span class="tt"><b>「あなた」タブ（文体・担当者の名前・スマホのコツ）</b><small>あなたらしさを書くと、9人の文章が寄ってきます</small></span><span class="rt"><span class="bg">1回だけ</span><span class="ar">▶</span></span></summary>
+<div class="bd">
+<p class="lead">ひとことで言うと ── <b>編集部に「うちの社長はこう書く」という手本を渡す</b>場所です。ここを埋めるほど、AIの文章が「あなたの文章」に寄ります。</p>
+<h3>(1) あなたらしさ（文体・人物）設定</h3>
+<p>一人称（私／僕／俺）、口調・語尾、性格・立場、背景・経歴、想定読者、よく使う言い回し、書かないこと、そして<b>文体の見本</b>を入れられます。<b>最初は全部空欄</b>ですので、ご自身の言葉で入れて「保存する」を押してください。</p>
+<ul>
+<li>入れた内容は<b>9人の担当すべてに毎回渡されます</b></li>
+<li><b>いちばん効くのは「文体の見本」</b>です。ご自身のnoteやXの投稿をそのまま貼ってください（文の長さ・リズム・語尾を真似します）</li>
+<li>空欄でも大丈夫です。金額の基準日・「実質◯円」の内訳・PR表記などの<b>法令ルールは、9人の指示に元から入っています</b>（文体よりも法令が優先されます）</li>
+<li><b>「いまAIに渡す文を見る」</b>を押すと、実際にAIへ送られる文がそのまま表示されます。<b>書き出し／読み込み</b>で別の端末へ移せます。保存先は<b>この端末の中だけ</b>です</li>
+</ul>
+<h3>(2) AI担当者の名前</h3>
+<p>9人の担当に、あなたが呼びたい名前を付けられます（12字まで）。付けた名前は<b>作業画面の9つの枠・実行ログ・オフィス一覧</b>の表示に使われます。「ネタ係」「書き手」「最後のチェック係」など、分かりやすい名前をどうぞ。<b>空欄にすれば元の名前に戻り</b>、「全部もとの名前に戻す」ボタンもあります。<br>
+表示だけが変わり、<b>AIへ送る役割の指示の中身は変わりません</b>ので、品質は落ちません。</p>
+<h3>(3) スマホで使うときのコツ</h3>
+<ol>
+<li><b>生成中は画面を閉じない。</b>他のアプリに切り替えたり、画面が暗くなると止まります（止まっても「続きから再開」で、終わった分は再利用されます）</li>
+<li><b>ホーム画面に追加する。</b>1タップで開けるうえ、iPhoneでは<b>7日間開かないと設定が消えるSafariの仕様（ITP）</b>を避けられます</li>
+<li><b>充電しながら</b>まとめて仕込む</li>
+<li>入力は<b>「✎ 大きく入力する」</b>から。キーボードのマイクボタンで<b>音声入力</b>も使えます</li>
+</ol>
+<div class="hint"><span class="tag">レクチャー</span><b>なぜSafariは7日で消えるのか</b>：Safariには「ずっと開いていないサイトの保存データは消す」という仕組み（ITP＝Intelligent Tracking Prevention＝追跡防止）があります。ホーム画面に追加しておくと、この対象から外れます。<b>PCのChrome</b>を使っているときは、この7日ルールは関係ありません。</div>
+</div>
+</details>
 
-<h2>9. noteに投稿する</h2></h2>
-<table>
+<!-- 9 -->
+<details class="sec" id="s9">
+<summary><span class="n">9</span><span class="tt"><b>noteに投稿する</b><small>画像・タイトル・タグ・有料ラインの順に進めます</small></span><span class="rt"><span class="bg">仕上げ</span><span class="ar">▶</span></span></summary>
+<div class="bd">
+<p class="lead">ひとことで言うと ── <b>最後の「棚出し」</b>です。ここだけは自動化していません（手で貼る方が安全で、あなたの判断が入るためです）。</p>
+<div class="tw"><table>
 <tr><th>段階</th><th>やること</th></tr>
-<tr><td>画像</td><td>「図解・画像」タブの指示でアイキャッチ（<b>1280×670px</b>）を1枚用意。<b>自分で撮った写真が一番強い</b></td></tr>
+<tr><td>画像</td><td>「図解・画像」タブの指示でアイキャッチ（記事の顔になる画像、<b>1280×670px</b>）を1枚用意。<b>自分で撮った写真が一番強い</b></td></tr>
 <tr><td>貼る</td><td>noteにログイン → <b>[投稿]</b> → <b>[テキスト]</b> → 見出し画像・タイトル・本文を貼る（<b>「本文をコピー（note用）」</b>ボタンが使えます）</td></tr>
-<tr><td>タグ</td><td><b>[公開設定]</b> → ハッシュタグ3〜5個（例: #スマホ #料金見直し #乗り換え）</td></tr>
+<tr><td>タイトル</td><td>15〜25字が読みやすく、一覧で切れにくい長さです</td></tr>
+<tr><td>タグ</td><td><b>[公開設定]</b> → ハッシュタグ3〜5個（例：#スマホ #料金見直し #乗り換え）</td></tr>
 <tr><td>販売</td><td><b>[販売設定]</b> で無料／有料を選ぶ。有料なら価格（100円〜）と<b>有料エリア設定</b></td></tr>
 <tr><td>公開</td><td><b>[投稿する]</b> → 公開後、「このラインより上のエリアが無料で表示されます。」の位置を確認</td></tr>
-<tr><td>告知</td><td>「SNS投稿」タブのX投稿文をそのまま使う</td></tr>
-</table>
+<tr><td>告知</td><td>「発信」タブのX投稿文をそのまま使う</td></tr>
+</table></div>
 <p class="small">有料ラインは<b>「段落の直下」にしか引けません</b>。先に本文でEnterを押して段落を作り、<b>[＋] → [有料エリア指定]</b> を選びます。</p>
+<div class="hint"><span class="tag">ヒント</span>noteの手数料は<b>実質14.5%</b>（クレジットカード決済の場合。キャリア決済だと23.5%）です。つまり500円の有料記事なら、手元に残るのはおよそ428円。売上金の振込は<b>1回270円</b>かかるので、<b>まとめてから出す</b>方が得です。</div>
+</div>
+</details>
 
-<h2>10. 仕事のルール（通信分野の7か条）</h2>
+<!-- 10 -->
+<details class="sec" id="s10">
+<summary><span class="n">10</span><span class="tt"><b>仕事のルール（通信分野の7か条）</b><small>金額の基準日・PR表記・断定の禁止 ── 信頼を守る線</small></span><span class="rt"><span class="bg dan">毎回</span><span class="ar">▶</span></span></summary>
+<div class="bd">
+<p class="lead">ひとことで言うと ── <b>「安い」と言い切る記事は、いつか訴訟や信用の失墜で返ってくる</b>。だから事実と条件だけで書く、という約束です。公開前の最終チェックに使ってください。</p>
 <ul class="chk">
-<li><b>金額には基準日</b>を書いた（例: 2026年9月時点）</li>
+<li><b>金額には基準日</b>を書いた（例：2026年9月時点）</li>
 <li><b>「実質◯円」には内訳</b>（端末代金・割引・ポイント還元・支払い回数）を書いた</li>
 <li><b>キャンペーンには終了日と条件</b>を書いた</li>
 <li><b>契約条件の注意書き</b>（契約期間・解約費用・事務手数料）を入れた</li>
 <li><b>「最安」「No.1」「絶対」</b>を使っていない</li>
-<li>アフィリエイトのリンクに<b>「PR」「広告」</b>を明記した</li>
+<li>アフィリエイト（成果報酬の紹介リンク）に<b>「PR」「広告」</b>を明記した</li>
 <li><b>あなたの一次情報（店頭体験）</b>が本文に1つ以上入っている</li>
 </ul>
-<div class="warn">特定のキャリア・店舗・個人を貶す表現は入れないでください。<b>事実と条件だけ</b>で比較します。あなたの職業上の立場を守るためでもあります。<br>
+<h3>なぜ、この7つが必要なのか</h3>
+<ul>
+<li><b>「最安」「No.1」</b>は<b>景品表示法（景表法）</b>という法律で、根拠を示せない優良誤認として処分の対象になります。価格は毎月変わります。断定した瞬間に<strike>正しくない</strike>嘘になり得ます。</li>
+<li><b>PR表記</b>は<b>ステマ規制</b>（ステルスマーケティング規制＝広告と分からない宣伝の禁止）への対応です。広告であることを隠すと、紹介した側が問題になります。</li>
+<li><b>通信の料金・契約</b>は<b>YMYL</b>（Your Money or Your Life＝読者のお金や生活に直結する話題）に分類され、検索でも厳しく評価されます。基準日と条件を書くことが、そのまま信頼になります。</li>
+</ul>
+<div class="warn"><span class="tag w">注意</span>特定のキャリア・店舗・個人を貶す表現は入れないでください。<b>事実と条件だけ</b>で比較します。あなたの職業上の立場を守るためでもあります。<br>
 また、キャリア・代理店のアフィリエイト規約には「有料コンテンツ内での掲載可否」が個別に定められていることがあります。有料記事にアフィリエイトを併用する前に、提携先の規約をご確認ください。</div>
+</div>
+</details>
 
-<h2>11. スマホ・タブレットで使う</h2>
+<!-- 11 -->
+<details class="sec" id="s11">
+<summary><span class="n">11</span><span class="tt"><b>スマホ・タブレットで使う</b><small>中断させないこと。それが一番大事です</small></span><span class="rt"><span class="bg">使い方</span><span class="ar">▶</span></span></summary>
+<div class="bd">
+<p class="lead">ひとことで言うと ── <b>料理中にコンロの火を消さない</b>のと同じで、作っている間は画面を閉じないこと。それだけで失敗のほとんどは防げます。</p>
 <p>同じファイルがそのままスマホでも動きます（インストール不要）。画面幅が狭いときは、自動でスマホ向けの表示に切り替わります。</p>
-<table>
+<div class="tw"><table>
 <tr><th>スマホ向けの工夫</th><th>内容</th></tr>
 <tr><td><b>画面下の固定バー</b></td><td>作品を開くと、画面の下に「承認／却下／コピー／加筆を保存」が固定されます。長い本文をスクロールしても、いつでも押せます</td></tr>
 <tr><td><b>1列レイアウト</b></td><td>ストック一覧と本文を横並びにせず、縦に並べます。指の届く範囲で操作できます</td></tr>
 <tr><td><b>工程ボードを2〜4列</b></td><td>9つの役割の進み具合を、狭い画面でも一望できます</td></tr>
 <tr><td><b>入力欄を16pxに</b></td><td>iPhoneで入力欄をタップしたときに、勝手に画面が拡大されるのを防ぎます</td></tr>
 <tr><td><b>ボタンを44px以上に</b></td><td>指で押しやすい大きさにしています</td></tr>
-<tr><td><b>タブは横スクロール</b></td><td>「記事本文」「検査レポート」などのタブを、折り返さず横に流して選べます</td></tr>
-<tr><td><b>コピーの代替手段</b></td><td>コピーが使えない端末では、編集欄を長押し→全選択→コピーを案内します</td></tr>
-</table>
-<div class="warn"><b>いちばん大事な注意：生成中は画面を閉じないでください。</b><br>スマホでは、画面が暗くなったり他のアプリに切り替わると、ブラウザが止められて処理が中断します。この仕組みは、対応している端末では<b>画面が眠らないようにロック</b>をかけ、画面の上の方に注意書きも出します。<br>それでも中断した場合は、画面右下の <b>「前回の続きがあります → 続きから再開」</b> を押してください。<b>終わった役割は再利用されるので、AIの呼び出し回数を使いません。</b></div>
+<tr><td><b>タブは2段</b></td><td>v14.2から、タブは「ふだん（ホーム／作業／承認／発信）」と「まとめ（記録／あなた／設定／つかいかた）」の2段です</td></tr>
+<tr><td><b>コピーの代替手段</b></td><td>コピーが使えない端末では、編集欄を長押し → 全選択 → コピーで対応できます</td></tr>
+</table></div>
+<div class="warn"><span class="tag w">いちばん大事な注意</span><b>生成中は画面を閉じないでください。</b><br>スマホでは、画面が暗くなったり他のアプリに切り替わると、ブラウザが止められて処理が中断します。この仕組みは、対応している端末では<b>画面が眠らないようにロック</b>をかけ、画面の上の方に注意書きも出します。<br>それでも中断した場合は、画面右下の <b>「前回の続きがあります → 続きから再開」</b>を押してください。<b>終わった役割は再利用されるので、AIの呼び出し回数を使いません。</b></div>
 <h3>スマホで快適に使う3つのコツ</h3>
 <ol>
-<li><b>ホーム画面に追加する。</b>ブラウザのメニューから「ホーム画面に追加」を選ぶと、アプリのように1タップで開けます</li>
+<li><b>ホーム画面に追加する。</b>ブラウザのメニューから「ホーム画面に追加」を選ぶと、アプリのように1タップで開けます（設定が消える7日ルールも回避できます）</li>
 <li><b>電源につないでおく。</b>待ち時間があるので、まとめて仕込むときは充電しながらが安全です</li>
-<li><b>長時間のスリープ設定を長めに。</b>端末の設定で画面ロックまでの時間を延ばすと、中断のリスクが下がります</li>
+<li><b>画面ロックまでの時間を長めに。</b>端末の設定で延ばすと、中断のリスクが下がります</li>
 </ol>
 <h3>ストックの引き継ぎ（端末を変えるとき）</h3>
 <p>ストックはブラウザの中に保存されるので、<b>端末を変えると引き継がれません</b>。そこで引き継ぎ用のバックアップを用意しました。</p>
 <ol>
-<li>「まとめて仕込む」欄の <b>「バックアップ（引き継ぎ用）」</b> を押す → JSONファイルが保存されます</li>
-<li>新しい端末で同じファイルを開き、<b>「バックアップを読み込む」</b> を押して、そのJSONファイルを選ぶ</li>
+<li>「まとめて仕込む」欄の <b>「バックアップ（引き継ぎ用）」</b>を押す → JSONファイルが保存されます</li>
+<li>新しい端末で同じファイルを開き、<b>「バックアップを読み込む」</b>を押して、そのJSONファイルを選ぶ</li>
 <li>今のストックと合流します（同じ作品はバックアップ側を優先）</li>
 </ol>
-<p class="small">※ Markdownの「ストックを書き出す」は人が読む用で、読み込みはできません。引き継ぎには JSON のバックアップをお使いください。</p>
+<p class="small">※ Markdownの「ストックを書き出す」は人が読む用で、読み込みはできません。引き継ぎにはJSONのバックアップをお使いください。</p>
+</div>
+</details>
 
-<h2>12. 止まったときの直し方</h2>
-<table>
+<!-- 12 -->
+<details class="sec" id="s12">
+<summary><span class="n">12</span><span class="tt"><b>止まったときの直し方（症状別）</b><small>429・503・404 の意味と、続きから再開の使い方</small></span><span class="rt"><span class="bg dan">困ったとき</span><span class="ar">▶</span></span></summary>
+<div class="bd">
+<p class="lead">ひとことで言うと ── <b>エラーの数字は「どこでつまずいたか」の住所</b>です。数字を見れば、待てばいいのか、押せば直るのかが分かります。</p>
+<div class="tw"><table>
 <tr><th>こんな症状</th><th>原因と対処</th></tr>
-<tr><td>429 と出た</td><td>回数の使いすぎ（あなた側）。20〜30分待つ。1日分の上限は日本時間の夕方ごろにリセットされます</td></tr>
-<tr><td>503 と出た</td><td>Google側の混雑。<b>4〜6秒待って自動で再挑戦します</b>。それでも続くときは10分置くか、時間帯を変える（朝が狙い目）</td></tr>
-<tr><td>404 と出た</td><td>モデルの廃止。<b>自動で別のモデルに乗り換えます</b>（何もしなくてOK）</td></tr>
-<tr><td>途中で止まった</td><td>画面右下に <b>「前回の続きがあります → 続きから再開」</b> が出ます。<b>作った役割は再利用されるので、回数を使いません</b></td></tr>
+<tr><td><b>429</b> と出た</td><td>回数の使いすぎ（あなた側の制限）。20〜30分待ってください。1日分の上限は日本時間の夕方ごろにリセットされます。<br><span class="small">レジの「本日の打ち止め」と同じで、待てば必ず復活します</span></td></tr>
+<tr><td><b>503</b> と出た</td><td>Google側の混雑。<b>4〜6秒待って自動で再挑戦します</b>。それでも続くときは10分置くか、時間帯を変える（朝が狙い目）。<br><span class="small">人気店の満席と同じで、あなたのミスではありません</span></td></tr>
+<tr><td><b>404</b> と出た</td><td>モデルの廃止。<b>自動で別のモデルに乗り換えます</b>（何もしなくてOK）</td></tr>
+<tr><td>途中で止まった</td><td>画面右下に <b>「前回の続きがあります → 続きから再開」</b>が出ます。<b>作った役割は再利用されるので、回数を使いません</b></td></tr>
 <tr><td>急に遅くなった</td><td>慎重モード（6秒間隔）が働いています。正常です</td></tr>
 <tr><td>ストックが消えた</td><td>ブラウザのデータを消すと消えます。<b>「バックアップ（引き継ぎ用）」</b>でJSONを保存しておいてください（読み込みで復元できます）</td></tr>
 <tr><td>スマホで画面が暗くなり止まった</td><td>端末が眠ると中断します。画面ロック時間を延ばし、電源につないで実行してください。止まっても<b>「続きから再開」</b>で回数を使わずに続けられます</td></tr>
-</table>
+<tr><td>ネタが入ってこない</td><td>「いま取り込む」を押してください。それでも入らないときは、配信の受け取り場所（<a href="https://github.com/kikazu10302223-source/mobile-agents/issues" target="_blank" rel="noopener noreferrer">Issue一覧</a>）に新しい付箋があるか確認します（→ <a href="#s3">3. 毎日届くネタ配信</a>）</td></tr>
+</table></div>
+<div class="hint"><span class="tag">レクチャー</span><b>「続きから再開」は、時短の道具です。</b>たとえるなら、料理を途中まで作って冷蔵庫に入れておく感じ。9人のうち<b>終わった人の仕事は捨てずに残してある</b>ので、再開すると続きから始まります。<br>
+つまり──<b>止まることは失敗ではありません。</b>落ち着いて「続きから再開」を押してください。</div>
+</div>
+</details>
 
-<p class="small" style="margin-top:34px">この手引きは通信・モバイル版です。ファイルの意味は <code>START_HERE.md</code>、運用の考え方は <code>運用ガイド_モバイル.md</code> にあります。</p>
+<!-- 13 -->
+<details class="sec" id="s13">
+<summary><span class="n">13</span><span class="tt"><b>キーが消えるときの直し方（キーの固定）</b><small>「毎回キーを聞かれる」を止める方法</small></span><span class="rt"><span class="bg">困ったとき</span><span class="ar">▶</span></span></summary>
+<div class="bd">
+<p class="lead">ひとことで言うと ── <b>引き出しの場所が毎回ちがう</b>から、入れたはずのキーが見つからないのです。場所を1つに固定します。</p>
+<h3>原因は次のどちらかです</h3>
+<ol>
+<li><b>開いているURLが毎回ちがう</b>：ブラウザの保存領域は「サイトごと」に分かれています（引き出しはURL単位）。URLが1文字でも違うと別の引き出しになり、キーは見つかりません。<b>ブックマークとホーム画面は、必ず同じURLにしてください。</b></li>
+<li><b>ブラウザがサイトデータを保存しない設定</b>：シークレットモード、または「終了時にサイトデータを削除」が有効だと、閉じた時点で消えます。</li>
+</ol>
+<h3>解決策：設定コードで移す（おすすめ・確実）</h3>
+<p>右上の <b>「⋯」→「APIキーを設定」</b>を開き、<b>「更新するとキーが消えるとき／別の端末に移すとき」</b>の欄を使います。「書き出す」を押すと1行のコードが出ます。それをコピーし、別の端末の同じ欄に貼って「読み込む」を押せば、<b>キーと設定がまとめて移ります</b>。<br>
+<b>このコードは人に見せないでください</b>（キーそのものが入っています）。メモ帳アプリに保管しておくと、機種変更のときにも使えます。</p>
+<div class="hint"><span class="tag">ヒント</span>iPadやPCでも同じことができます。<b>一度書き出したコードを、あなたの道具箱（メモ帳）に保管しておく</b>のが一番確実です。</div>
+<div class="warn"><span class="tag w">以前の案内から変更しました</span>むかしは<b>「config.js（サイト共通の設定ファイル）にキーを1回書けば全端末で有効」</b>という方法を案内していましたが、<b>現在はこの方法は使えません。</b>GitHubが「秘密情報（APIキーなど）が含まれています」と判断して、<b>書き込みを拒否するようになった</b>ためです（エラー：409 Secret detected in content）。<br>
+公開リポジトリの設定ファイルは、URLを知っている人なら誰でも中身を読めます。キーを書く方法が塞がれたことは、安全の面ではむしろ好都合だと考えてください。<b>設定コード方式だけを使えば問題ありません。</b></div>
+</div>
+</details>
+
+<!-- 14 -->
+<details class="sec" id="s14">
+<summary><span class="n">14</span><span class="tt"><b>ことばの意味（かんたん辞典）</b><small>むずかしい言葉が出てきたら、ここに戻ってきてください</small></span><span class="rt"><span class="bg">辞書</span><span class="ar">▶</span></span></summary>
+<div class="bd">
+<dl class="term">
+<div><dt>AI<em>Artificial Intelligence</em></dt><dd>人工知能。「日本語で頼むと、それらしい答えを返してくれる相手」。この仕組みでは9人分の役割に分けて使っています。</dd></div>
+<div><dt>API<em>Application Programming Interface</em></dt><dd>アプリ同士が話すための窓口。「店の注文カウンター」のようなもので、決まった言い方で頼むと決まった形で返ってきます。</dd></div>
+<div><dt>APIキー</dt><dd>あなたの権利を証明する文字列。<b>法人カード</b>のようなもので、他人が使うとあなたに請求が来ます。人に見せないでください。</dd></div>
+<div><dt>モデル</dt><dd>AIの「頭脳の種類」。速くて安いが簡単なことしかできないもの、賢いが遅いものなど、いくつかあります。この仕組みは速くて安定する種類を既定にしています。</dd></div>
+<div><dt>429<em>HTTP 429</em></dt><dd>「頼まれすぎ」の合図。回数の上限に達した状態です。少し待てば戻ります。</dd></div>
+<div><dt>503<em>HTTP 503</em></dt><dd>「いま混んでて対応できません」の合図。相手側（Google）の都合です。</dd></div>
+<div><dt>404<em>HTTP 404</em></dt><dd>「その宛先はもうありません」。モデルの廃止などで出ます。この仕組みは自動で別のモデルに乗り換えます。</dd></div>
+<div><dt>CORS<em>Cross-Origin Resource Sharing</em></dt><dd>別のサイト同士が通信するときの許可ルール。「裏口から勝手に入らないで」という警備です。これがあるため、ブラウザからX等へ直接投稿することはできません（＝安全のための制限です）。</dd></div>
+<div><dt>JSON<em>JavaScript Object Notation</em></dt><dd>機械が読み書きしやすい形のテキスト。バックアップのファイルはこの形で保存されます。</dd></div>
+<div><dt>Markdown<em>マークダウン</em></dt><dd>人が読みやすい、記号で見出しを付けるテキスト形式。「ストックを書き出す」で出てくるファイルの形式です。</dd></div>
+<div><dt>Issue<em>イシュー</em></dt><dd>GitHub（プログラムの置き場）にある<b>掲示板の付箋</b>。毎日のネタ配信は、この付箋として届きます。</dd></div>
+<div><dt>GitHub GitHub Pages</dt><dd>プログラムや書類を置ける場所と、そこから作る<b>無料のホームページ機能</b>。このサイトはここに置かれています（更新の反映に最大10分かかることがあります）。</dd></div>
+<div><dt>ブラウザ保存<em>localStorage</em></dt><dd>あなたの端末の中にある<b>引き出し</b>。ストックや設定はここに入ります。データを消すと中身も消えます。</dd></div>
+<div><dt>ITP<em>Intelligent Tracking Prevention</em></dt><dd>Safariの追跡防止機能。<b>7日間開かなかったサイトの保存データを消す</b>仕組みを含みます。ホーム画面に追加すると対象から外れます。</dd></div>
+<div><dt>QA<em>Quality Assurance</em></dt><dd>品質保証。記事の検査役です。9人の中の1人として、事実のズレや法令違反をチェックします。</dd></div>
+<div><dt>YMYL<em>Your Money or Your Life</em></dt><dd>「お金や生活に直結する話題」の呼び名。料金・契約・健康などが該当し、検索でも厳しく評価されます。だから基準日と条件の明記が必須です。</dd></div>
+<div><dt>景品表示法<em>景表法</em></dt><dd>「実際より良いものに見せる表示」を禁じる法律。「最安」「No.1」を根拠なく書くと、処分の対象になり得ます。</dd></div>
+<div><dt>ステマ規制</dt><dd>広告であることを隠した宣伝（ステルスマーケティング）を禁じる決まり。だから<b>「PR」「広告」</b>の明記が要ります。</dd></div>
+<div><dt>一次情報</dt><dd>自分の目と耳で確かめた情報。あなたの<b>店頭体験</b>がこれにあたり、この記事の一番の武器です。</dd></div>
+<div><dt>アイキャッチ</dt><dd>記事の「顔写真」になる画像。noteでは1280×670pxが推奨です。</dd></div>
+<div><dt>アフィリエイト</dt><dd>紹介リンク経由で申し込みがあると報酬が入る仕組み。使うときは「PR」表記が必須です。</dd></div>
+<div><dt>PAT<em>Personal Access Token</em></dt><dd>「自動で書き込みするための合鍵」です。今回の配信の準備で使いましたが、作業が終わったら無効化（削除）しておくのが安全です。</dd></div>
+</dl>
+</div>
+</details>
+
+<!-- 15 -->
+<details class="sec" id="s15">
+<summary><span class="n">15</span><span class="tt"><b>更新情報（v14.0〜v14.2で変わったこと）</b><small>むかしの手引きと食い違うときは、ここを見てください</small></span><span class="rt"><span class="bg">記録</span><span class="ar">▶</span></span></summary>
+<div class="bd">
+<h3>v14.2（2026年9月30日）：画面を整理しました</h3>
+<ul>
+<li>タブが<b>2段</b>になりました。上段＝ホーム／作業／承認／発信、下段＝<b>まとめ</b>（記録／あなた／設定／つかいかた）。</li>
+<li>「作業」タブは<b>1つずつ開く形</b>になりました。見出しを押すと開閉し、<b>開いているものだけ</b>が表示されます。ホームのステップを押すと、その作業が自動で開きます。</li>
+<li>右上は<b>「⋯」</b>にまとまりました（APIキーを設定／つかいかた／表示：暗／環境チェック）。左の <b><code>● APIキー未設定</code></b> を押しても設定画面が開きます。</li>
+<li><b>作品一覧（ストックと本文）は「承認」タブの中</b>に移りました。他のタブでは下に出ません。</li>
+</ul>
+<h3>v14.1（2026年9月30日）：自動仕込みが「ネタ配信」になりました</h3>
+<ul>
+<li>毎日18時の自動実行が作るのは、<b>記事本文ではなくネタ候補（3〜5件）</b>です。</li>
+<li>届いたネタはGitHubのIssueに保存され、サイトを開くと<b>ネタ欄に自動で1行ずつ増えます</b>。</li>
+<li>ホームに「<b>AIから届いたネタ：◯件</b>」のカードが出ます（<b>いま取り込む／STEP 1 の材料欄へ送る／取り込みをリセット</b>）。</li>
+<li>記事本文をAI Driveに置く運用は<b>終了</b>しました（配信のバックアップだけAI Driveに残します）。</li>
+</ul>
+<h3>v14.0（2026年9月30日）</h3>
+<ul>
+<li>ホームが「今日やること」の<b>4ステップ</b>（ネタを選ぶ → 記事を作る → 承認する → 発信する）になりました。</li>
+<li><b>「発信」タブ</b>が増えました（X・Instagram・TikTokの文面。<b>貼り付けは手で</b>行います）。</li>
+<li><b>「あなた」タブ</b>が増えました（文体・担当者9人の名前・スマホのコツ）。</li>
+</ul>
+<p class="small">前の画面に戻したいときは <a href="board_v13.html">旧版（v13.11）</a> を開いてください。</p>
+</div>
+</details>
+
+<p class="small" style="margin-top:26px">この手引きは通信・モバイル版です。ファイルの意味は <code>START_HERE.md</code>、運用の考え方は <code>運用ガイド_モバイル.md</code> にあります。</p>
 </div>
 
-<h2>API設定が消えるときの直し方（キーの固定）</h2>
-<p>更新するたびにキーを聞かれる場合は、原因は次のどちらかです。</p>
-<ol>
-  <li><b>開いているURLが毎回ちがう</b>：ブラウザの保存領域は「サイトごと」に分かれています。URLが1文字でも違うと別の場所とみなされ、キーは見つかりません。<b>ブックマークとホーム画面は、必ず同じURLにしてください。</b></li>
-  <li><b>ブラウザがサイトデータを保存しない設定</b>：シークレットモード、または「終了時にサイトデータを削除」が有効だと、閉じた時点で消えます。</li>
-</ol>
+<footer>
+通信ラボ ／ つかいかた（2026年9月30日・v14.2対応）<br>
+本番の画面：<a href="board.html">board.html</a>　｜　かんたん版：<a href="app.html">app.html</a>　｜　戻す用：<a href="board_v13.html">board_v13.html</a>　｜　入口：<a href="index.html">index.html</a>
+</footer>
 
-<h2>解決策A：サイト共通設定（config.js）─ おすすめ</h2>
-<p>リポジトリの <code>config.js</code> にキーを1回書けば、<b>全ページ・全端末で同じ設定</b>になります。ブラウザの保存領域を使わないので、<b>更新しても消えません。</b></p>
-<ol>
-  <li>GitHubで <code>config.js</code> を開き、右上の鉛筆マーク（Edit）を押す</li>
-  <li><code>key: ""</code> の <code>""</code> の中に、あなたのキー（<code>AIza…</code>）を貼り付ける</li>
-  <li>下の「Commit changes」を押す</li>
-  <li>1〜2分待って、ページを強制再読み込み（PCは Ctrl+Shift+R）</li>
-</ol>
-<div style="border-left:3px solid #EE6C4D;background:rgba(238,108,77,.10);padding:11px 13px;border-radius:0 10px 10px 0;font-size:13.5px;line-height:1.85;margin:12px 0">
-  <b style="color:#EE6C4D">重要</b>：このファイルは<b>公開リポジトリ</b>に置かれるため、URLを知っている人は中身を読めます。
-  キーを書く場合は、<b>このサイト専用のキーを新しく作り</b>、<b>請求（有料プラン）を有効にしない</b>ことを強くおすすめします。
-  Google公式も「APIキーはパスワードと同じ扱いに」としています。
-</div>
+<script>
+(function(){
+  var S=[].slice.call(document.querySelectorAll('details.sec'));
+  var q=document.getElementById('q'), hit=document.getElementById('hit');
+  var KEEP='ml_guide_open', TH='ml_guide_theme';
 
-<h2>解決策B：設定コードで移す（人に見せない）</h2>
-<p>「キーを設定」の画面にある<b>「更新するとキーが消えるとき／別の端末に移すとき」</b>を開きます。「書き出す」を押すと1行のコードが出ます。それをコピーし、別の端末の同じ欄に貼って「読み込む」を押せば、キーと設定がまとめて移ります。<b>このコードは人に見せないでください</b>（キーそのものが入っています）。</p>
+  /* ── 開いていた項目を復元 ── */
+  try{
+    var raw=localStorage.getItem(KEEP);
+    if(raw){var a=JSON.parse(raw); if(a&&a.length){S.forEach(function(d){if(a.indexOf(d.id)>-1)d.open=true;});}}
+  }catch(e){}
 
-<h2>明暗（ダーク／ホワイト）の切り替え</h2>
-<p>画面<b>右下の丸いボタン（◐）</b>を押すたびに、暗い配色と明るい配色が入れ替わります。運用ボードでは上部タブの右端にも<b>「表示：暗／表示：明」</b>があります。選んだ配色は記憶されます。</p>
+  function nowOpen(){return S.filter(function(d){return d.open;}).map(function(d){return d.id;});}
+  function save(){try{localStorage.setItem(KEEP,JSON.stringify(nowOpen()));}catch(e){}}
+  S.forEach(function(d){d.addEventListener('toggle',save);});
 
+  /* ── 全部ひらく／とじる ── */
+  document.getElementById('openAll').addEventListener('click',function(){
+    S.forEach(function(d){d.hidden=false;d.open=true;}); save();
+  });
+  document.getElementById('closeAll').addEventListener('click',function(){
+    S.forEach(function(d){d.open=false;}); save();
+    window.scrollTo({top:0,behavior:'smooth'});
+  });
+
+  /* ── さがす ── */
+  var saved=null;
+  function apply(){
+    var t=(q.value||'').trim();
+    if(!t){
+      if(saved){S.forEach(function(d){d.open=saved.indexOf(d.id)>-1;});saved=null;}
+      S.forEach(function(d){d.hidden=false;});
+      hit.textContent=''; hit.classList.remove('on'); return;
+    }
+    if(!saved) saved=nowOpen();
+    var n=0;
+    S.forEach(function(d){
+      var m=(d.textContent||'').indexOf(t)>-1;
+      d.hidden=!m;
+      if(m){d.open=true;n++;}
+    });
+    hit.textContent = n
+      ? (n+'件みつかりました。見つかった項目は開いています。けすと元の状態に戻ります。')
+      : ('「'+t+'」は見つかりませんでした。別の言葉でお試しください（例：429、note、ホーム画面、バックアップ、店頭体験）。');
+    hit.classList.add('on');
+  }
+  var timer=null;
+  q.addEventListener('input',function(){clearTimeout(timer);timer=setTimeout(apply,140);});
+  q.addEventListener('keydown',function(e){if(e.key==='Escape'){q.value='';apply();}});
+
+  /* ── もくじから開く ── */
+  [].forEach.call(document.querySelectorAll('[data-go]'),function(b){
+    b.addEventListener('click',function(){
+      var d=document.getElementById(b.getAttribute('data-go'));
+      if(!d) return;
+      if((q.value||'').trim()){q.value='';apply();}
+      d.open=true; save();
+      d.scrollIntoView({behavior:'smooth',block:'start'});
+    });
+  });
+
+  /* ── 配色の切り替え ── */
+  var th=document.getElementById('theme');
+  function paint(){
+    var dark=document.documentElement.getAttribute('data-theme')==='dark';
+    th.textContent = dark ? '明るくする' : '暗くする';
+  }
+  th.addEventListener('click',function(){
+    var dark=document.documentElement.getAttribute('data-theme')==='dark';
+    var next=dark?'light':'dark';
+    document.documentElement.setAttribute('data-theme',next);
+    try{localStorage.setItem(TH,next);}catch(e){}
+    paint();
+  });
+  paint();
+})();
+</script>
 </body>
 </html>
