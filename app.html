@@ -1285,7 +1285,7 @@ function paintKey(){
   }
 }
 $("#btnOpenKey").onclick = () => { $("#keyPanel").scrollIntoView({behavior:"smooth", block:"start"}); $("#inKey").focus(); };
-$("#btnShowHow").onclick = () => window.open("つかいかた_モバイル.html", "_blank");
+$("#btnShowHow").onclick = () => window.open("https://kikazu10302223-source.github.io/mobile-agents/guide.html", "_blank");
 $("#inPace").onchange = e => {
   CONF.pace = e.target.checked ? 6 : 0; saveConf();
   toast(e.target.checked ? "慎重モードON（1回ごとに6秒あける）" : "慎重モードOFF（速いが回数制限に当たりやすい）");
