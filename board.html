@@ -353,7 +353,7 @@ hr{border:none;border-top:1px solid var(--line);margin:22px 0}
       <li>下の欄に貼り付けて「保存して確認」</li>
     </ol>
     <div class="actions" id="diagRow" style="margin:0 0 12px"><button class="btn sm" id="btnConnTest" type="button">接続テスト</button><button class="btn sm" id="btnStoreTest" type="button">保存テスト</button><button class="btn sm" id="btnEnvCheck2" type="button">環境チェック</button></div>
-    <div class="hint" id="verTag" style="margin:0 0 10px">版：2026-09-30-13.8 ／ この行が見えていれば最新版です</div>
+    <div class="hint" id="verTag" style="margin:0 0 10px">版：2026-09-30-13.9 ／ この行が見えていれば最新版です</div>
     <label class="f"><span>APIキー（人に見せないでください）</span><input type="password" id="inKey" placeholder="AIza..."></label>
     <div class="hint" id="keyNote" style="margin:-2px 0 10px"></div>
     <div id="keyWarn"></div>
@@ -1482,7 +1482,9 @@ function decide(st){
 function paintKey(){
   const ok = !!CONF.key;
   $("#apiDot").className = "dot " + (ok ? "on" : (TRIAL ? "on" : "off"));
-  $("#apiTxt").textContent = ok ? (CONF.model || "モデル未設定") : (TRIAL ? "練習モード（APIなし）" : "APIキー未設定");
+  $("#apiTxt").textContent = ok
+    ? ((CONF.model || "モデル未設定") + "／キー" + String(CONF.key).length + "文字")
+    : (TRIAL ? "練習モード（APIなし）" : "APIキー未設定");
   const pc = $("#inPace"); if(pc && CONF.pace !== undefined) pc.checked = !!CONF.pace;
   const kn = $("#keyNote");
   if(kn){
@@ -1813,6 +1815,7 @@ function saveForm(){
 }
 function restoreForm(){
   const o = LS.get("ml_form", null); if(!o) return;
+  if(typeof FORM_IDS === "undefined") return;   /* 定義より先に呼ばれても落ちないように */
   FORM_IDS.forEach(id => {
     const el = document.getElementById(id);
     if(el && typeof o[id] === "string" && !el.value) el.value = o[id];
@@ -1898,6 +1901,8 @@ function storeTest(){
   out.push("保存項目の総数: " + localStorage.length);
   out.push("開いているURL: " + location.host + location.pathname);
   out.push("いま画面が認識しているキー: " + ((CONF.key ? CONF.key.length + "文字" : "なし")) + (CONF.__restored ? "（予備から復元）" : ""));
+  const ierr = window.ML_INIT_ERR || [];
+  out.push("起動時の失敗: " + (ierr.length ? ierr.join(" ｜ ") : "なし"));
   const hist = LS.get("ml_audit", []);
   if(hist.length){
     out.push("― これまでの記録（新しい順・40件まで）―");
@@ -2062,29 +2067,43 @@ function cycleTheme(){
   const ik0 = $("#inKey");
   if(ik0 && CONF.key && !ik0.value) ik0.value = CONF.key;
 })();
+/* すべての準備が終わったあとにも、もう一度表示を整える（ほかの処理に消されても戻す） */
+try{ paintKey(); }catch(_){}
+setTimeout(() => { try{ paintKey(); }catch(_){} }, 800);
 
 /* ============================================================
    10. 起動
    ============================================================ */
 (function init(){
-  if(!ROLES.editor || !ROLES.trend){
-    toast("役割プロンプトの読み込みに失敗しました。ファイルを開き直してください。");
-  }
-  if(/[?&]trial=1/.test(location.search)) TRIAL = true;
-  if(isSmall() || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)){
-    const mp = $("#mobilePanel"); if(mp) mp.style.display = "block";
-  }
-  envWarn();
-  restoreForm();
-  paintKey();
-  if(typeof SEEN !== 'undefined') paintKey();
-  paintQuota();
-  const lc = $("#inLight");
-  if(lc){ lc.checked = !!CONF.light;
-    lc.onchange = () => { CONF.light = lc.checked; saveConf();
-      toast(lc.checked ? "軽量モードON（図解・SNSを省略します）" : "軽量モードOFF"); }; }
-  renderRuns();
-  if(DRAFT && DRAFT.files && Object.keys(DRAFT.files).length) saveDraft(DRAFT);
+  /* 途中で1つ失敗しても、残りは必ず実行する（これまでは1つの失敗で表示が止まっていました） */
+  window.ML_INIT_ERR = [];
+  const step = (label, fn) => { try{ fn(); }
+    catch(e){ const m = label + ": " + ((e && e.message) || e);
+      window.ML_INIT_ERR.push(m); try{ audit("起動時の失敗 → " + m); }catch(_){} } };
+  step("役割プロンプト", () => {
+    if(!ROLES.editor || !ROLES.trend) toast("役割プロンプトの読み込みに失敗しました。ファイルを開き直してください。");
+  });
+  step("練習モード", () => { if(/[?&]trial=1/.test(location.search)) TRIAL = true; });
+  step("スマホ表示", () => {
+    if(isSmall() || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)){
+      const mp = $("#mobilePanel"); if(mp) mp.style.display = "block";
+    }
+  });
+  step("保存の警告", envWarn);
+  step("入力の復元", restoreForm);
+  step("キー表示", paintKey);
+  step("利用回数", paintQuota);
+  step("軽量モード", () => {
+    const lc = $("#inLight");
+    if(lc){ lc.checked = !!CONF.light;
+      lc.onchange = () => { CONF.light = lc.checked; saveConf();
+        toast(lc.checked ? "軽量モードON（図解・SNSを省略します）" : "軽量モードOFF"); }; }
+  });
+  step("実行履歴", renderRuns);
+  step("下書き", () => { if(DRAFT && DRAFT.files && Object.keys(DRAFT.files).length) saveDraft(DRAFT); });
+  audit("起動完了: キー" + (CONF.key || "").length + "文字 / 画面上部の表示: "
+    + (($("#apiTxt") || {}).textContent || "?")
+    + (window.ML_INIT_ERR.length ? " / 起動時の失敗: " + window.ML_INIT_ERR.join(" ｜ ") : ""));
 })();
 </script>
 
