@@ -1880,6 +1880,7 @@ function cycleTheme(){
   function buildNav(){
     const n = E("bnav"); if(!n) return;
     n.innerHTML = TABS.map(t => '<button class="nb" data-t="'+t+'">'+t+'</button>').join("")
+      + '<a class="nb" href="' + location.href.replace(/[^/]*$/,"") + 'guide.html" style="text-decoration:none;display:inline-flex;align-items:center">つかいかた</a>'
       + '<button class="nb" id="bTheme" style="margin-left:auto">表示：暗</button>';
     n.querySelectorAll(".nb[data-t]").forEach(b => b.onclick = () => showTab(b.dataset.t));
     const tb = E("bTheme"); if(tb) tb.onclick = cycleTheme;
