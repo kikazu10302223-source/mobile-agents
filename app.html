@@ -283,6 +283,14 @@ hr{border:none;border-top:1px solid var(--line);margin:22px 0}
   width:48px;height:48px;border-radius:50%;border:1px solid var(--line);background:var(--surface);
   color:var(--ink);font-size:20px;line-height:1;font-family:inherit;box-shadow:0 5px 16px rgba(0,0,0,.30)}
 #fabTheme:active{transform:scale(.93)}
+
+/* ===== 保存できない原因の警告 ===== */
+#storeWarn{position:fixed;left:10px;right:10px;top:calc(10px + env(safe-area-inset-top));z-index:70;
+  background:var(--stop-soft);border:1px solid var(--stop);border-radius:12px;padding:12px 13px;
+  font-size:13px;line-height:1.85;color:var(--ink);box-shadow:0 6px 22px rgba(0,0,0,.35)}
+#storeWarn b{color:var(--stop)}
+#storeWarn button{margin-top:9px;min-height:38px;font-size:12.5px;background:var(--surface);color:var(--ink);
+  border:1px solid var(--line);border-radius:9px;padding:7px 12px;font-family:inherit}
 </style>
 </head>
 <body>
@@ -1665,6 +1673,29 @@ FORM_IDS.forEach(id => {
 
 
 /* この端末で動くか調べる（うまく動かないときの切り分け用） */
+/* キーが保存されない原因を、開いた瞬間に知らせる */
+function envWarn(){
+  const msgs = [];
+  let inFrame = false;
+  try{ inFrame = (window.self !== window.top); }catch(e){ inFrame = true; }
+  if(inFrame) msgs.push("アプリ内のプレビューで開かれています。この開き方では設定が保存されません。<b>Chromeで開き直し、ホーム画面に追加</b>してください。");
+  if(!STOREOK) msgs.push("このブラウザは設定を保存できません（シークレットモード、または「終了時にサイトデータを削除」が原因）。<b>config.js にキーを書く</b>と解決します。");
+  if(location.protocol === "file:") msgs.push("ファイルとして直接開かれています。<b>公開URL（github.io）から開いてください。</b>");
+  if(!msgs.length) return;
+  if(document.getElementById("storeWarn")) return;
+  const w = document.createElement("div");
+  w.id = "storeWarn";
+  w.innerHTML = "<b>キーが保存されない原因が見つかりました</b><br>" + msgs.join("<br>")
+    + '<div><button id="swHow">解決策を見る</button><button id="swClose">閉じる</button></div>';
+  document.body.appendChild(w);
+  const c = w.querySelector("#swClose"); if(c) c.onclick = () => w.remove();
+  const h = w.querySelector("#swHow");
+  if(h) h.onclick = () => {
+    if(typeof window.__boardShow === "function") window.__boardShow("設定");
+    const kp = $("#keyPanel"); if(kp && kp.scrollIntoView) kp.scrollIntoView({behavior:"smooth", block:"start"});
+    toast("「キーを設定」→『更新するとキーが消えるとき』をお読みください。");
+  };
+}
 function envCheck(){
   let old = $("#envOut"); if(old) old.parentNode.removeChild(old);
   const d = document.createElement("div");
@@ -1770,6 +1801,7 @@ function cycleTheme(){
   if(isSmall() || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)){
     const mp = $("#mobilePanel"); if(mp) mp.style.display = "block";
   }
+  envWarn();
   restoreForm();
   paintKey();
   paintQuota();
