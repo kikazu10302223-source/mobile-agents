@@ -321,7 +321,7 @@ hr{border:none;border-top:1px solid var(--line);margin:22px 0}
       <li>下の欄に貼り付けて「保存して確認」</li>
     </ol>
     <div class="actions" id="diagRow" style="margin:0 0 12px"><button class="btn sm" id="btnConnTest" type="button">接続テスト</button><button class="btn sm" id="btnStoreTest" type="button">保存テスト</button><button class="btn sm" id="btnEnvCheck2" type="button">環境チェック</button></div>
-    <div class="hint" id="verTag" style="margin:0 0 10px">版：2026-09-30-13.6 ／ この行が見えていれば最新版です</div>
+    <div class="hint" id="verTag" style="margin:0 0 10px">版：2026-09-30-13.7 ／ この行が見えていれば最新版です</div>
     <label class="f"><span>APIキー（人に見せないでください）</span><input type="password" id="inKey" placeholder="AIza..."></label>
     <div class="hint" id="keyNote" style="margin:-2px 0 10px"></div>
     <div id="keyWarn"></div>
@@ -612,14 +612,16 @@ let CONF   = LS.get("ml_conf", { key:"", model:"", pace:6 });
   }catch(_){}
 })();
 /* ===== サイト共通設定（config.js）を読み込む ===== */
-const SITE = (window.ML_CONFIG && String(window.ML_CONFIG.key || "").trim())
-  ? window.ML_CONFIG : null;
+const SITE = window.ML_CONFIG || null;
 if(SITE){
-  CONF.key   = String(SITE.key).trim();
+  /* キーが空でも、モデル・待ち時間・軽量モードは必ず反映する（以前はキーが無いと全部無視していた） */
+  const skey = String(SITE.key || "").trim();
+  if(skey){ CONF.key = skey; CONF.__site = true; }
   if(SITE.model) CONF.model = String(SITE.model);
-  CONF.pace  = (SITE.pace === undefined || SITE.pace === null) ? CONF.pace : Number(SITE.pace);
-  CONF.light = !!SITE.light;
-  CONF.__site = true;
+  if(SITE.pace !== undefined && SITE.pace !== null) CONF.pace = Number(SITE.pace);
+  if(SITE.light !== undefined) CONF.light = !!SITE.light;
+  if(!CONF.model) CONF.model = "gemini-3.5-flash-lite";
+  CONF.__siteFile = true;
 }
 /* ===== 保存領域が使えるかを調べる（更新で消える原因の切り分け） ===== */
 let STOREOK = true;
@@ -1767,10 +1769,17 @@ FORM_IDS.forEach(id => {
 function connTest(){
   const esc2 = s => String(s==null?"":s).replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
   const out = [];
-  const K = CONF.key || "";
+  const typed = ((($("#inKey") || {}).value) || "").trim();
+  const saved = String(CONF.key || "").trim();
+  const K = typed || saved;
+  const src = typed ? (typed === saved ? "入力欄（保存済みと同じ）" : "入力欄（まだ保存されていない可能性があります）")
+                    : (saved ? "保存済みの設定" : "なし");
   out.push("開いているURL: " + location.origin + location.pathname);
+  out.push("キーの出どころ: " + src);
   out.push("キーの長さ: " + K.length + "文字 / 先頭 " + (K ? K.slice(0,6) + "…" : "なし"));
   out.push("使うモデル: " + (CONF.model || "（未設定）"));
+  if(!K) out.push("★ キーが空のまま試しています。上の入力欄にキーを貼り付けてから、もう一度押してください。");
+  else if(typed && typed !== saved) out.push("★ 入力欄のキーはまだ保存されていないかもしれません。このテストは入力欄のキーで行います。");
   const el = $("#connOut"), ta = $("#connCopy");
   const paint = () => {
     if(el) el.innerHTML = '<div style="border:1px solid var(--line);background:var(--bg);border-radius:10px;'
@@ -1792,7 +1801,7 @@ function connTest(){
   (async () => {
     await add("① モデル一覧(?key=)", API_ROOT + "/models?key=" + encodeURIComponent(K));
     await add("② モデル一覧(ヘッダ)", API_ROOT + "/models", {headers:{"x-goog-api-key":K}});
-    const m = CONF.model || "gemini-3.7-flash";
+    const m = CONF.model || (window.ML_CONFIG && window.ML_CONFIG.model) || "gemini-3.5-flash-lite";
     out.push("― 生成テスト（モデル " + m + "）―"); paint();
     await add("③ 生成(ヘッダ)", API_ROOT + "/models/" + encodeURIComponent(m) + ":generateContent",
       {method:"POST", headers:{"Content-Type":"application/json","x-goog-api-key":K},
@@ -1801,6 +1810,7 @@ function connTest(){
       {method:"POST", headers:{"Content-Type":"application/json","x-goog-api-key":K},
        body:JSON.stringify({model:m, input:"ping"})});
     out.push("※ ③が200で本文が返れば、キーは正常です。");
+    try{ if(typeof storeTest === "function"){ storeTest(); out.push(""); out.push("― 保存の状態は、上の「保存テスト」の枠に出ています ―"); } }catch(_){}
     paint();
     toast("接続テストが終わりました。下の結果を貼り付けてください。");
   })();
