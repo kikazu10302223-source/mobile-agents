@@ -352,8 +352,8 @@ hr{border:none;border-top:1px solid var(--line);margin:22px 0}
       <li>「APIキーを作成」を押して、出てきた <code>AIza…</code> をコピー</li>
       <li>下の欄に貼り付けて「保存して確認」</li>
     </ol>
-    <div class="actions" id="diagRow" style="margin:0 0 12px"></div>
-    <div class="hint" id="verTag" style="margin:0 0 10px">版：2026-09-30-13.5 ／ この行が見えていれば最新版です</div>
+    <div class="actions" id="diagRow" style="margin:0 0 12px"><button class="btn sm" id="btnConnTest" type="button">接続テスト</button><button class="btn sm" id="btnStoreTest" type="button">保存テスト</button><button class="btn sm" id="btnEnvCheck2" type="button">環境チェック</button></div>
+    <div class="hint" id="verTag" style="margin:0 0 10px">版：2026-09-30-13.6 ／ この行が見えていれば最新版です</div>
     <label class="f"><span>APIキー（人に見せないでください）</span><input type="password" id="inKey" placeholder="AIza..."></label>
     <div class="hint" id="keyNote" style="margin:-2px 0 10px"></div>
     <div id="keyWarn"></div>
@@ -2425,5 +2425,22 @@ function cycleTheme(){
 })();
 </script>
 
+
+<script>
+/* 診断ボタンの配線（本体の読み込み順に影響されないよう、最後に接続する） */
+(function(){
+  var m = {btnConnTest:"connTest", btnStoreTest:"storeTest", btnEnvCheck2:"envCheck"};
+  Object.keys(m).forEach(function(id){
+    var b = document.getElementById(id);
+    if(!b) return;
+    b.addEventListener("click", function(ev){
+      ev.preventDefault();
+      var f = window[m[id]];
+      if(typeof f === "function"){ f(); }
+      else { alert("まだ読み込み中です。3秒ほど待って、もう一度押してください。"); }
+    });
+  });
+})();
+</script>
 </body>
 </html>
