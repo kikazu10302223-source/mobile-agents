@@ -2454,6 +2454,7 @@ setTimeout(() => { try{ paintKey(); }catch(_){} }, 800);
     if(name === "アフィ") paintAffi();
     if(name === "発信"){ try{ paintSns(); }catch(_){} }
     if(name === "あなた"){ try{ paintNames(); }catch(_){} }
+    if(name === "作業"){ try{ pullAuto(false); paintAuto(); }catch(_){} }
   }
   function buildNav(){
     const n = E("bnav"); if(!n) return;
@@ -3064,8 +3065,10 @@ setTimeout(() => { try{ paintKey(); }catch(_){} }, 800);
         mergeAuto(items, hit);
       })
       .catch(function(e){
+        try{ var s2 = autoStore(); s2.lastTry = 0; saveAuto(s2); }catch(_){}
         var note = document.getElementById("autoNote");
-        if(note && force) note.innerHTML = "取り込めませんでした（" + esc(String(e.message || e)) + "）。ネタ欄へ手で貼り付けてください。";
+        if(note) note.innerHTML = "いまは取り込めませんでした（" + esc(String(e.message || e))
+          + "）。通信の状態を確かめて「いま取り込む」を押すか、配信の本文をネタ欄へ手で貼り付けてください。";
       });
   }
   function paintAuto(){
@@ -3116,7 +3119,13 @@ setTimeout(() => { try{ paintKey(); }catch(_){} }, 800);
     if(b) b.onclick = autoToMat;
     if(c) c.onclick = autoReset;
     paintAuto();
-    setTimeout(function(){ pullAuto(false); }, 1200);
+    /* 開いた直後に届いていない場合の保険として、数回試します */
+    [1200, 5000, 12000].forEach(function(ms){
+      setTimeout(function(){ try{ pullAuto(false); }catch(_){} }, ms);
+    });
+    document.addEventListener("visibilitychange", function(){
+      if(document.visibilityState === "visible"){ try{ pullAuto(false); }catch(_){} }
+    });
   })();
 
   window.__boardShow = showTab;
