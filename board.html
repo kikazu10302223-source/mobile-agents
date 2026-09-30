@@ -323,7 +323,7 @@ hr{border:none;border-top:1px solid var(--line);margin:22px 0}
 </style>
 </head>
 <body onload="window.__ML_LOADED=1">
-<div id="trybar"><b>v14.0</b>（2026-09-30）：ホーム4ステップ／発信タブ／<b>「あなた」タブ</b>（文体・担当者の名前・スマホのコツ）。うまく動かないときは<a href="board_v13.html">旧版に戻す</a>。</div>
+<div id="trybar"><b>v14.1</b>（2026-09-30）：<b>毎日18時のAI自動仕込みのネタが、サイトのネタ欄に自動で入ります</b>。うまく動かないときは<a href="board_v13.html">旧版に戻す</a>。</div>
 <script>
 /* どんな失敗も見逃さないための記録係（いちばん最初に読み込む） */
 window.__MLERR = [];
@@ -364,7 +364,7 @@ window.addEventListener("unhandledrejection", function(e){
       <li>下の欄に貼り付けて「保存して確認」</li>
     </ol>
     <div class="actions" id="diagRow" style="margin:0 0 12px"><button class="btn sm" id="btnConnTest" type="button">接続テスト</button><button class="btn sm" id="btnStoreTest" type="button">保存テスト</button><button class="btn sm" id="btnEnvCheck2" type="button">環境チェック</button></div>
-    <div class="hint" id="verTag" style="margin:0 0 10px">本番 v14.0：2026-09-30 ／ この行が見えていれば最新版です</div>
+    <div class="hint" id="verTag" style="margin:0 0 10px">本番 v14.1：2026-09-30 ／ この行が見えていれば最新版です</div>
     <label class="f"><span>APIキー（人に見せないでください）</span><input type="password" id="inKey" placeholder="AIza..."></label>
     <div class="hint" id="keyNote" style="margin:-2px 0 10px"></div>
     <div id="keyWarn"></div>
@@ -531,6 +531,7 @@ window.addEventListener("unhandledrejection", function(e){
     <p>「あなた」タブに<b>文体（あなたらしさ）・担当者の名前・スマホのコツ</b>をまとめました。ふだんはこの4つだけで進められます。</p></div>
   <div class="pb">
     <div class="cards" id="homeState"></div>
+    <div class="sncard" id="autoCard" style="display:none"></div>
     <div class="steps">
       <button class="step" type="button" onclick="__mlStep(1)">
         <b>① ネタを選ぶ</b><small>AIに候補を出させて、書く1本を決めます（約5秒）</small><i>ひらく →</i></button>
@@ -603,6 +604,15 @@ window.addEventListener("unhandledrejection", function(e){
 光回線の乗り換えで損しない手順
 スマホの下取り価格はいつ売るのが得か"></textarea>
       <button type="button" class="btn sm wide" onclick="openEditor('qTopics', 'ネタ帳（1行に1テーマ）')">✎ 大きく入力する（音声入力も使えます）</button></label>
+    <div class="sncard" id="autoBox" style="margin-top:10px">
+      <h4>AIから届いたネタ（自動でこの欄の上に増えます）</h4>
+      <div class="cnt" id="autoNote">まだ取り込んでいません。</div>
+      <div class="actions" style="margin:8px 0 0">
+        <button class="btn sm primary" type="button" id="autoPull">いま取り込む</button>
+        <button class="btn sm" type="button" id="autoToMat">STEP 1 の材料欄へ送る</button>
+        <button class="btn sm" type="button" id="autoReset">取り込みをリセット</button>
+      </div>
+    </div>
     <div class="actions" style="margin-top:0">
       <button class="btn primary" id="btnQueue">まとめて作る（ストックへ）</button>
       <button class="btn sm" id="btnQueueStop">中止する</button>
@@ -2964,6 +2974,149 @@ setTimeout(() => { try{ paintKey(); }catch(_){} }, 800);
     var b = E("nmSave"); if(b) b.onclick = nmSave;
     var c = E("nmClear"); if(c) c.onclick = nmClear;
     paintNames();
+  })();
+
+  /* ============================================================
+     AIの自動仕込み（ネタ配信）をGitHubのIssue経由で受け取る
+     ============================================================ */
+  var AUTO_OWNER = "kikazu10302223-source", AUTO_REPO = "mobile-agents";
+  var AUTO_TAG = "[ネタ配信]";
+  function autoStore(){
+    try{ return JSON.parse(localStorage.getItem("ml_auto") || "null") || {}; }catch(_){ return {}; }
+  }
+  function saveAuto(o){ try{ LS.set("ml_auto", o); }catch(_){} }
+  function autoTitle(x){
+    x = x || {};
+    return String(x.t || x.theme || x.title || "").replace(/\s+/g, " ").trim().slice(0, 90);
+  }
+  function parseTopics(body){
+    var m = String(body || "").match(/```json\s*([\s\S]*?)```/);
+    if(!m) return [];
+    try{ var a = JSON.parse(m[1]); return Array.isArray(a) ? a : (a.items || []); }catch(_){ return []; }
+  }
+  function appendTopics(items){
+    var ta = document.getElementById("qTopics");
+    if(!ta) return [];
+    var cur = String(ta.value || ""), add = [];
+    items.forEach(function(it){
+      var t = autoTitle(it);
+      if(!t) return;
+      if(cur.indexOf(t) >= 0) return;
+      add.push(t);
+    });
+    if(!add.length) return [];
+    ta.value = (cur.trim() ? cur.replace(/\s*$/,"") + "\n" : "") + add.join("\n");
+    try{ ta.dispatchEvent(new Event("input", {bubbles:true})); }catch(_){}
+    return add;
+  }
+  function toMaterial(items){
+    var ta = document.getElementById("inTrendMat");
+    if(!ta) return 0;
+    var cur = String(ta.value || ""), d = new Date().toISOString().slice(0,10);
+    var lines = items.map(function(it, i){
+      var t = autoTitle(it), src = String(it.src || it.s || "");
+      if(!t) return "";
+      if(cur.indexOf(t) >= 0) return "";
+      return (i+1) + " | " + t + " | 自動配信 | " + d + " | " + (src || "出典の当たりは要確認");
+    }).filter(Boolean);
+    if(!lines.length) return 0;
+    ta.value = (cur.trim() ? cur.replace(/\s*$/,"") + "\n" : "") + lines.join("\n");
+    try{ ta.dispatchEvent(new Event("input", {bubbles:true})); }catch(_){}
+    return lines.length;
+  }
+  function mergeAuto(items, issue){
+    var st = autoStore(), seen = {}, seenArr = [];
+    (st.seen || []).forEach(function(s){ if(seenArr.indexOf(s) < 0) seenArr.push(s); });
+    seenArr.forEach(function(s){ seen[s] = 1; });
+    var fresh = [];
+    items.forEach(function(it){
+      var t = autoTitle(it);
+      if(!t || seen[t]) return;
+      seen[t] = 1; seenArr.push(t); fresh.push(it);
+    });
+    st.seen = seenArr.slice(-300);
+    if(!fresh.length){ st.num = issue.number; saveAuto(st); paintAuto(); return 0; }
+    st.items = (st.items || []).concat(fresh).slice(-80);
+    st.added = (st.added || []).concat(appendTopics(fresh)).slice(-300);
+    st.num = issue.number;
+    st.at = new Date().toISOString().slice(0,16).replace("T"," ");
+    saveAuto(st); paintAuto();
+    toast("AIから" + fresh.length + "件のネタをネタ欄へ追加しました。");
+    return fresh.length;
+  }
+  function pullAuto(force){
+    var st = autoStore();
+    if(!force && st.lastTry && (Date.now() - Number(st.lastTry)) < 1000*60*30) return;
+    st.lastTry = Date.now(); saveAuto(st);
+    var url = "https://api.github.com/repos/" + AUTO_OWNER + "/" + AUTO_REPO + "/issues?state=all&per_page=15&sort=created&direction=desc";
+    fetch(url, { headers: { "Accept": "application/vnd.github+json" } })
+      .then(function(r){ return r.ok ? r.json() : Promise.reject(new Error("HTTP " + r.status)); })
+      .then(function(list){
+        if(!Array.isArray(list) || !list.length) return;
+        var hit = null;
+        for(var i=0;i<list.length;i++){
+          if(String((list[i] && list[i].title) || "").indexOf(AUTO_TAG) === 0){ hit = list[i]; break; }
+        }
+        if(!hit) return;
+        if(String(st.num || "") === String(hit.number)){ paintAuto(); return; }
+        var items = parseTopics(hit.body || "");
+        if(!items.length) return;
+        mergeAuto(items, hit);
+      })
+      .catch(function(e){
+        var note = document.getElementById("autoNote");
+        if(note && force) note.innerHTML = "取り込めませんでした（" + esc(String(e.message || e)) + "）。ネタ欄へ手で貼り付けてください。";
+      });
+  }
+  function paintAuto(){
+    var st = autoStore(), n = (st.items || []).length;
+    var card = document.getElementById("autoCard");
+    if(card){
+      if(!n){ card.style.display = "none"; }
+      else{
+        card.style.display = ""; card.className = "sncard";
+        card.innerHTML = '<h4>AIから届いたネタ：' + n + '件</h4>'
+          + '<div class="cnt">' + (st.at ? esc(st.at) + " 取り込み" : "") + '（配信の受け取り #' + esc(String(st.num || "")) + '）</div>'
+          + '<div class="cnt">「作業」タブの<b>まとめて仕込む</b>のネタ欄に、1行1テーマで入っています。そのまま「まとめて作る」を押せます。</div>'
+          + '<div class="actions" style="margin:8px 0 0">'
+          + '<button class="btn sm primary" type="button" id="autoGo">作業タブを開く</button>'
+          + '<button class="btn sm" type="button" id="autoPull2">いま取り込む</button></div>';
+        var g = document.getElementById("autoGo");
+        if(g) g.onclick = function(){ navTo("作業"); };
+        var p = document.getElementById("autoPull2");
+        if(p) p.onclick = function(){ pullAuto(true); };
+      }
+    }
+    var note = document.getElementById("autoNote");
+    if(note){
+      note.innerHTML = n
+        ? ('いま <b>' + n + '件</b>を取り込み済みです' + (st.at ? '（' + esc(st.at) + '）' : '') + '。新しい配信が届くと、このネタ欄に自動で増えます。')
+        : 'まだ取り込んでいません。毎日18時の自動実行が届くと、このネタ欄に自動で増えます。';
+    }
+  }
+  function autoReset(){
+    var st = autoStore(), ta = document.getElementById("qTopics");
+    if(ta && (st.added || []).length){
+      var kill = {}; (st.added || []).forEach(function(x){ kill[x] = 1; });
+      ta.value = String(ta.value || "").split("\n").filter(function(l){ return !kill[String(l).trim()]; }).join("\n");
+      try{ ta.dispatchEvent(new Event("input", {bubbles:true})); }catch(_){}
+    }
+    st.items = []; st.added = []; st.at = "";
+    saveAuto(st); paintAuto();
+    toast("取り込みをリセットしました（同じ配信は再追加されません）。");
+  }
+  function autoToMat(){
+    var n = toMaterial(autoStore().items || []);
+    toast(n ? ("材料欄へ" + n + "件を送りました。「ネタを選ばせる」を押してください。") : "送れるネタがありません（すでに入っています）。");
+    if(n) navTo("作業");
+  }
+  (function(){
+    var a = document.getElementById("autoPull"), b = document.getElementById("autoToMat"), c = document.getElementById("autoReset");
+    if(a) a.onclick = function(){ pullAuto(true); };
+    if(b) b.onclick = autoToMat;
+    if(c) c.onclick = autoReset;
+    paintAuto();
+    setTimeout(function(){ pullAuto(false); }, 1200);
   })();
 
   window.__boardShow = showTab;
