@@ -356,6 +356,10 @@ hr{border:none;border-top:1px solid var(--line);margin:22px 0}
     <div class="hint" id="keyNote" style="margin:-2px 0 10px"></div>
     <div id="keyWarn"></div>
     <div id="saveTestOut" style="margin:0 0 12px"></div>
+    <div id="connOut" style="margin:0 0 10px"></div>
+    <textarea id="connCopy" rows="2" readonly placeholder="接続テストの結果がここに入ります（コピーして貼ってください）"
+      style="width:100%;margin:0 0 12px;background:var(--bg);border:1px solid var(--line);border-radius:9px;
+      padding:9px;font-size:11px;font-family:var(--mono);color:var(--ink)"></textarea>
     <details style="margin:0 0 12px;border:1px solid var(--line);border-radius:10px;padding:10px 12px">
       <summary style="cursor:pointer;font-size:13.5px;font-weight:700">更新するとキーが消えるとき／別の端末に移すとき</summary>
       <div style="margin-top:9px;font-size:13px;line-height:1.85;color:var(--dim)">
@@ -742,9 +746,11 @@ const KEY_WORDS   = ["api key not valid","api_key_invalid","invalid api key","pe
 const QUOTA_WORDS = ["429","resource_exhausted","resource exhausted","quota","rate limit","too many requests"];
 const BUSY_WORDS  = ["503","500","502","504","high demand","overloaded","unavailable","timed out","timeout","failed to fetch"];
 
-function classify(msg){
+function classify(msg, status){
   const m = String(msg).toLowerCase();
-  if(KEY_WORDS.some(w => m.includes(w)))   return "key";
+  const keyish = /api[_ ]?key|api key not valid|api_key_invalid|invalid api key|unauthenticated|permission denied/.test(m);
+  if(keyish && (status === 400 || status === 401 || status === 403)) return "key";
+  if(/api[_ ]?key not valid|api_key_invalid|invalid api key/.test(m)) return "key";
   if(DEAD_WORDS.some(w => m.includes(w)))  return "dead";
   if(QUOTA_WORDS.some(w => m.includes(w))) return "quota";
   if(BUSY_WORDS.some(w => m.includes(w)))  return "busy";
@@ -849,22 +855,40 @@ function extractText(j){
   return walk(j).trim();
 }
 async function once(model, system, user, temp){
+  /* 本命（generateContent）を先に試し、ダメなら新しい方式（interactions）を試す。
+     どちらが何を返したかを残して、原因を追えるようにする。 */
   const errs = [];
-  const r1 = await fetch(`${API_ROOT}/interactions`, {method:"POST",
+  let lastStatus = 0, lastBody = "";
+  const post = (url, body) => fetch(url, {method:"POST",
     headers:{"Content-Type":"application/json","x-goog-api-key":CONF.key},
-    body:JSON.stringify({model, input:user, system_instruction:system, generation_config:{temperature:temp}, store:false})});
-  if(r1.ok){ const t = extractText(await r1.json()); if(t) return t; errs.push("interactions: 返答を解釈できませんでした"); }
-  else errs.push(`interactions: HTTP ${r1.status} ${(await r1.text()).slice(0,300)}`);
-
-  const r2 = await fetch(`${API_ROOT}/models/${encodeURIComponent(model)}:generateContent`, {method:"POST",
-    headers:{"Content-Type":"application/json","x-goog-api-key":CONF.key},
-    body:JSON.stringify({systemInstruction:{parts:[{text:system}]}, contents:[{role:"user",parts:[{text:user}]}], generationConfig:{temperature:temp}})});
-  if(r2.ok){ const t = extractText(await r2.json()); if(t) return t; errs.push("generateContent: 返答を解釈できませんでした"); }
-  else errs.push(`generateContent: HTTP ${r2.status} ${(await r2.text()).slice(0,300)}`);
-
-  const msg = errs.join(" / ");
-  const e = new Error(msg);
-  e.soft = /HTTP 40[034]/.test(msg) || /no longer available/i.test(msg) || /not found/i.test(msg);
+    body:JSON.stringify(body)});
+  const tries = [
+    ["generateContent", () => post(`${API_ROOT}/models/${encodeURIComponent(model)}:generateContent`,
+       {systemInstruction:{parts:[{text:system}]}, contents:[{role:"user",parts:[{text:user}]}], generationConfig:{temperature:temp}})],
+    ["interactions", () => post(`${API_ROOT}/interactions`,
+       {model, input:user, system_instruction:system, generation_config:{temperature:temp}, store:false})]
+  ];
+  for(const pair of tries){
+    const name = pair[0];
+    let r;
+    try{ r = await pair[1](); }
+    catch(err){
+      errs.push(name + ": 通信できませんでした（" + String((err && err.message) || err).slice(0,120) + "）");
+      continue;
+    }
+    if(r.ok){
+      let t = "";
+      try{ t = extractText(await r.json()); }catch(_){ t = ""; }
+      if(t) return t;
+      errs.push(name + ": HTTP " + r.status + " だが返答を解釈できませんでした");
+      continue;
+    }
+    const body = (await r.text()).slice(0, 400);
+    lastStatus = r.status; lastBody = body;
+    errs.push(name + ": HTTP " + r.status + " " + body);
+  }
+  const e = new Error(errs.join(" / "));
+  e.status = lastStatus; e.body = lastBody; e.soft = false;
   throw e;
 }
 async function gemini(system, user, temp){
@@ -894,8 +918,8 @@ async function gemini(system, user, temp){
         return out;
       }catch(e){
         last = e.message;
-        const kind = classify(e.message);
-        if(kind === "key") throw new Error("APIキーが正しくないようです。キーをもう一度確認してください。\n" + brief(e.message));
+        const kind = classify(e.message, e.status);
+        if(kind === "key") throw new Error("APIキーが拒否されました（HTTP " + (e.status||"不明") + "）。下の「接続テスト」を押して、結果を貼り付けてください。\n" + brief(e.message));
         if(kind === "dead"){
           blockModel(model);
           if(PACE_HOOK) PACE_HOOK(`  ※ ${model} は廃止/利用不可のため候補から外しました（次回から試しません）`);
@@ -1760,6 +1784,48 @@ FORM_IDS.forEach(id => {
 /* この端末で動くか調べる（うまく動かないときの切り分け用） */
 /* キーが保存されない原因を、開いた瞬間に知らせる */
 /* ===== 保存テスト：保存が本当に残るかを数値で確かめる ===== */
+/* ===== 接続テスト：どこで止まっているかを、Googleの返事そのままで見る ===== */
+function connTest(){
+  const esc2 = s => String(s==null?"":s).replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+  const out = [];
+  const K = CONF.key || "";
+  out.push("開いているURL: " + location.origin + location.pathname);
+  out.push("キーの長さ: " + K.length + "文字 / 先頭 " + (K ? K.slice(0,6) + "…" : "なし"));
+  out.push("使うモデル: " + (CONF.model || "（未設定）"));
+  const el = $("#connOut"), ta = $("#connCopy");
+  const paint = () => {
+    if(el) el.innerHTML = '<div style="border:1px solid var(--line);background:var(--bg);border-radius:10px;'
+      + 'padding:10px 12px;font-size:11.5px;line-height:1.8;font-family:var(--mono);word-break:break-all">'
+      + out.map(esc2).join("<br>") + '</div>';
+    if(ta) ta.value = out.join("\n");
+  };
+  paint();
+  const add = async (label, url, opts) => {
+    try{
+      const r = await fetch(url, opts || {});
+      const body = (await r.text()).slice(0, 240).replace(/\s+/g, " ");
+      out.push(label + ": HTTP " + r.status + " / " + body);
+    }catch(e){
+      out.push(label + ": 通信できませんでした（" + String((e && e.message) || e).slice(0,110) + "）");
+    }
+    paint();
+  };
+  (async () => {
+    await add("① モデル一覧(?key=)", API_ROOT + "/models?key=" + encodeURIComponent(K));
+    await add("② モデル一覧(ヘッダ)", API_ROOT + "/models", {headers:{"x-goog-api-key":K}});
+    const m = CONF.model || "gemini-3.7-flash";
+    out.push("― 生成テスト（モデル " + m + "）―"); paint();
+    await add("③ 生成(ヘッダ)", API_ROOT + "/models/" + encodeURIComponent(m) + ":generateContent",
+      {method:"POST", headers:{"Content-Type":"application/json","x-goog-api-key":K},
+       body:JSON.stringify({contents:[{role:"user",parts:[{text:"ping"}]}]})});
+    await add("④ 新方式interactions", API_ROOT + "/interactions",
+      {method:"POST", headers:{"Content-Type":"application/json","x-goog-api-key":K},
+       body:JSON.stringify({model:m, input:"ping"})});
+    out.push("※ ③が200で本文が返れば、キーは正常です。");
+    paint();
+    toast("接続テストが終わりました。下の結果を貼り付けてください。");
+  })();
+}
 function storeTest(){
   const out = [];
   try{
@@ -1902,6 +1968,7 @@ function cycleTheme(){
     const tb2 = document.createElement("button");
     tb2.className = "btn sm"; tb2.id = "btnTheme"; tb2.textContent = "表示：暗";
     tb2.onclick = cycleTheme;
+    if(!document.getElementById('btnEnv')){ b.id='btnEnv'; key.parentNode.insertBefore(b, key.nextSibling); }
     key.parentNode.insertBefore(tb2, b.nextSibling);
     const cb = $("#btnClearKey");
     if(cb){ const sb = document.createElement("button");
@@ -1912,6 +1979,21 @@ function cycleTheme(){
     key.parentNode.insertBefore(b, key.nextSibling);
   }
 })();
+/* ===== ボタンをキー設定画面に確実に足す（上部バーの有無に依存しない） ===== */
+(function(){
+  const row = document.querySelector("#keyPanel .actions");
+  if(!row) return;
+  const mk = (id, label, fn) => {
+    if(document.getElementById(id)) return null;
+    const b = document.createElement("button");
+    b.className = "btn sm"; b.id = id; b.textContent = label; b.onclick = fn;
+    row.appendChild(b); return b;
+  };
+  mk("btnConnTest", "接続テスト", connTest);
+  mk("btnStoreTest", "保存テスト", storeTest);
+  mk("btnEnvCheck2", "環境チェック", envCheck);
+})();
+
 /* ============================================================
    10. 起動
    ============================================================ */
