@@ -322,7 +322,17 @@ hr{border:none;border-top:1px solid var(--line);margin:22px 0}
   border:1px solid var(--line);border-radius:9px;padding:7px 12px;font-family:inherit}
 </style>
 </head>
-<body>
+<body onload="window.__ML_LOADED=1">
+<script>
+/* どんな失敗も見逃さないための記録係（いちばん最初に読み込む） */
+window.__MLERR = [];
+window.addEventListener("error", function(e){
+  try{ window.__MLERR.push((e.message || "不明") + " @ " + String(e.filename || "").slice(-24) + " :" + (e.lineno || "?")); }catch(_){}
+});
+window.addEventListener("unhandledrejection", function(e){
+  try{ var r = e && e.reason; window.__MLERR.push("非同期の失敗: " + ((r && (r.message || r)) || "不明")); }catch(_){}
+});
+</script>>
 <div class="bnav" id="bnav"></div>
 
 
@@ -353,7 +363,7 @@ hr{border:none;border-top:1px solid var(--line);margin:22px 0}
       <li>下の欄に貼り付けて「保存して確認」</li>
     </ol>
     <div class="actions" id="diagRow" style="margin:0 0 12px"><button class="btn sm" id="btnConnTest" type="button">接続テスト</button><button class="btn sm" id="btnStoreTest" type="button">保存テスト</button><button class="btn sm" id="btnEnvCheck2" type="button">環境チェック</button></div>
-    <div class="hint" id="verTag" style="margin:0 0 10px">版：2026-09-30-13.9 ／ この行が見えていれば最新版です</div>
+    <div class="hint" id="verTag" style="margin:0 0 10px">版：2026-09-30-13.10 ／ この行が見えていれば最新版です</div>
     <label class="f"><span>APIキー（人に見せないでください）</span><input type="password" id="inKey" placeholder="AIza..."></label>
     <div class="hint" id="keyNote" style="margin:-2px 0 10px"></div>
     <div id="keyWarn"></div>
@@ -1901,6 +1911,9 @@ function storeTest(){
   out.push("保存項目の総数: " + localStorage.length);
   out.push("開いているURL: " + location.host + location.pathname);
   out.push("いま画面が認識しているキー: " + ((CONF.key ? CONF.key.length + "文字" : "なし")) + (CONF.__restored ? "（予備から復元）" : ""));
+  const gerr = window.__MLERR || [];
+  out.push("ページ全体の失敗: " + (gerr.length ? gerr.join(" ｜ ") : "なし"));
+  out.push("起動処理の完了: " + (window.__ML_LOADED ? "しました" : "していません（読み込み途中で止まっています）"));
   const ierr = window.ML_INIT_ERR || [];
   out.push("起動時の失敗: " + (ierr.length ? ierr.join(" ｜ ") : "なし"));
   const hist = LS.get("ml_audit", []);
@@ -2517,6 +2530,44 @@ setTimeout(() => { try{ paintKey(); }catch(_){} }, 800);
       else { alert("まだ読み込み中です。3秒ほど待って、もう一度押してください。"); }
     });
   });
+})();
+</script>
+
+<script>
+/* ===== 最後の安全網：ほかの処理が失敗しても、右上の表示とキーは必ず正しく整える ===== */
+(function(){
+  function fix(){
+    try{
+      var c = null;
+      try{ c = JSON.parse(localStorage.getItem("ml_conf") || "null"); }catch(_){ c = null; }
+      var c2 = null;
+      try{ c2 = JSON.parse(localStorage.getItem("ml_key2") || "null"); }catch(_){ c2 = null; }
+      var cfgs = window.ML_CONFIG || {};
+      var k = String((c && c.key) || (c2 && c2.key) || cfgs.key || "").trim();
+      var m = (c && c.model) || cfgs.model || "";
+      var t = document.getElementById("apiTxt"), d = document.getElementById("apiDot");
+      if(t) t.textContent = k ? ((m ? m + "／" : "") + "キー" + k.length + "文字") : "APIキー未設定";
+      if(d) d.className = "dot " + (k ? "on" : "off");
+      var i = document.getElementById("inKey");
+      if(i && k && !i.value) i.value = k;
+      var el = document.getElementById("envEcho");
+      if(window.__MLERR && window.__MLERR.length && !document.getElementById("errBox")){
+        var box = document.createElement("div");
+        box.id = "errBox";
+        box.style.cssText = "position:fixed;left:8px;right:8px;bottom:64px;z-index:60;background:#2A1113;border:1px solid #C4574F;border-radius:10px;padding:9px 11px;font-size:11.5px;color:#FFD9D5;line-height:1.7";
+        box.innerHTML = "<b>読み込み中の失敗が見つかりました</b>（この内容を貼ってください）<br>" + window.__MLERR.join("<br>");
+        var bs = document.createElement("button");
+        bs.textContent = "閉じる";
+        bs.style.cssText = "margin-top:6px";
+        bs.onclick = function(){ box.remove(); };
+        box.appendChild(bs);
+        document.body.appendChild(box);
+      }
+    }catch(_){}
+  }
+  fix();
+  setTimeout(fix, 500);
+  setTimeout(fix, 1500);
 })();
 </script>
 </body>
