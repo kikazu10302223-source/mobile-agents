@@ -822,19 +822,28 @@ function extractText(j){
   };
   return walk(j).trim();
 }
+/* 応答が返らないときに備えて、待ち時間の上限を決めて呼び出す */
+function fetchT(url, opts, ms){
+  const ctl = ("AbortController" in window) ? new AbortController() : null;
+  const o = Object.assign({}, opts || {});
+  if(ctl) o.signal = ctl.signal;
+  const t = setTimeout(() => { try{ if(ctl) ctl.abort(); }catch(_){} }, ms || 45000);
+  return fetch(url, o).then(r => { clearTimeout(t); return r; },
+                             e => { clearTimeout(t); throw e; });
+}
 async function once(model, system, user, temp){
   /* 本命（generateContent）を先に試し、ダメなら新しい方式（interactions）を試す。
      どちらが何を返したかを残して、原因を追えるようにする。 */
   const errs = [];
   let lastStatus = 0, lastBody = "";
-  const post = (url, body) => fetch(url, {method:"POST",
+  const post = (url, body, ms) => fetchT(url, {method:"POST",
     headers:{"Content-Type":"application/json","x-goog-api-key":CONF.key},
     body:JSON.stringify(body)});
   const tries = [
     ["generateContent", () => post(`${API_ROOT}/models/${encodeURIComponent(model)}:generateContent`,
-       {systemInstruction:{parts:[{text:system}]}, contents:[{role:"user",parts:[{text:user}]}], generationConfig:{temperature:temp}})],
+       {systemInstruction:{parts:[{text:system}]}, contents:[{role:"user",parts:[{text:user}]}], generationConfig:{temperature:temp}}, 45000)],
     ["interactions", () => post(`${API_ROOT}/interactions`,
-       {model, input:user, system_instruction:system, generation_config:{temperature:temp}, store:false})]
+       {model, input:user, system_instruction:system, generation_config:{temperature:temp}, store:false}, 30000)]
   ];
   for(const pair of tries){
     const name = pair[0];
@@ -870,8 +879,8 @@ async function gemini(system, user, temp){
   const push = m => { if(m && !cands.includes(m) && !blocked.includes(m)) cands.push(m); };
   push(CONF.model);
   ranked.forEach(push);
-  ["gemini-flash-latest","gemini-flash-lite-latest","gemini-pro-latest"].forEach(push);
-  const targets = cands.slice(0,4);
+  ["gemini-3.5-flash-lite","gemini-3.5-flash","gemini-3.6-flash","gemini-flash-lite-latest","gemini-flash-latest"].forEach(push);
+  const targets = cands.slice(0,5);
   if(!targets.length) throw new Error("使えるモデルが1つも見つかりませんでした。「キーを設定」→「保存して確認」を行ってください。");
   await pace();
   const tried = [], busyOnly = [], quotaOnly = [];
