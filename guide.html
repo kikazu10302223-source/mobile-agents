@@ -6,7 +6,18 @@
 <title>つかいかた ── 通信ラボ</title>
 <script>
 /* 配色は開いた瞬間に決めます（画面がちらつかないように、ここで読み込みます） */
-(function(){try{var t=localStorage.getItem('ml_guide_theme');if(t==='dark'){document.documentElement.setAttribute('data-theme','dark')}}catch(e){}})();
+(function(){
+/* 配色は開いた瞬間に決めます（ちらつき防止）。アプリ本体(ml_theme)と配色を共有します */
+function sys(){try{return (window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light'}catch(e){return 'light'}}
+var t=null;
+try{
+  var g=localStorage.getItem('ml_guide_theme'); if(g==='dark'||g==='light') t=g;
+  if(!t){ var a=localStorage.getItem('ml_theme');
+    if(a==='dark'||a==='light') t=a; else if(a==='auto') t=sys(); }
+}catch(e){}
+if(t==='dark'){document.documentElement.setAttribute('data-theme','dark')}
+else if(t==='light'){document.documentElement.setAttribute('data-theme','light')}
+})();
 </script>
 <style>
 :root{
@@ -118,6 +129,12 @@ a{color:#2E7DD1}
 html[data-theme="dark"] a{color:#5AA9FF}
 footer{max-width:920px;margin:0 auto;padding:0 16px 70px;color:var(--faint);font-size:13.5px}
 mark{background:var(--signal-soft);color:inherit;border-radius:4px;padding:0 2px}
+/* 右下の丸い配色ボタン（アプリ本体の◐と同じ位置・同じ役割） */
+#fabTheme{position:fixed;right:14px;bottom:14px;z-index:40;width:54px;height:54px;border-radius:50%;
+ border:1px solid var(--line);background:var(--surface);color:var(--ink);font-size:21px;line-height:1;
+ cursor:pointer;font-family:inherit;box-shadow:0 2px 6px rgba(16,32,48,.10),0 10px 26px rgba(16,32,48,.16);
+ display:grid;place-items:center;padding:0}
+#fabTheme:active{background:var(--surface2)}
 @media (max-width:560px){
   body{font-size:16.5px}
   h1{font-size:22px}
@@ -633,19 +650,26 @@ mark{background:var(--signal-soft);color:inherit;border-radius:4px;padding:0 2px
     });
   });
 
-  /* ── 配色の切り替え ── */
+  /* ── 配色の切り替え（上部のボタン＋右下の丸ボタン／選んだ配色はアプリ本体と共有） ── */
   var th=document.getElementById('theme');
+  var fab=document.createElement('button');
+  fab.id='fabTheme'; fab.type='button'; fab.textContent='◐';
+  document.body.appendChild(fab);
+  function darkNow(){return document.documentElement.getAttribute('data-theme')==='dark';}
   function paint(){
-    var dark=document.documentElement.getAttribute('data-theme')==='dark';
-    th.textContent = dark ? '明るくする' : '暗くする';
+    th.textContent = darkNow() ? '明るくする' : '暗くする';
+    fab.textContent = darkNow() ? '◑' : '◐';
+    fab.setAttribute('aria-label', darkNow() ? '明るい配色にする' : '暗い配色にする');
+    fab.title = darkNow() ? '明るい配色にする' : '暗い配色にする';
   }
-  th.addEventListener('click',function(){
-    var dark=document.documentElement.getAttribute('data-theme')==='dark';
-    var next=dark?'light':'dark';
+  function flip(){
+    var next = darkNow() ? 'light' : 'dark';
     document.documentElement.setAttribute('data-theme',next);
-    try{localStorage.setItem(TH,next);}catch(e){}
+    try{ localStorage.setItem(TH,next); localStorage.setItem('ml_theme',next); }catch(e){}
     paint();
-  });
+  }
+  th.addEventListener('click',flip);
+  fab.addEventListener('click',flip);
   paint();
 })();
 </script>
