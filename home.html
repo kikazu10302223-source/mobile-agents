@@ -323,7 +323,7 @@ hr{border:none;border-top:1px solid var(--line);margin:22px 0}
 </style>
 </head>
 <body onload="window.__ML_LOADED=1">
-<div id="trybar">試作版2：ホーム3ステップ＋<b>④発信（X・Instagram・TikTok）</b>＋<b>文体（あなたらしさ）設定</b>を追加しました。元の画面は<a href="board.html">こちら</a>（無傷です）。</div>
+<div id="trybar">試作版2.1：ホーム4ステップ＋<b>④発信（X・Instagram・TikTok）</b>＋<b>文体設定（空欄からご自身で入力）</b>。元の画面は<a href="board.html">こちら</a>（無傷です）。</div>
 <script>
 /* どんな失敗も見逃さないための記録係（いちばん最初に読み込む） */
 window.__MLERR = [];
@@ -364,7 +364,7 @@ window.addEventListener("unhandledrejection", function(e){
       <li>下の欄に貼り付けて「保存して確認」</li>
     </ol>
     <div class="actions" id="diagRow" style="margin:0 0 12px"><button class="btn sm" id="btnConnTest" type="button">接続テスト</button><button class="btn sm" id="btnStoreTest" type="button">保存テスト</button><button class="btn sm" id="btnEnvCheck2" type="button">環境チェック</button></div>
-    <div class="hint" id="verTag" style="margin:0 0 10px">試作版2：2026-09-30-15.0 ／ この行が見えていれば最新版です</div>
+    <div class="hint" id="verTag" style="margin:0 0 10px">試作版2.1：2026-09-30-15.1 ／ この行が見えていれば最新版です</div>
     <label class="f"><span>APIキー（人に見せないでください）</span><input type="password" id="inKey" placeholder="AIza..."></label>
     <div class="hint" id="keyNote" style="margin:-2px 0 10px"></div>
     <div id="keyWarn"></div>
@@ -469,26 +469,26 @@ window.addEventListener("unhandledrejection", function(e){
 <!-- 文体（あなたらしさ）設定 -->
 <div class="panel" id="stylePanel">
   <div class="ph"><span class="n">VOICE</span><h2>あなたらしさ（文体・人物）設定</h2>
-    <p>ここに書いた内容は、<b>9人の担当すべてに毎回渡されます</b>。書くほど「あなたの文章」に近づきます。</p></div>
+    <p>ここに書いた内容は、<b>9人の担当すべてに毎回渡されます</b>。<b>いまは全部空欄です。</b>ご自身の言葉で入れて「保存する」を押してください（入れるほど「あなたの文章」に近づきます）。</p></div>
   <div class="pb">
     <div class="cards">
-      <div class="card"><div class="k">最初から入っている</div><div class="v" style="font-size:18px">初期値</div><small>書き換えて保存できます</small></div>
+      <div class="card"><div class="k">いまの状態</div><div class="v" style="font-size:18px">空欄</div><small>入力して保存すると反映</small></div>
       <div class="card"><div class="k">反映される範囲</div><div class="v" style="font-size:18px">9人全員</div><small>企画〜SNSまで</small></div>
       <div class="card"><div class="k">保存先</div><div class="v" style="font-size:18px">この端末</div><small>サーバーへは送りません</small></div>
     </div>
     <label class="f"><span>一人称（記事の中で自分を何と呼ぶか）</span><input id="stP1" placeholder="私／僕／俺"></label>
-    <label class="f"><span>口調・語尾（例：やさしい敬語。たまに本音を混ぜる）</span><textarea id="stTone" rows="2"></textarea></label>
-    <label class="f"><span>性格・立場（読者から見たあなた）</span><textarea id="stChara" rows="2"></textarea></label>
-    <label class="f"><span>背景・経歴（記事の説得材料として使ってよいこと）</span><textarea id="stBg" rows="3"></textarea></label>
-    <label class="f"><span>想定読者（誰に向けて書くか）</span><textarea id="stReader" rows="2"></textarea></label>
-    <label class="f"><span>よく使う言い回し・口癖（任意）</span><textarea id="stWords" rows="2"></textarea></label>
-    <label class="f"><span>書かないこと・禁止事項</span><textarea id="stNg" rows="2"></textarea></label>
+    <label class="f"><span>口調・語尾</span><textarea id="stTone" rows="2" placeholder="例：やさしい敬語。専門用語は言い換えを添える。たまに本音を混ぜる。"></textarea></label>
+    <label class="f"><span>性格・立場（読者から見たあなた）</span><textarea id="stChara" rows="2" placeholder="例：店頭で7年働いてきた実務者。誇張しない。困っている人の味方。"></textarea></label>
+    <label class="f"><span>背景・経歴（記事の説得材料として使ってよいこと）</span><textarea id="stBg" rows="3" placeholder="例：携帯・通信の仕事を7年。店頭で契約・乗り換え・料金相談を担当。&#10;※勤務先が特定される情報・お客様の情報は書かないでください。"></textarea></label>
+    <label class="f"><span>想定読者（誰に向けて書くか）</span><textarea id="stReader" rows="2" placeholder="例：20〜50代。料金の見直し・乗り換え・端末の買い替えを考えている人。金額と条件にうるさい。"></textarea></label>
+    <label class="f"><span>よく使う言い回し・口癖（任意）</span><textarea id="stWords" rows="2" placeholder="例：「ここが落とし穴です」「店頭ではこう聞かれます」。空欄でも大丈夫です。"></textarea></label>
+    <label class="f"><span>書かないこと（任意）</span><textarea id="stNg" rows="2" placeholder="例：「絶対」「最安」などの断定。読者を見下す言い方。勤務先・他社を貶す表現。&#10;（空欄でも、断定禁止・PR表記などのルールは9人の指示に元から入っています）"></textarea></label>
     <label class="f"><span>文体の見本：あなたが過去に書いた文章を1〜3本そのまま貼る（いちばん効きます）</span>
       <textarea id="stSample" rows="6" placeholder="自分のnoteの記事やXの投稿をそのまま貼ってください。文の長さ・リズム・語尾をAIが真似します。"></textarea></label>
     <div class="actions" style="margin-top:0">
       <button class="btn primary" id="stSave" type="button">保存する</button>
       <button class="btn sm" id="stShow" type="button">いまAIに渡す文を見る</button>
-      <button class="btn sm" id="stReset" type="button">初期値に戻す</button>
+      <button class="btn sm" id="stReset" type="button">すべて空にする</button>
     </div>
     <div class="hint" id="stOut" style="white-space:pre-wrap;font-family:var(--mono);font-size:11.5px;max-height:240px;overflow:auto"></div>
     <details style="margin:12px 0 0;border:1px solid var(--line);border-radius:10px;padding:10px 12px">
@@ -2649,14 +2649,7 @@ setTimeout(() => { try{ paintKey(); }catch(_){} }, 800);
   var STF = [["p1","stP1"],["tone","stTone"],["chara","stChara"],["bg","stBg"],
              ["reader","stReader"],["words","stWords"],["ng","stNg"],["sample","stSample"]];
   var ST_DEF = {
-    p1:"私",
-    tone:"やさしい敬語。専門用語は必ず言い換えを添える。断定する前に条件を示す。",
-    chara:"店頭で7年働いてきた実務者。落ち着いていて誇張しない。困っている人の味方。",
-    bg:"携帯・通信の仕事を7年。店頭でお客様の契約・乗り換え・料金相談を担当してきた。いまは会社の運営を支える立場。",
-    reader:"20〜50代。料金の見直し・乗り換え・端末の買い替えを考えている人。金額と条件にうるさい。",
-    words:"",
-    ng:"「絶対」「必ず」「最安」「No.1」などの断定と誇張。読者を見下す言い方。勤務先・他社・他店を貶す表現。個人が特定される情報。",
-    sample:""
+    p1:"", tone:"", chara:"", bg:"", reader:"", words:"", ng:"", sample:""
   };
   function stGet(){
     var s = {};
@@ -2680,7 +2673,7 @@ setTimeout(() => { try{ paintKey(); }catch(_){} }, 800);
   function stReset(){
     LS.set("ml_style", {});
     stFill(); stPreview();
-    toast("初期値に戻しました。書き換えて「保存する」を押してください。");
+    toast("すべて空にしました。「保存する」を押すと反映されます。");
   }
   function stPreview(){
     var el = E("stOut"); if(!el) return;
@@ -2690,7 +2683,7 @@ setTimeout(() => { try{ paintKey(); }catch(_){} }, 800);
     }
     var t = "";
     try{ t = f() || ""; }catch(_){ t = ""; }
-    el.textContent = t || "（いまは空です。「保存する」を押すと、ここに書いた内容がAIへ渡ります）";
+    el.textContent = t || "（まだ何も入っていません。上の欄に入力して「保存する」を押すと、ここに表示されます）";
   }
   function stExport(){
     var el = E("stIO"); if(!el) return;
@@ -2872,7 +2865,7 @@ setTimeout(() => { try{ paintKey(); }catch(_){} }, 800);
 
   /* ---- 文体・発信の配線 ---- */
   (function(){
-    try{ if(!localStorage.getItem("ml_style")) LS.set("ml_style", ST_DEF); }catch(_){}
+    /* 最初は空欄のまま。ご自身が入力して「保存する」を押したときだけ記録します */
     stFill();
     var w = [["stSave",stSave],["stReset",stReset],["stShow",stPreview],["stExp",stExport],["stImp",stImport]];
     w.forEach(function(p){ var b = E(p[0]); if(b) b.onclick = p[1]; });
