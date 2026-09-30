@@ -306,21 +306,17 @@ hr{border:none;border-top:1px solid var(--line);margin:22px 0}
 .worker b{font-family:var(--mono);font-size:11.5px;color:var(--signal)}
 .worker i{width:8px;height:8px;border-radius:50%;background:var(--faint);display:block}
 .worker[data-s=run] i{background:var(--warn)} .worker[data-s=done] i{background:var(--signal)}
+
+/* ===== 配色切り替えの丸ボタン（常に画面右下に出ます） ===== */
+#fabTheme{position:fixed;right:14px;bottom:calc(16px + env(safe-area-inset-bottom));z-index:60;
+  width:48px;height:48px;border-radius:50%;border:1px solid var(--line);background:var(--surface);
+  color:var(--ink);font-size:20px;line-height:1;font-family:inherit;box-shadow:0 5px 16px rgba(0,0,0,.30)}
+#fabTheme:active{transform:scale(.93)}
 </style>
 </head>
 <body>
 <div class="bnav" id="bnav"></div>
-<div class="lock" id="blk"><div class="bx">
-  <div class="eyebrow">LOCK</div><h2 style="margin:6px 0 8px;font-size:17px">合言葉を入れてください</h2>
-  <p style="font-size:13px;color:var(--dim);margin:0 0 12px">承認・実行・設定変更の前に1回だけ解除します（この端末の中だけで効く簡易ロックです。本物のパスワード保護ではありません）。</p>
-  <label class="f"><span>合言葉</span><input type="password" id="blkIn" placeholder="初回は「決める」で設定"></label>
-  <div class="actions" style="margin-top:0">
-    <button class="btn primary" id="blkGo">解除する</button>
-    <button class="btn sm" id="blkSet">この合言葉に決める</button>
-    <button class="btn sm" id="blkOff">ロックを使わない</button>
-  </div>
-  <div class="hint" id="blkOut"></div>
-</div></div>
+
 
 <noscript>
 <div id="nojsBanner" style="margin:10px 11px;padding:13px 14px;background:rgba(238,108,77,.14);border:1px solid #EE6C4D;border-radius:12px;color:#FFB9A3;font-size:14px;line-height:1.8;font-weight:700">
@@ -1653,11 +1649,23 @@ function applyTheme(pref){
   if(pref === "light" || pref === "dark") th = pref;
   else th = (window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches) ? "light" : "dark";
   document.documentElement.setAttribute("data-theme", th);
-  const b = $("#btnTheme"); if(b) b.textContent = (th === "light" ? "表示：明" : "表示：暗");
+  const lab = (th === "light" ? "表示：明" : "表示：暗");
+  const b = $("#btnTheme"); if(b) b.textContent = lab;
+  const b2 = $("#bTheme"); if(b2) b2.textContent = lab;
+  const fb = $("#fabTheme"); if(fb) fb.title = (th === "light" ? "いま明るい配色。押すと暗くなります" : "いま暗い配色。押すと明るくなります");
   const m = document.querySelector('meta[name="theme-color"]');
   if(m) m.setAttribute("content", th === "light" ? "#F4F6FA" : "#0B1017");
   LS.set("ml_theme", pref || "auto");
   return th;
+}
+/* 配色切り替えの丸ボタンを画面右下に常設する */
+function injectThemeFab(){
+  if(document.getElementById("fabTheme")) return;
+  const b = document.createElement("button");
+  b.id = "fabTheme"; b.type = "button"; b.textContent = "◐";
+  b.setAttribute("aria-label","配色を切り替える");
+  b.onclick = cycleTheme;
+  document.body.appendChild(b);
 }
 function cycleTheme(){
   const cur = LS.get("ml_theme", "auto");
@@ -1681,6 +1689,7 @@ function cycleTheme(){
     tb2.onclick = cycleTheme;
     key.parentNode.insertBefore(tb2, b.nextSibling);
     applyTheme(LS.get("ml_theme", "auto"));
+    injectThemeFab();
     key.parentNode.insertBefore(b, key.nextSibling);
   }
 })();
@@ -1871,35 +1880,9 @@ function cycleTheme(){
   function buildNav(){
     const n = E("bnav"); if(!n) return;
     n.innerHTML = TABS.map(t => '<button class="nb" data-t="'+t+'">'+t+'</button>').join("")
-      + '<button class="nb" id="bLock" style="border-color:var(--line)">ロック</button>';
+      + '<button class="nb" id="bTheme" style="margin-left:auto">表示：暗</button>';
     n.querySelectorAll(".nb[data-t]").forEach(b => b.onclick = () => showTab(b.dataset.t));
-    E("bLock").onclick = lockNow;
-  }
-
-  /* ---- 簡易ロック（承認・実行の前に1回） ---- */
-  let UNLOCKED = false;
-  function lockNow(){ UNLOCKED = false; const l = E("blk"); if(l) l.classList.add("on"); toast("ロックしました。"); }
-  function lockInit(){
-    const cfg = LS.get("ml_lock", null);
-    const l = E("blk"); if(!l) return;
-    if(!cfg || cfg.off) { UNLOCKED = true; return; }
-    l.classList.add("on");
-    E("blkGo").onclick = () => {
-      if(E("blkIn").value === cfg.pass){ UNLOCKED = true; l.classList.remove("on"); toast("解除しました。"); }
-      else { E("blkOut").textContent = "合言葉がちがいます。"; }
-    };
-    E("blkSet").onclick = () => {
-      const p = E("blkIn").value.trim();
-      if(p.length < 4){ E("blkOut").textContent = "4文字以上にしてください。"; return; }
-      LS.set("ml_lock", {pass:p, off:false}); UNLOCKED = true; l.classList.remove("on"); toast("合言葉を設定しました。");
-    };
-    E("blkOff").onclick = () => { LS.set("ml_lock", {off:true}); UNLOCKED = true; l.classList.remove("on"); toast("ロックを外しました。"); };
-  }
-  function needLock(){
-    if(UNLOCKED) return true;
-    const l = E("blk"); if(l) l.classList.add("on");
-    toast("先に合言葉を解除してください。");
-    return false;
+    const tb = E("bTheme"); if(tb) tb.onclick = cycleTheme;
   }
 
   /* ---- オフィス：9人のワーカー ---- */
@@ -1956,7 +1939,6 @@ function cycleTheme(){
             }).join("") + '</table>'
         : '<p class="hint" style="padding:0 13px">承認待ちはありません。</p>';
       al.querySelectorAll("[data-ap]").forEach(b => b.onclick = () => {
-        if(!needLock()) return;
         try{ approveRun(b.dataset.ap); toast("承認しました。"); paintWorkers(); }catch(e){ toast("承認できませんでした：" + (e.message||e)); }
       });
     }
@@ -2093,7 +2075,7 @@ function cycleTheme(){
 
   /* ---- 起動 ---- */
   document.querySelectorAll(".panel").forEach(p => { if(p.id) INIP[p.id] = p.style.display || ""; });
-  buildNav(); lockInit(); paintWorkers(); paintKpi(); paintCost(); paintAffi(); paintQa();
+  buildNav(); paintWorkers(); paintKpi(); paintCost(); paintAffi(); paintQa();
   bindText(["peWho","peNeed","peWord"], "ml_persona");
   bindText(["acX","acNote","acGh","acDrive"], "ml_acct");
   const KEY = {"オフィス":"office","承認":"ap","ネタ帳":"topics","QA":"qa","KPI":"kpi","AIコスト":"cost","アフィ":"affi","ペルソナ":"persona","アカウント":"acct","画像":"img","設定":"setup","すべて":"all"};
