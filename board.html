@@ -570,6 +570,7 @@ hr{border:none;border-top:1px solid var(--line);margin:22px 0}
   <div class="ph"><span class="n">STEP 1</span><h2>AIにネタを集めさせる（材料を渡して選別）</h2>
     <p>材料が無くても、AIの知識と切り口だけで提案させられます（その場合は【仮説】扱い）</p></div>
   <div class="pb">
+    <div class="sncard" id="autoList" style="display:none"></div>
     <label class="f"><span>材料（任意）── <code>trend_collect.py</code> の出力や、自分で拾ったニュース見出し・Xの投稿を貼る。1行1件でOK</span>
       <textarea id="inTrendMat" rows="7" placeholder="例：
 1 | ahamoが一部プランを見直し | ITmedia Mobile | 2026-09-26 | https://...
@@ -625,7 +626,7 @@ hr{border:none;border-top:1px solid var(--line);margin:22px 0}
 スマホの下取り価格はいつ売るのが得か"></textarea>
       <button type="button" class="btn sm wide" onclick="openEditor('qTopics', 'ネタ帳（1行に1テーマ）')">✎ 大きく入力する（音声入力も使えます）</button></label>
     <div class="sncard" id="autoBox" style="margin-top:10px">
-      <h4>AIから届いたネタ（自動でこの欄の上に増えます）</h4>
+      <h4>AIから届いたネタ（STEP 1 の一覧に並びます）</h4>
       <div class="cnt" id="autoNote">まだ取り込んでいません。</div>
       <div class="actions" style="margin:8px 0 0">
         <button class="btn sm primary" type="button" id="autoPull">いま取り込む</button>
@@ -3417,11 +3418,10 @@ setTimeout(() => { try{ paintKey(); }catch(_){} }, 800);
     st.seen = seenArr.slice(-300);
     if(!fresh.length){ st.num = issue.number; saveAuto(st); paintAuto(); return 0; }
     st.items = (st.items || []).concat(fresh).slice(-80);
-    st.added = (st.added || []).concat(appendTopics(fresh)).slice(-300);
     st.num = issue.number;
     st.at = new Date().toISOString().slice(0,16).replace("T"," ");
     saveAuto(st); paintAuto();
-    toast("AIから" + fresh.length + "件のネタをネタ欄へ追加しました。");
+    toast("AIから" + fresh.length + "件のネタが届きました。「AIから届いたネタ」の一覧から選んでください。");
     return fresh.length;
   }
   function pullAuto(force){
@@ -3459,24 +3459,111 @@ setTimeout(() => { try{ paintKey(); }catch(_){} }, 800);
         card.style.display = ""; card.className = "sncard";
         card.innerHTML = '<h4>AIから届いたネタ：' + n + '件</h4>'
           + '<div class="cnt">' + (st.at ? esc(st.at) + " 取り込み" : "") + '（配信の受け取り #' + esc(String(st.num || "")) + '）</div>'
-          + '<div class="cnt">「作業」タブの<b>まとめて仕込む</b>のネタ欄に、1行1テーマで入っています。そのまま「まとめて作る」を押せます。</div>'
+          + '<div class="cnt">「作業」タブの<b>STEP 1</b>に『AIから届いたネタ』として並んでいます。選んで作りましょう。</div>'
           + '<div class="actions" style="margin:8px 0 0">'
           + '<button class="btn sm primary" type="button" id="autoGo">作業タブを開く</button>'
           + '<button class="btn sm" type="button" id="autoPull2">いま取り込む</button></div>';
         var g = document.getElementById("autoGo");
-        if(g) g.onclick = function(){ navTo("作業"); };
+        if(g) g.onclick = function(){
+          try{ if(window.__boardShow) window.__boardShow("作業"); }catch(_){}
+          try{ if(window.__foldWork) window.__foldWork("workPanel1"); }catch(_){}
+          setTimeout(function(){
+            var b = document.getElementById("autoList");
+            if(b && b.scrollIntoView){ try{ b.scrollIntoView({behavior:"smooth", block:"start"}); }catch(_){} }
+          }, 90);
+        };
         var p = document.getElementById("autoPull2");
         if(p) p.onclick = function(){ pullAuto(true); };
       }
     }
+    try{ renderAutoList(); }catch(_){ }
     try{ workApply(); }catch(_){ }
     var note = document.getElementById("autoNote");
     if(note){
       note.innerHTML = n
-        ? ('いま <b>' + n + '件</b>を取り込み済みです' + (st.at ? '（' + esc(st.at) + '）' : '') + '。新しい配信が届くと、このネタ欄に自動で増えます。')
-        : 'まだ取り込んでいません。毎日18時の自動実行が届くと、このネタ欄に自動で増えます。';
+        ? ('いま <b>' + n + '件</b>を取り込み済みです' + (st.at ? '（' + esc(st.at) + '）' : '') + '。新しい配信が届くと、この一覧に並びます。')
+        : 'まだ取り込んでいません。毎日18時の自動実行が届くと、この一覧に並びます。';
     }
   }
+  /* ── AIから届いたネタを「別の一覧」で見せる（v16.3で追加） ── */
+  function autoListItems(){ return (autoStore().items || []); }
+  function autoRowEl(it){
+    var t = autoTitle(it);
+    var why = String(it.why || "").trim();
+    var topic = String(it.topic || "").trim();
+    var score = (it.score === 0 || it.score) ? String(it.score) : "";
+    var shelf = String(it.shelf || "").trim();
+    var src = String(it.src || it.s || "").trim();
+    var note = String(it.note || "").trim();
+    var d = document.createElement("div"); d.className = "autoItem";
+    var meta = [];
+    if(score) meta.push("話題度 " + score);
+    if(shelf) meta.push(shelf);
+    if(topic) meta.push(topic);
+    d.innerHTML = '<div class="t">' + esc(t) + '</div>'
+      + (why ? '<div class="w">' + esc(why) + '</div>' : '')
+      + (meta.length ? '<div class="m">' + esc(meta.join(" ／ ")) + '</div>' : '')
+      + (src ? '<div class="s">出典のあたり: ' + esc(src) + '</div>' : '')
+      + (note ? '<div class="s">' + esc(note) + '</div>' : '')
+      + '<div class="actions" style="margin:8px 0 0">'
+      + '<button class="btn sm primary" type="button" data-a="pick">このネタで作る</button>'
+      + '<button class="btn sm" type="button" data-a="queue">ネタ帳に足す</button></div>';
+    d.querySelector('[data-a="pick"]').onclick = function(){ autoPick(t); };
+    d.querySelector('[data-a="queue"]').onclick = function(){ autoQueue([t]); };
+    return d;
+  }
+  function autoQueue(list){
+    var ta = document.getElementById("qTopics"); if(!ta) return 0;
+    var cur = String(ta.value || ""), add = [];
+    (list || []).forEach(function(x){
+      var t = autoTitle(x);
+      if(!t) return;
+      if(cur.indexOf(t) >= 0 || add.indexOf(t) >= 0) return;
+      add.push(t);
+    });
+    if(!add.length){ toast("すでにネタ帳に入っています。"); return 0; }
+    ta.value = (cur.trim() ? cur.replace(/\s*$/,"") + "\n" : "") + add.join("\n");
+    try{ ta.dispatchEvent(new Event("input", {bubbles:true})); }catch(_){}
+    toast(add.length + "件をネタ帳に足しました。");
+    return add.length;
+  }
+  function autoPick(t){
+    var inp = document.getElementById("inTopic");
+    if(inp) inp.value = t;
+    try{ if(window.__foldWork) window.__foldWork("workPanel2"); }catch(_){}
+    toast("テーマ欄に入れました。「このテーマで作る」を押してください。");
+    setTimeout(function(){
+      var i = document.getElementById("inTopic"); if(!i) return;
+      try{ i.focus(); }catch(_){}
+      try{ i.scrollIntoView({behavior:"smooth", block:"center"}); }catch(_){}
+    }, 80);
+  }
+  function renderAutoList(){
+    var box = document.getElementById("autoList"); if(!box) return;
+    var items = autoListItems();
+    box.innerHTML = "";
+    if(!items.length){ box.style.display = "none"; return; }
+    box.style.display = "";
+    var h = document.createElement("h4");
+    h.innerHTML = "AIから届いたネタ：<b>" + items.length + "件</b>（ここから選べます）";
+    box.appendChild(h);
+    var st = autoStore();
+    var c = document.createElement("div"); c.className = "cnt";
+    c.innerHTML = (st.at ? esc(st.at) + " 取り込み" : "") + (st.num ? "（配信の受け取り #" + esc(String(st.num)) + "）" : "");
+    box.appendChild(c);
+    var acts = document.createElement("div"); acts.className = "actions"; acts.style.margin = "8px 0 0";
+    acts.innerHTML = '<button class="btn sm" type="button" id="autoAllQueue">全部ネタ帳に足す</button>'
+      + '<button class="btn sm" type="button" id="autoAllMat">STEP 1 の材料欄へ送る</button>'
+      + '<button class="btn sm" type="button" id="autoPull3">いま取り込む</button>';
+    box.appendChild(acts);
+    acts.querySelector("#autoAllQueue").onclick = function(){ autoQueue(items); };
+    acts.querySelector("#autoAllMat").onclick = function(){ autoToMat(); };
+    acts.querySelector("#autoPull3").onclick = function(){ pullAuto(true); };
+    var list = document.createElement("div"); list.className = "autoListBody";
+    items.slice().reverse().forEach(function(it){ list.appendChild(autoRowEl(it)); });
+    box.appendChild(list);
+  }
+
   function autoReset(){
     var st = autoStore(), ta = document.getElementById("qTopics");
     if(ta && (st.added || []).length){
@@ -3498,6 +3585,7 @@ setTimeout(() => { try{ paintKey(); }catch(_){} }, 800);
     if(a) a.onclick = function(){ pullAuto(true); };
     if(b) b.onclick = autoToMat;
     if(c) c.onclick = autoReset;
+    try{ window.__paintAuto = paintAuto; }catch(_){}
     paintAuto();
     /* 開いた直後に届いていない場合の保険として、数回試します */
     [1200, 5000, 12000].forEach(function(ms){
