@@ -46,7 +46,9 @@ a{color:var(--link)}
 /* ── 上部バー ── */
 .top{position:sticky;top:0;z-index:20;background:var(--head);backdrop-filter:blur(8px);
   border-bottom:1px solid var(--line);padding:12px 16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
-.brand{display:flex;align-items:center;gap:9px;font-weight:700;letter-spacing:.02em}
+.brand{display:flex;align-items:center;gap:9px;font-weight:700;letter-spacing:.02em;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent}
+.brand:hover{opacity:.82}
+.brand:active{transform:scale(.98)}
 .brand i{width:10px;height:10px;border-radius:3px;background:var(--signal);display:block;
   box-shadow:0 0 12px var(--signal)}
 .brand small{display:block;font-weight:400;font-size:11px;color:var(--faint);letter-spacing:.06em}
@@ -312,7 +314,7 @@ window.addEventListener("unhandledrejection", function(e){
 </noscript>
 
 <div class="top">
-  <div class="brand"><i></i><div>ぽけっと通信<small>MOBILE / HIKARI / DEVICE</small></div></div>
+  <div class="brand" id="brandHome" role="button" tabindex="0" title="ホームに戻る"><i></i><div>ぽけっと通信<small>MOBILE / HIKARI / DEVICE</small></div></div>
   <div class="spacer"></div>
   <div class="status"><span class="dot off" id="apiDot"></span><span id="apiTxt">APIキー未設定</span></div>
   <button class="btn sm" id="btnOpenKey">キーを設定</button>
@@ -2141,6 +2143,8 @@ setTimeout(() => { try{ paintKey(); }catch(_){} }, 800);
   setTimeout(fix, 500);
   setTimeout(fix, 1500);
 })();
+
 </script>
+<script>(function(){var b=document.getElementById("brandHome");if(!b)return;function g(){try{if(window.__showTab)window.__showTab("ホーム");}catch(_){}try{window.scrollTo({top:0,behavior:"smooth"});}catch(_){}}b.onclick=g;b.onkeydown=function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();g();}};})();</script>
 </body>
 </html>

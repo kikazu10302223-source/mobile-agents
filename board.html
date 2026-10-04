@@ -46,7 +46,9 @@ a{color:var(--link)}
 /* ── 上部バー ── */
 .top{position:sticky;top:0;z-index:20;background:var(--head);backdrop-filter:blur(8px);
   border-bottom:1px solid var(--line);padding:12px 16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
-.brand{display:flex;align-items:center;gap:9px;font-weight:700;letter-spacing:.02em}
+.brand{display:flex;align-items:center;gap:9px;font-weight:700;letter-spacing:.02em;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent}
+.brand:hover{opacity:.82}
+.brand:active{transform:scale(.98)}
 .brand i{width:10px;height:10px;border-radius:3px;background:var(--signal);display:block;
   box-shadow:0 0 12px var(--signal)}
 .brand small{display:block;font-weight:400;font-size:11px;color:var(--faint);letter-spacing:.06em}
@@ -335,7 +337,7 @@ hr{border:none;border-top:1px solid var(--line);margin:22px 0}
 </noscript>
 
 <div class="top">
-  <div class="brand"><i></i><div>ぽけっと通信<small>MOBILE / HIKARI / DEVICE</small></div></div>
+  <div class="brand" id="brandHome" role="button" tabindex="0" title="ホームに戻る"><i></i><div>ぽけっと通信<small>MOBILE / HIKARI / DEVICE</small></div></div>
   <div class="spacer"></div>
   <div class="status" id="apiBox" title="押すとAPIキーの設定を開きます"><span class="dot off" id="apiDot"></span><span id="apiTxt">APIキー未設定</span></div>
   <button class="btn sm" id="btnMore" type="button" aria-expanded="false">⋯</button>
@@ -2979,6 +2981,17 @@ setTimeout(() => { try{ paintKey(); }catch(_){} }, 800);
   const h0 = (location.hash||"").replace("#","");
   const t0 = Object.keys(KEY).find(k => KEY[k] === h0);
   showTab(t0 || "ホーム");
+
+  /* 左上の看板「ぽけっと通信」を押すとホームに戻る（v16.2で追加） */
+  (function(){
+    var b = document.getElementById("brandHome"); if(!b) return;
+    function brandGo(){
+      try{ if(window.__showTab) window.__showTab("ホーム"); }catch(_){}
+      try{ window.scrollTo({top:0,behavior:"smooth"}); }catch(_){ try{ window.scrollTo(0,0); }catch(__){} }
+    }
+    b.onclick = brandGo;
+    b.onkeydown = function(e){ if(e.key === "Enter" || e.key === " "){ e.preventDefault(); brandGo(); } };
+  })();
 
   E("kAdd").onclick = () => {
     const parts = (E("kIn").value||"").split("|").map(s => Number(String(s).replace(/[^0-9.-]/g,"")) || 0);
