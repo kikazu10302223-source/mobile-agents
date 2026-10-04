@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="format-detection" content="telephone=no">
-<title>運用ボード | 通信ラボ ── モバイル記事の仕込み台</title>
+<title>運用ボード | ぽけっと通信 ── モバイル記事の仕込み台</title>
 <style>
 :root{
   --bg:#0B1017; --surface:#141B26; --surface2:#1B2431; --line:#243040;
@@ -335,7 +335,7 @@ hr{border:none;border-top:1px solid var(--line);margin:22px 0}
 </noscript>
 
 <div class="top">
-  <div class="brand"><i></i><div>通信ラボ<small>MOBILE / HIKARI / DEVICE</small></div></div>
+  <div class="brand"><i></i><div>ぽけっと通信<small>MOBILE / HIKARI / DEVICE</small></div></div>
   <div class="spacer"></div>
   <div class="status" id="apiBox" title="押すとAPIキーの設定を開きます"><span class="dot off" id="apiDot"></span><span id="apiTxt">APIキー未設定</span></div>
   <button class="btn sm" id="btnMore" type="button" aria-expanded="false">⋯</button>
@@ -696,7 +696,7 @@ hr{border:none;border-top:1px solid var(--line);margin:22px 0}
 </div>
 
 
-<p class="foot">通信ラボ ── 通信・モバイル・光回線・デバイスの記事をAI9役で作り、承認待ちまでためる仕組み<br>
+<p class="foot">ぽけっと通信 ── 通信・モバイル・光回線・デバイスの記事をAI9役で作り、承認待ちまでためる仕組み<br>
 金額には基準日を。アフィリエイトにはPR表記を。そして、あなたの店頭体験をひとつ。</p>
 </div>
 
@@ -954,7 +954,7 @@ let ROLES = parseRoles(ROLES_MD);
    ============================================================ */
 const ML_PH = "【ここにあなたの店頭体験をひとつ】";
 const GENRES = {
-  mobile:{ name:"通信・モバイル", media:"通信ラボ", sub:"MOBILE / HIKARI / DEVICE",
+  mobile:{ name:"通信・モバイル", media:"ぽけっと通信", sub:"MOBILE / HIKARI / DEVICE",
     reader:"20〜50代。料金の見直し・乗り換え・端末の買い替え・光回線の契約を検討中の人",
     weapon:"モバイルショップの店頭で見てきた実例・お客様の質問・手続きの実感",
     firsthand:"店頭体験", law:"電気通信事業法", ymyl:"お金の領域（YMYL）",
@@ -2129,7 +2129,7 @@ $("#btnBackup").onclick = () => {
   const data = { version:1, at:new Date().toISOString(), runs:RUNS, ledger:LEDGER };
   const a = document.createElement("a");
   a.href = URL.createObjectURL(new Blob([JSON.stringify(data)], {type:"application/json"}));
-  a.download = `通信ラボ_バックアップ_${new Date().toISOString().slice(0,10)}.json`;
+  a.download = `ぽけっと通信_バックアップ_${new Date().toISOString().slice(0,10)}.json`;
   a.click(); URL.revokeObjectURL(a.href);
   toast("バックアップを保存しました。これを次の端末で読み込めます。");
 };
@@ -2708,7 +2708,7 @@ setTimeout(() => { try{ paintKey(); }catch(_){} }, 800);
 
 <script>
 /* ============================================================
-   通信ラボ 運用ボード（追加レイヤー）
+   ぽけっと通信 運用ボード（追加レイヤー）
    ============================================================ */
 (function(){
   const MAP0 = {"keyPanel": "設定", "genrePanel": "設定", "snsAutoPanel": "発信", "earnPanel": "記録"};
