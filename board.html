@@ -3578,7 +3578,10 @@ setTimeout(() => { try{ paintKey(); }catch(_){} }, 800);
   function autoToMat(){
     var n = toMaterial(autoStore().items || []);
     toast(n ? ("材料欄へ" + n + "件を送りました。「ネタを選ばせる」を押してください。") : "送れるネタがありません（すでに入っています）。");
-    if(n) navTo("作業");
+    if(n){
+      try{ if(window.__boardShow) window.__boardShow("作業"); }catch(_){}
+      try{ if(window.__foldWork) window.__foldWork("workPanel1"); }catch(_){}
+    }
   }
   (function(){
     var a = document.getElementById("autoPull"), b = document.getElementById("autoToMat"), c = document.getElementById("autoReset");
@@ -3764,6 +3767,14 @@ html.easy #nowBar .nb-b b{font-size:18px}
 html.easy #nowBar .nb-b small{font-size:15px}
 html.easy .dbtn{font-size:17px;min-height:64px}
 html.easy .pscard textarea{font-size:16px;min-height:160px}
+/* ── AIから届いたネタの一覧（v16.3） ── */
+#autoList .autoItem{border:1px solid var(--line);background:var(--surface2);border-radius:12px;padding:12px 13px;margin-top:10px}
+#autoList .autoItem .t{font-weight:700;font-size:15.5px;line-height:1.7}
+#autoList .autoItem .w{font-size:13.5px;line-height:1.8;color:var(--dim);margin-top:4px}
+#autoList .autoItem .m{font-size:12.5px;color:var(--faint);margin-top:6px;letter-spacing:.02em}
+#autoList .autoItem .s{font-size:12.5px;color:var(--faint);margin-top:2px}
+html.easy #autoList .autoItem .t{font-size:17px}
+html.easy #autoList .autoItem .w{font-size:15px}
 </style>
 <script>
 /* ===== ホーム（案A）＋記録タブの切り替え＋既定の明るい配色 ===== */
