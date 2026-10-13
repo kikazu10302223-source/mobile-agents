@@ -327,6 +327,14 @@ hr{border:none;border-top:1px solid var(--line);margin:22px 0}
 <body onload="window.__ML_LOADED=1">
 <div id="trybar"><b>v16</b>（2026-09-30）：<b>投稿セット（SNS）</b>・<b>収益の記録</b>・<b>文字を大きくする</b>を追加しました。<a href="board_v13.html">旧版に戻す</a>。</div>
 <div id="nowBar" hidden></div>
+<div id="progPanel" hidden>
+  <div class="pg-h"><span class="pg-dot"></span><b>AIが記事を作っています</b><span class="pg-n" id="progCount">0 / 8 人 完了</span></div>
+  <div class="pg-bar"><i id="progBar"></i></div>
+  <div class="pg-now" id="progNow">準備しています…</div>
+  <div class="pg-meta"><span id="progElapsed">経過 00:00</span><span id="progLeft">残り 約4分</span></div>
+  <div class="pg-grid" id="progStations"></div>
+  <div class="pg-foot"><button class="btn sm" id="progGoWork" type="button">作業タブを開く</button><button class="btn sm" id="progStop" type="button">中止する</button></div>
+</div>
 
 
 <noscript>
@@ -1541,13 +1549,103 @@ function ledgerText(){
   return `## 過去に扱ったテーマ（重複を避ける）\n${t}\n## 過去に却下された理由（同じ失敗を繰り返さない）\n${r}`;
 }
 function setStation(i, s){
-  const n = document.querySelectorAll(".station")[i]; if(!n) return;
-  n.dataset.s = s;
-  n.querySelector(".st").textContent = ({idle:"待機",run:"実行中",done:"完了",rev:"差し戻し",skip:"再利用"})[s] || "待機";
+  const n = document.querySelectorAll(".station")[i];
+  if(n){
+    n.dataset.s = s;
+    n.querySelector(".st").textContent = ({idle:"待機",run:"実行中",done:"完了",rev:"差し戻し",skip:"再利用"})[s] || "待機";
+  }
+  if(i < 8){
+    ST_S[i] = s;
+    if(s === "run"){ ST_T[i].s = Date.now(); ST_T[i].e = 0; }
+    else if(s === "done" || s === "skip" || s === "rev"){
+      if(!ST_T[i].s) ST_T[i].s = Date.now();
+      ST_T[i].e = Date.now();
+    }
+    try{ progRender(); }catch(_){}
+  }
 }
 function clearStations(){
   document.querySelectorAll(".station").forEach(n => { n.dataset.s="idle"; n.querySelector(".st").textContent="待機"; });
+  for(var _ci=0;_ci<8;_ci++){ ST_S[_ci]="idle"; ST_T[_ci]={s:0,e:0}; }
 }
+/* ============================================================
+   生成中の「AIごとの進捗」を見えるようにする（v16.4）
+   ============================================================ */
+var ST_ROLE = ["editor","analyst","researcher","digger","writer","qa","designer","sns"];
+var ST_DESC = ["何を書くか決める","出す価値があるか判断","料金と条件を裏取りする","他にない切り口を設計する","記事の本文を書く","法令と鮮度をチェック","表と画像を設計する","投稿文を作る"];
+var ST_EST  = [20,18,35,25,75,30,25,20];
+var ST_S = [], ST_T = [], PROG_ON = false, PROG_T0 = 0, PROG_IV = null;
+for(var _si=0;_si<8;_si++){ ST_S.push("idle"); ST_T.push({s:0,e:0}); }
+function fmtMS(ms){ ms = Math.max(0, ms|0); var s=Math.floor(ms/1000), m=Math.floor(s/60); s=s%60; return (m<10?"0":"")+m+":"+(s<10?"0":"")+s; }
+function progTotal(){ var n=document.querySelectorAll(".station").length; return n || 8; }
+function progDone(){ var n=0,t=progTotal(); for(var i=0;i<t;i++){ if(ST_S[i]==="done"||ST_S[i]==="skip") n++; } return n; }
+function progLeftSec(){ var t=0,T=progTotal(); for(var i=0;i<T;i++){ if(ST_S[i]==="done"||ST_S[i]==="skip") continue; t += (ST_EST[i]||20); } return t; }
+function progLabel(i,s){
+  if(s==="run")  return "作業中 " + fmtMS(Date.now() - (ST_T[i].s||Date.now()));
+  if(s==="done") return "完了 " + fmtMS((ST_T[i].e||0) - (ST_T[i].s||0));
+  if(s==="skip") return "前回の結果を再利用";
+  if(s==="rev")  return "書き直し中";
+  return "待機";
+}
+function progRender(){
+  var box = document.getElementById("progStations"); if(!box) return;
+  var total = progTotal(), done = progDone(), grid = "", i;
+  for(i=0;i<total;i++){
+    var rn = (typeof roleName === "function") ? roleName(ST_ROLE[i]) : ST_ROLE[i];
+    grid += '<div class="pst" data-s="'+ST_S[i]+'"><span class="pn">'+esc(rn)+'</span>'
+          + '<span class="ps" id="pgT'+i+'">'+esc(progLabel(i,ST_S[i]))+'</span>'
+          + '<span class="pd">'+esc(ST_DESC[i]||"")+'</span></div>';
+  }
+  box.innerHTML = grid;
+  var bar = document.getElementById("progBar"); if(bar) bar.style.width = Math.round(done/Math.max(1,total)*100) + "%";
+  var cnt = document.getElementById("progCount"); if(cnt) cnt.textContent = done + " / " + total + " 人 完了";
+  var nowEl = document.getElementById("progNow");
+  if(nowEl){
+    var runI = -1;
+    for(i=0;i<total;i++){ if(ST_S[i]==="run"){ runI=i; break; } }
+    if(runI<0) for(i=0;i<total;i++){ if(ST_S[i]==="rev"){ runI=i; break; } }
+    if(runI>=0){
+      var rn2 = (typeof roleName === "function") ? roleName(ST_ROLE[runI]) : ST_ROLE[runI];
+      nowEl.innerHTML = "いま <b>" + esc(rn2) + "</b> が「" + esc(ST_DESC[runI]) + "」をしています（" + (runI+1) + "人目 / " + total + "人）";
+    } else if(done >= total){
+      nowEl.innerHTML = "8人ぜんぶ終わりました。内容を確かめて、承認してください。";
+    } else {
+      nowEl.innerHTML = "次の役割を始めます…";
+    }
+  }
+  progTick();
+}
+function progTick(){
+  var el = document.getElementById("progElapsed");
+  if(el) el.textContent = "経過 " + fmtMS(PROG_ON ? (Date.now()-PROG_T0) : 0);
+  var lf = document.getElementById("progLeft");
+  if(lf){ var s = progLeftSec(); lf.textContent = s>0 ? ("残り 約" + Math.max(1, Math.round(s/60)) + "分") : "まもなく終わります"; }
+  for(var i=0;i<progTotal();i++){
+    var t = document.getElementById("pgT"+i);
+    if(t && ST_S[i]==="run") t.textContent = progLabel(i,"run");
+  }
+}
+function progShow(on){
+  var el = document.getElementById("progPanel"); if(!el) return;
+  PROG_ON = !!on;
+  if(on){
+    el.hidden = false;
+    if(!PROG_T0) PROG_T0 = Date.now();
+    progRender();
+    if(!PROG_IV) PROG_IV = setInterval(function(){ try{ progTick(); }catch(_){} }, 1000);
+  } else {
+    el.hidden = true;
+    if(PROG_IV){ clearInterval(PROG_IV); PROG_IV = null; }
+    PROG_T0 = 0;
+  }
+}
+function progStart(){
+  for(var i=0;i<8;i++){ ST_S[i]="idle"; ST_T[i]={s:0,e:0}; }
+  PROG_T0 = Date.now();
+  try{ clearStations(); }catch(_){}
+  progShow(true);
+}
+
 function logLine(t){
   const el = $("#log"); if(!el) return;
   el.style.display = "block";
@@ -1650,13 +1748,18 @@ document.addEventListener("visibilitychange", () => {
 });
 function saveDraft(d){
   DRAFT = d; LS.set("ml_draft", d);
-  const el = $("#resume");
-  if(el && d) { el.style.display = "block";
-    el.innerHTML = `<b>前回の続きがあります</b><br><span style="font-size:12.5px;color:var(--dim)">「${esc(d.topic)}」の途中まで保存されています。作った役割は再利用するので、APIの回数を使いません。</span><div class="actions"><button class="btn sm primary" onclick="resumeDraft()">続きから再開</button><button class="btn sm" onclick="dropDraft()">破棄する</button></div>`;
-  }
+  paintResume();   /* 生成中は出しません（止まったときだけ出す） */
 }
-function dropDraft(){ DRAFT = null; LS.set("ml_draft", null); const el = $("#resume"); if(el) el.style.display = "none"; }
+function paintResume(){
+  const el = $("#resume"); if(!el) return;
+  const busy = (typeof BUSY !== "undefined" && BUSY);
+  if(!DRAFT || busy){ el.style.display = "none"; return; }
+  el.style.display = "block";
+  el.innerHTML = `<b>前回の続きがあります（作業は止まっています）</b><br><span style="font-size:12.5px;color:var(--dim)">「${esc(DRAFT.topic)}」の途中まで保存されています。下のボタンで続きから再開できます。済んだ役割は作り直さないので、AIの無料回数を使いません。<br>※ いま作っている最中は、このご案内は出ません（止まったときだけ出ます）。</span><div class="actions"><button class="btn sm primary" onclick="resumeDraft()">続きから再開</button><button class="btn sm" onclick="dropDraft()">破棄する</button></div>`;
+}
+function dropDraft(){ DRAFT = null; LS.set("ml_draft", null); const el = $("#resume"); if(el){ el.style.display = "none"; el.innerHTML = ""; } }
 async function resumeDraft(){
+  if(typeof BUSY !== "undefined" && BUSY){ toast("いま作っている最中です。終わるまでお待ちください（続きは自動で保存されています）。"); return; }
   if(!DRAFT) return;
   const d = DRAFT; dropDraft();
   $("#inTopic").value = d.topic; if(d.genre) $("#inGenre").value = d.genre;
@@ -1690,6 +1793,7 @@ async function runPipeline(topic, genre, reader, research, resume){
 
   PACE_HOOK = logLine;
   BUSY = true; await keepAwake(true);
+  try{ progStart(); }catch(_){}
   try{
     const plan = await doStep(0, "00_企画.md", "editor",
       () => base + "\nこのテーマで、他サイトと差がつく切り口を3案出し、連載の型を決めて、1案を選んだ企画書にまとめてください。");
@@ -1759,6 +1863,8 @@ async function runPipeline(topic, genre, reader, research, resume){
   } finally {
     PACE_HOOK = null;
     BUSY = false; keepAwake(false);
+    try{ progShow(false); }catch(_){}
+    try{ paintResume(); }catch(_){}
     const doneKeys = Object.keys(F || {});
     if(doneKeys.length) logLine(`  ※ いままでに保存できた役割: ${doneKeys.length}件（「続きから再開」で再利用します。APIの回数は使いません）`);
   }
@@ -3601,6 +3707,18 @@ setTimeout(() => { try{ paintKey(); }catch(_){} }, 800);
 
   window.__boardShow = showTab;
 })();
+
+/* 進捗パネルのボタン配線と、起動時の「続きがあるか」判定（v16.4） */
+(function(){
+  function go(){
+    var g = document.getElementById("progGoWork");
+    if(g) g.onclick = function(){ try{ if(window.__showTab) window.__showTab("作業"); }catch(_){} };
+    var st = document.getElementById("progStop");
+    if(st) st.onclick = function(){ var b = document.getElementById("btnOneStop"); if(b) b.click(); };
+    try{ if(typeof paintResume === "function") paintResume(); }catch(_){}
+  }
+  if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", go); else go();
+})();
 </script>
 
 
@@ -3775,6 +3893,34 @@ html.easy .pscard textarea{font-size:16px;min-height:160px}
 #autoList .autoItem .s{font-size:12.5px;color:var(--faint);margin-top:2px}
 html.easy #autoList .autoItem .t{font-size:17px}
 html.easy #autoList .autoItem .w{font-size:15px}
+/* ── 生成中の進捗パネル（v16.4） ── */
+#progPanel{margin:9px 11px 0;padding:13px 14px;border:1px solid var(--warn);border-radius:14px;background:var(--warn-soft)}
+#progPanel .pg-h{display:flex;align-items:center;gap:9px}
+#progPanel .pg-dot{width:10px;height:10px;border-radius:50%;background:var(--warn);animation:pgpulse 1.2s infinite}
+@keyframes pgpulse{0%,100%{opacity:1}50%{opacity:.25}}
+#progPanel .pg-h b{font-size:15.5px}
+#progPanel .pg-n{margin-left:auto;font-family:var(--mono);font-size:12.5px;color:var(--warn);font-weight:700}
+#progPanel .pg-bar{height:9px;border-radius:99px;background:var(--bg);border:1px solid var(--line);margin:10px 0 8px;overflow:hidden}
+#progPanel .pg-bar i{display:block;height:100%;background:var(--warn);width:0;transition:width .35s}
+#progPanel .pg-now{font-size:14.5px;line-height:1.7}
+#progPanel .pg-meta{display:flex;gap:12px;font-family:var(--mono);font-size:12px;color:var(--dim);margin-top:3px}
+#progPanel .pg-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:11px}
+#progPanel .pst{border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:8px 9px}
+#progPanel .pst .pn{font-size:12px;color:var(--dim);display:block;line-height:1.4}
+#progPanel .pst .ps{font-size:11px;font-family:var(--mono);color:var(--faint);display:block;margin-top:2px}
+#progPanel .pst .pd{font-size:10.5px;color:var(--faint);display:block;margin-top:3px;line-height:1.5}
+#progPanel .pst[data-s=run]{border-color:var(--warn);background:var(--warn-soft)}
+#progPanel .pst[data-s=run] .ps{color:var(--warn);font-weight:700}
+#progPanel .pst[data-s=done]{border-color:var(--signal);background:var(--signal-soft)}
+#progPanel .pst[data-s=done] .ps{color:var(--signal)}
+#progPanel .pst[data-s=rev]{border-color:var(--stop);background:var(--stop-soft)}
+#progPanel .pst[data-s=rev] .ps{color:var(--stop)}
+#progPanel .pst[data-s=skip]{opacity:.55}
+#progPanel .pg-foot{display:flex;gap:8px;margin-top:11px}
+html.easy #progPanel .pg-now{font-size:17px}
+html.easy #progPanel .pst .pn{font-size:14px}
+html.easy #progPanel .pst .pd{font-size:12.5px}
+@media (max-width:560px){#progPanel .pg-grid{grid-template-columns:repeat(2,1fr)}}
 </style>
 <script>
 /* ===== ホーム（案A）＋記録タブの切り替え＋既定の明るい配色 ===== */
