@@ -570,7 +570,7 @@ hr{border:none;border-top:1px solid var(--line);margin:22px 0}
       <button class="step" type="button" onclick="__mlStep(4)">
         <b>④ 発信する</b><small>X・Instagram・TikTokの文面を作ります</small><i>ひらく →</i></button>
     </div>
-    <p class="hint" style="margin:10px 0 0">①〜④以外の画面（数字＝「記録」／あなた設定＝「あなた」／鍵＝「設定」）は、必要なときだけ開けば大丈夫です。</p>
+    <p class="hint" style="margin:10px 0 0">画面の上に<b>「数字（記録）」「あなた設定」「設定」</b>のボタンも並んでいます。ふだんは①〜④だけで進められますが、収益を見たいとき・文体を変えたいとき・APIキーを入れ直すときに使います。</p>
   </div>
 </div>
 
@@ -744,7 +744,7 @@ hr{border:none;border-top:1px solid var(--line);margin:22px 0}
     <p class="onbLead">むずかしい設定はありません。上から順に押していくだけで、記事の下書きができます。</p>
     <ol class="onbSteps">
       <li><span class="onbn">1</span><div><b>APIキーを入れる</b><small>Googleの無料キーです（3分）。最初の1回だけ。</small></div><button class="btn sm primary" data-onb="key" type="button">入れる</button></li>
-      <li><span class="onbn">2</span><div><b>ジャンルを選ぶ</b><small>通信以外でも使えます。選ぶと書き方と画面の言葉が切り替わります。</small></div><button class="btn sm primary" data-onb="genre" type="button">選ぶ</button></li>
+      <li><span class="onbn">2</span><div><b>ジャンルを選ぶ</b><small>通信以外でも使えます。上部の<b>「設定」</b>から選ぶと、書き方と画面の言葉が切り替わります。</small></div><button class="btn sm primary" data-onb="genre" type="button">選ぶ</button></li>
       <li><span class="onbn">3</span><div><b>ネタを選んで「仕込む」</b><small>あとはAI9人が下書きを作ります。あなたは体験を足して「承認」を押すだけ。</small></div><button class="btn sm primary" data-onb="work" type="button">見る</button></li>
     </ol>
     <div class="onbFoot">
@@ -2866,12 +2866,13 @@ setTimeout(() => { try{ paintKey(); }catch(_){} }, 800);
   }
   function buildNav(){
     const n = E("bnav"); if(!n) return;
-    var MAIN = ["ホーム","作業","承認","発信"], SUB = ["記録","あなた","設定"];
-    var mk = t => '<button class="nb" data-t="' + t + '">' + t + '</button>';
-    n.innerHTML =
-        '<div class="nbrow nbrow-main">' + MAIN.map(mk).join("") + '</div>'
-      + '<div class="nbrow nbrow-sub"><span class="nblbl">まとめ</span>' + SUB.map(mk).join("")
-      + '<a class="nb" href="' + location.href.replace(/[^/]*$/,"") + 'guide.html" style="text-decoration:none;display:inline-flex;align-items:center">つかいかた</a></div>';
+    /* v16.5：迷いやすい「数字（記録）」「あなた設定」「設定」も、上の段にまとめて並べました */
+    var MAIN = ["ホーム","作業","承認","発信"];
+    var AUX  = [["記録","数字（記録）"],["あなた","あなた設定"],["設定","設定"]];
+    var mk  = t => '<button class="nb" data-t="' + t + '">' + t + '</button>';
+    var mkA = p => '<button class="nb nb-aux" data-t="' + p[0] + '">' + p[1] + '</button>';
+    var guide = '<a class="nb nb-aux" href="' + location.href.replace(/[^/]*$/,"") + 'guide.html" style="text-decoration:none;display:inline-flex;align-items:center">つかいかた</a>';
+    n.innerHTML = '<div class="nbrow nbrow-main">' + MAIN.map(mk).join("") + AUX.map(mkA).join("") + guide + '</div>';
     n.querySelectorAll(".nb[data-t]").forEach(b => b.onclick = () => showTab(b.dataset.t));
     try{ window.mlNow && window.mlNow(); }catch(_){}
     const tb = E("bTheme"); if(tb) tb.onclick = function(){ try{ cycleTheme(); }catch(_){ } };
@@ -3820,6 +3821,11 @@ input,select,textarea{font-size:16px}
 .bnav{flex-wrap:wrap;row-gap:6px;padding-bottom:8px}
 .nbrow{display:flex;flex-wrap:wrap;gap:6px;align-items:center;width:100%}
 .nbrow-sub .nb{font-size:12.5px;min-height:36px;padding:6px 11px}
+/* v16.5：ナビを1段にして上部に並べた（数字・あなた設定・設定・つかいかた） */
+.bnav{padding-bottom:9px}
+.bnav .nb-aux{background:var(--surface);border-color:var(--line)}
+.bnav .nb-aux.on{background:rgba(61,220,151,.10)}
+@media (max-width:560px){.bnav .nb{font-size:12.5px;padding:7px 11px;min-height:38px}}
 .nblbl{font-size:11px;color:var(--faint);letter-spacing:.06em;margin-right:1px}
 .top{position:relative;gap:7px}
 .top .status{padding:6px 10px;font-size:12px;border:1px solid var(--line);border-radius:999px;cursor:pointer}
