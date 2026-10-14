@@ -2869,8 +2869,10 @@ setTimeout(() => { try{ paintKey(); }catch(_){} }, 800);
     /* v16.5：迷いやすい「数字（記録）」「あなた設定」「設定」も、上の段にまとめて並べました */
     var MAIN = ["ホーム","作業","承認","発信"];
     var AUX  = [["記録","数字（記録）"],["あなた","あなた設定"],["設定","設定"]];
+    /* 押せる「見出し」だと分かるように、かぎ括弧で囲み、説明も付ける */
+    var nbl = {"記録":"どの記事が稼いだか見る","あなた":"文体・担当者の名前・読者像","設定":"APIキー・ジャンル・明暗"};
     var mk  = t => '<button class="nb" data-t="' + t + '">' + t + '</button>';
-    var mkA = p => '<button class="nb nb-aux" data-t="' + p[0] + '">' + p[1] + '</button>';
+    var mkA = p => '<button class="nb nb-aux" data-t="' + p[0] + '" title="' + (nbl[p[0]]||"") + '">「' + p[1] + '」</button>';
     var guide = '<a class="nb nb-aux" href="' + location.href.replace(/[^/]*$/,"") + 'guide.html" style="text-decoration:none;display:inline-flex;align-items:center">つかいかた</a>';
     n.innerHTML = '<div class="nbrow nbrow-main">' + MAIN.map(mk).join("") + AUX.map(mkA).join("") + guide + '</div>';
     n.querySelectorAll(".nb[data-t]").forEach(b => b.onclick = () => showTab(b.dataset.t));

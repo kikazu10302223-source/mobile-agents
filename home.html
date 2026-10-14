@@ -46,7 +46,9 @@ a{color:var(--link)}
 /* ── 上部バー ── */
 .top{position:sticky;top:0;z-index:20;background:var(--head);backdrop-filter:blur(8px);
   border-bottom:1px solid var(--line);padding:12px 16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
-.brand{display:flex;align-items:center;gap:9px;font-weight:700;letter-spacing:.02em}
+.brand{display:flex;align-items:center;gap:9px;font-weight:700;letter-spacing:.02em;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent}
+.brand:hover{opacity:.82}
+.brand:active{transform:scale(.98)}
 .brand i{width:10px;height:10px;border-radius:3px;background:var(--signal);display:block;
   box-shadow:0 0 12px var(--signal)}
 .brand small{display:block;font-weight:400;font-size:11px;color:var(--faint);letter-spacing:.06em}
@@ -323,18 +325,16 @@ hr{border:none;border-top:1px solid var(--line);margin:22px 0}
 </style>
 </head>
 <body onload="window.__ML_LOADED=1">
-<div id="trybar"><b>v14.2</b>（2026-09-30）：<b>見やすさを整理</b>しました（タブ2段・作業は1つずつ開く・右上は「⋯」・作品一覧は承認タブへ）。<a href="board_v13.html">旧版に戻す</a>。</div>
-<script>
-/* どんな失敗も見逃さないための記録係（いちばん最初に読み込む） */
-window.__MLERR = [];
-window.addEventListener("error", function(e){
-  try{ window.__MLERR.push((e.message || "不明") + " @ " + String(e.filename || "").slice(-24) + " :" + (e.lineno || "?")); }catch(_){}
-});
-window.addEventListener("unhandledrejection", function(e){
-  try{ var r = e && e.reason; window.__MLERR.push("非同期の失敗: " + ((r && (r.message || r)) || "不明")); }catch(_){}
-});
-</script>>
-<div class="bnav" id="bnav"></div>
+<div id="trybar"><b>v16</b>（2026-09-30）：<b>投稿セット（SNS）</b>・<b>収益の記録</b>・<b>文字を大きくする</b>を追加しました。<a href="board_v13.html">旧版に戻す</a>。</div>
+<div id="nowBar" hidden></div>
+<div id="progPanel" hidden>
+  <div class="pg-h"><span class="pg-dot"></span><b>AIが記事を作っています</b><span class="pg-n" id="progCount">0 / 8 人 完了</span></div>
+  <div class="pg-bar"><i id="progBar"></i></div>
+  <div class="pg-now" id="progNow">準備しています…</div>
+  <div class="pg-meta"><span id="progElapsed">経過 00:00</span><span id="progLeft">残り 約4分</span></div>
+  <div class="pg-grid" id="progStations"></div>
+  <div class="pg-foot"><button class="btn sm" id="progGoWork" type="button">作業タブを開く</button><button class="btn sm" id="progStop" type="button">中止する</button></div>
+</div>
 
 
 <noscript>
@@ -345,13 +345,15 @@ window.addEventListener("unhandledrejection", function(e){
 </noscript>
 
 <div class="top">
-  <div class="brand"><i></i><div>ぽけっと通信<small>MOBILE / HIKARI / DEVICE</small></div></div>
+  <div class="brand" id="brandHome" role="button" tabindex="0" title="ホームに戻る"><i></i><div>ぽけっと通信<small>MOBILE / HIKARI / DEVICE</small></div></div>
   <div class="spacer"></div>
   <div class="status" id="apiBox" title="押すとAPIキーの設定を開きます"><span class="dot off" id="apiDot"></span><span id="apiTxt">APIキー未設定</span></div>
   <button class="btn sm" id="btnMore" type="button" aria-expanded="false">⋯</button>
   <div class="moremenu" id="moreMenu" hidden>
     <button class="btn sm" id="btnOpenKey" type="button">APIキーを設定</button>
     <button class="btn sm" id="btnShowHow" type="button">つかいかた</button>
+    <button class="btn sm" id="btnOnb" type="button">はじめの3ステップ</button>
+    <button class="btn sm" id="btnEasy" type="button">文字を大きくする</button>
     <button class="btn sm" id="bTheme" type="button">表示：暗</button>
     <button class="btn sm" id="mEnv" type="button">環境チェック</button>
   </div>
@@ -471,6 +473,27 @@ window.addEventListener("unhandledrejection", function(e){
   </div>
 </div>
 
+<!-- ジャンル（業界パック） -->
+<div class="panel" id="genrePanel">
+  <div class="ph"><span class="n">GENRE</span><h2>ジャンルを選ぶ（通信以外にも使えます）</h2>
+    <p>選んだジャンルに合わせて、<b>AI9人の書き方</b>と<b>画面の言葉づかい</b>が切り替わります。<b>あとから何度でも変えられます。</b></p></div>
+  <div class="pb"><div id="genreBox"></div></div>
+</div>
+
+<!-- SNSの投稿セット -->
+<div class="panel" id="snsAutoPanel">
+  <div class="ph"><span class="n">POST SET</span><h2>投稿セットを組み立てる（SNS用）</h2>
+    <p>記事を選んで出す先を押すと、<b>X／Instagram／Threads／noteの告知</b>の文面を自動で組み立てます。<b>コピーして貼るだけ</b>です。</p></div>
+  <div class="pb"><div id="psBox"></div></div>
+</div>
+
+<!-- 収益の記録 -->
+<div class="panel" id="earnPanel">
+  <div class="ph"><span class="n">EARN</span><h2>収益の記録（どの記事が稼いだか）</h2>
+    <p>アフィリエイトやnoteの売上を、<b>記事ごとに手で入れる</b>だけ。次にどの記事を伸ばせばいいかが見えます。</p></div>
+  <div class="pb"><div id="earnBox"></div></div>
+</div>
+
 <!-- 文体（あなたらしさ）設定 -->
 <div class="panel" id="stylePanel">
   <div class="ph"><span class="n">VOICE</span><h2>あなたらしさ（文体・人物）設定</h2>
@@ -497,8 +520,8 @@ window.addEventListener("unhandledrejection", function(e){
     </div>
     <div class="hint" id="stOut" style="white-space:pre-wrap;font-family:var(--mono);font-size:11.5px;max-height:240px;overflow:auto"></div>
     <details style="margin:12px 0 0;border:1px solid var(--line);border-radius:10px;padding:10px 12px">
-      <summary style="cursor:pointer;font-size:13.5px;font-weight:700">別の端末に移す（書き出し／読み込み）</summary>
-      <div style="margin-top:9px;font-size:13px;color:var(--dim)">「書き出す」で出たコードをコピーし、別の端末で貼って「読み込む」を押します。</div>
+      <summary style="cursor:pointer;font-size:13.5px;font-weight:700">別の端末に移す（文体＋担当者の名前をまとめて）</summary>
+      <div style="margin-top:9px;font-size:13px;color:var(--dim)">「書き出す」で出たコードをコピーし、別の端末で貼って「読み込む」を押します。<b>文体と担当者の名前が、1つのコードでまとめて移ります。</b><br>このコードは人に見せないでください（あなたの文体と設定が入っています）。</div>
       <textarea id="stIO" rows="3" placeholder="ここに設定コードが出ます／貼り付けます"
         style="width:100%;margin-top:9px;background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:9px;font-size:11.5px;font-family:var(--mono);color:var(--ink)"></textarea>
       <div class="actions" style="margin-top:8px">
@@ -547,7 +570,7 @@ window.addEventListener("unhandledrejection", function(e){
       <button class="step" type="button" onclick="__mlStep(4)">
         <b>④ 発信する</b><small>X・Instagram・TikTokの文面を作ります</small><i>ひらく →</i></button>
     </div>
-    <p class="hint" style="margin:10px 0 0">①〜④以外の画面（数字＝「記録」／あなた設定＝「あなた」／鍵＝「設定」）は、必要なときだけ開けば大丈夫です。</p>
+    <p class="hint" style="margin:10px 0 0">画面の上に<b>「数字（記録）」「あなた設定」「設定」</b>のボタンも並んでいます。ふだんは①〜④だけで進められますが、収益を見たいとき・文体を変えたいとき・APIキーを入れ直すときに使います。</p>
   </div>
 </div>
 
@@ -555,6 +578,7 @@ window.addEventListener("unhandledrejection", function(e){
   <div class="ph"><span class="n">STEP 1</span><h2>AIにネタを集めさせる（材料を渡して選別）</h2>
     <p>材料が無くても、AIの知識と切り口だけで提案させられます（その場合は【仮説】扱い）</p></div>
   <div class="pb">
+    <div class="sncard" id="autoList" style="display:none"></div>
     <label class="f"><span>材料（任意）── <code>trend_collect.py</code> の出力や、自分で拾ったニュース見出し・Xの投稿を貼る。1行1件でOK</span>
       <textarea id="inTrendMat" rows="7" placeholder="例：
 1 | ahamoが一部プランを見直し | ITmedia Mobile | 2026-09-26 | https://...
@@ -610,7 +634,7 @@ window.addEventListener("unhandledrejection", function(e){
 スマホの下取り価格はいつ売るのが得か"></textarea>
       <button type="button" class="btn sm wide" onclick="openEditor('qTopics', 'ネタ帳（1行に1テーマ）')">✎ 大きく入力する（音声入力も使えます）</button></label>
     <div class="sncard" id="autoBox" style="margin-top:10px">
-      <h4>AIから届いたネタ（自動でこの欄の上に増えます）</h4>
+      <h4>AIから届いたネタ（STEP 1 の一覧に並びます）</h4>
       <div class="cnt" id="autoNote">まだ取り込んでいません。</div>
       <div class="actions" style="margin:8px 0 0">
         <button class="btn sm primary" type="button" id="autoPull">いま取り込む</button>
@@ -713,6 +737,24 @@ window.addEventListener("unhandledrejection", function(e){
 </div>
 
 <div id="toast"></div>
+<div id="onb" hidden>
+  <div class="onbCard">
+    <span class="onbBadge">はじめての方へ</span>
+    <h3>この画面は、<b>3つ</b>押せば使えます</h3>
+    <p class="onbLead">むずかしい設定はありません。上から順に押していくだけで、記事の下書きができます。</p>
+    <ol class="onbSteps">
+      <li><span class="onbn">1</span><div><b>APIキーを入れる</b><small>Googleの無料キーです（3分）。最初の1回だけ。</small></div><button class="btn sm primary" data-onb="key" type="button">入れる</button></li>
+      <li><span class="onbn">2</span><div><b>ジャンルを選ぶ</b><small>通信以外でも使えます。上部の<b>「設定」</b>から選ぶと、書き方と画面の言葉が切り替わります。</small></div><button class="btn sm primary" data-onb="genre" type="button">選ぶ</button></li>
+      <li><span class="onbn">3</span><div><b>ネタを選んで「仕込む」</b><small>あとはAI9人が下書きを作ります。あなたは体験を足して「承認」を押すだけ。</small></div><button class="btn sm primary" data-onb="work" type="button">見る</button></li>
+    </ol>
+    <div class="onbFoot">
+      <button class="btn primary" id="onbGo" type="button">わかった、はじめる</button>
+      <button class="btn" id="onbTrial" type="button">まずは練習モードで試す</button>
+    </div>
+    <p class="onbNote">この案内は、右上の「⋯」→「はじめの3ステップ」でいつでも出せます。</p>
+  </div>
+</div>
+
 <div id="resume"></div>
 
 <script src="config.js"></script>
@@ -834,8 +876,8 @@ function seenText(){
   const ymd = d.getFullYear() + "/" + (d.getMonth()+1) + "/" + d.getDate() + " " +
               String(d.getHours()).padStart(2,"0") + ":" + String(d.getMinutes()).padStart(2,"0");
   return "開いているURL: <b style='font-family:var(--mono);font-size:11.5px'>" + location.host + location.pathname + "</b><br>"
-       + "このURLでの利用: <b style='font-family:var(--mono)'>" + SEEN.count + "回目</b>（初回 " + ymd + "）"
-       + (SEEN.count <= 1 ? " <b style='color:var(--warn)'>← 毎回ここが1回目なら、このURLは保存が残りません</b>" : "");
+       + "このサイトでの利用: <b style='font-family:var(--mono)'>" + SEEN.count + "回目</b>（初回 " + ymd + "）"
+       + (SEEN.count <= 1 ? " <b style='color:var(--warn)'>← 毎回ここが1回目なら、このサイトの保存が残っていません（別のサイトとして開いている可能性）</b>" : "");
 }
 
 let RUNS   = LS.get("ml_runs", {});
@@ -915,7 +957,256 @@ function parseRoles(text){
   hits.forEach((h, i) => { roles[h.id] = { label:h.label, body: text.slice(h.end, i+1<hits.length ? hits[i+1].start : text.length).trim() }; });
   return roles;
 }
-const ROLES = parseRoles(ROLES_MD);
+let ROLES = parseRoles(ROLES_MD);
+
+/* ============================================================
+   v15: ジャンル（業界パック）── 通信以外のジャンルにも流用する
+   選んだジャンルに合わせて「AIの書き方」と「画面の言葉」を切り替えます。
+   ============================================================ */
+const ML_PH = "【ここにあなたの店頭体験をひとつ】";
+const GENRES = {
+  mobile:{ name:"通信・モバイル", media:"ぽけっと通信", sub:"MOBILE / HIKARI / DEVICE",
+    reader:"20〜50代。料金の見直し・乗り換え・端末の買い替え・光回線の契約を検討中の人",
+    weapon:"モバイルショップの店頭で見てきた実例・お客様の質問・手続きの実感",
+    firsthand:"店頭体験", law:"電気通信事業法", ymyl:"お金の領域（YMYL）",
+    sources:"各社公式（料金表・提供条件書・ニュースリリース）・総務省の公表資料・IR",
+    asp:"A8.net / もしもアフィリエイト / バリューコマース / アクセストレード",
+    money:"回線・端末のアフィリエイト、noteの有料記事（比較表・診断）",
+    terms:{},
+    extra:["金額には必ず「YYYY年M月時点」を付ける。","「実質◯円」は必ず内訳（端末代金・割引・ポイント還元・支払い回数）を添える。","契約条件の3点（契約期間／解約時の費用／事務手数料）を必ず書く。"] },
+
+  gadget:{ name:"ガジェット・家電", media:"ガジェットラボ", sub:"GADGET / HOME APPLIANCE",
+    reader:"20〜50代。買い替え・新製品の購入・型落ちの狙い目を検討中の人",
+    weapon:"家電量販店の売り場で見てきた実例・お客様の質問・実機に触れた実感",
+    firsthand:"売り場で見たこと", law:"景品表示法・家庭用品品質表示法", ymyl:"お金の領域（YMYL）",
+    sources:"メーカー公式の製品ページ・仕様表・プレスリリース・公的機関の試験結果",
+    asp:"A8.net / もしもアフィリエイト / Amazonアソシエイト / 楽天アフィリエイト",
+    money:"家電・ガジェットのアフィリエイト（Amazon・楽天）、noteの有料記事（比較表）",
+    terms:{"モバイルショップ":"家電量販店","店頭":"売り場","キャリア":"メーカー","乗り換え":"買い替え","料金":"価格","通信・モバイル専門メディア":"ガジェット・家電メディア","電気通信事業法":"景品表示法・家庭用品品質表示法","総務省":"メーカー公式・公的機関"},
+    extra:["価格には必ず「YYYY年M月時点」を付ける。","「実質◯円」「セット割」は必ず内訳（本体価格・ポイント・下取り・回数）を添える。","保証期間・修理費用・付属品の有無を必ず書く。"] },
+
+  beauty:{ name:"美容・健康", media:"美容ラボ", sub:"BEAUTY / HEALTH",
+    reader:"20〜50代。肌・体・睡眠の悩みがあり、商品選びで迷っている人",
+    weapon:"接客・施術で見てきた実例・お客様の質問・実際に使った実感",
+    firsthand:"実際に使った感想", law:"薬機法（医薬品医療機器等法）・健康増進法・景品表示法", ymyl:"健康と美容の領域（YMYL。とくに厳しく見られる）",
+    sources:"メーカー公式の成分表・添付文書・厚生労働省・消費者庁の公表資料",
+    asp:"A8.net / もしもアフィリエイト / バリューコマース / afb",
+    money:"化粧品・健康食品のアフィリエイト、noteの有料記事（成分の比較表）",
+    terms:{"モバイルショップ":"店舗","店頭":"カウンター","キャリア":"ブランド","料金":"価格","通信・モバイル専門メディア":"美容・健康メディア","電気通信事業法":"薬機法（医薬品医療機器等法）・健康増進法","総務省":"厚生労働省・消費者庁"},
+    extra:["**効果効能の断定は書かない**（薬機法）。「〜とされています」を使う。","「絶対やせる」「シミが消える」などの断定は**差し戻し**。","個人の感想であることを明記し、医療の代わりに見える書き方をしない。","「飲むだけで」「塗るだけで」のような単純化を避ける。"] },
+
+  money:{ name:"マネー・保険", media:"マネーラボ", sub:"MONEY / INSURANCE",
+    reader:"20〜50代。保険の見直し・積立・ふるさと納税・年金を検討中の人",
+    weapon:"窓口・相談業務で見てきた実例・お客様の質問・手続きの実感",
+    firsthand:"相談で見てきたこと", law:"金融商品取引法・保険業法・景品表示法", ymyl:"お金の領域（YMYL。最も厳しく見られる）",
+    sources:"金融庁の公表資料・各社の公式な商品説明・約款・目論見書・IR",
+    asp:"A8.net / もしもアフィリエイト / バリューコマース / アクセストレード",
+    money:"保険・カード・証券のアフィリエイト、noteの有料記事（比較表・診断）",
+    terms:{"モバイルショップ":"窓口","店頭":"窓口","キャリア":"金融機関","料金":"手数料","通信・モバイル専門メディア":"マネー・保険メディア","電気通信事業法":"金融商品取引法・保険業法","総務省":"金融庁"},
+    extra:["**利回り・節約額を断定しない**。「〜の場合の一例」として示す。","元本割れ・手数料・税金・解約時の返戻率を必ず書く。","「絶対に得」「誰でも儲かる」は**差し戻し**。","断定できないことは「一般的には」「商品により異なる」を使う。","金利・手数料には基準日を付ける。"] },
+
+  travel:{ name:"旅行・レジャー", media:"旅ラボ", sub:"TRAVEL / LEISURE",
+    reader:"20〜60代。次の旅行先・宿・チケットを検討中の人",
+    weapon:"実際に行って見てきたこと・現地で分かったこと・スタッフに聞いた話",
+    firsthand:"実際に行って分かったこと", law:"旅行業法・消費者契約法・景品表示法", ymyl:"お金の領域（YMYL）",
+    sources:"施設・交通機関の公式サイト・自治体の観光課・公式の料金表",
+    asp:"A8.net / もしもアフィリエイト / バリューコマース / 楽天アフィリエイト",
+    money:"宿・交通・チケットのアフィリエイト、noteの有料記事（行程表）",
+    terms:{"モバイルショップ":"観光案内所","店頭":"現地","キャリア":"事業者","通信・モバイル専門メディア":"旅行・レジャーメディア","電気通信事業法":"旅行業法・消費者契約法","総務省":"観光庁"},
+    extra:["料金には必ず「YYYY年M月時点」を付ける。","**臨時休業・工事・季節運休**の可能性を必ず書く。","キャンセル規定と繁忙期の条件を書く。","「絶対に空いている」など断定しない。"] },
+
+  custom:{ name:"自由（自分で決める）", media:"わたしのラボ", sub:"MY MEDIA",
+    reader:"（下の欄に書いてください）",
+    weapon:"あなたが現場で見てきたこと・実際に試したこと",
+    firsthand:"現場で見てきたこと", law:"景品表示法（ステマ規制）", ymyl:"お金に関わる領域（YMYL）ならとくに厳しく",
+    sources:"公式サイト・公的機関の公表資料",
+    asp:"A8.net / もしもアフィリエイト / バリューコマース",
+    money:"アフィリエイト、noteの有料記事",
+    terms:{"モバイルショップ":"現場","店頭":"現場","キャリア":"事業者","通信・モバイル専門メディア":"専門メディア","電気通信事業法":"景品表示法（ステマ規制）","総務省":"公的機関"},
+    extra:["金額には基準日を付ける。","「最安」「No.1」など根拠のない断定は書かない。","PR・広告の表記を必ず入れる。"] }
+};
+function mlGenreId(){ try{ return (CONF && CONF.genre && GENRES[CONF.genre]) ? CONF.genre : "mobile"; }catch(_){ return "mobile"; } }
+function mlG(){
+  const id = mlGenreId(), base = GENRES[id]; if(id !== "custom") return base;
+  let c = {}; try{ c = CONF.gc || {}; }catch(_){}
+  const o = {}; for(const k in base) o[k] = base[k];
+  if(c.media) o.media = c.media;
+  if(c.reader) o.reader = c.reader;
+  if(c.firsthand) o.firsthand = c.firsthand;
+  return o;
+}
+function mlEsc(v){
+  try{ if(typeof esc === "function") return esc(String(v)); }catch(_){}
+  return String(v).replace(/[&<>"]/g, function(c){ return ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"})[c]; });
+}
+function mlTerm(str){
+  const g = mlG(), t = g.terms || {}, m = {};
+  for(const k in t) m[k] = t[k];
+  m["店頭体験"] = g.firsthand;
+  let out = String(str).split(ML_PH).join("\u0001");
+  Object.keys(m).sort(function(a,b){ return b.length - a.length; }).forEach(function(k){ out = out.split(k).join(m[k]); });
+  return out.split("\u0001").join(ML_PH);
+}
+function mlPremise(g){
+  return "## この仕組みの前提\n\n"
+   + "- **媒体**: note（記事）。将来、自前サイトやYouTubeにも広げられる書き方をする。\n"
+   + "- **ジャンル**: " + g.name + "（媒体名: " + g.media + "）\n"
+   + "- **読者**: " + g.reader + "。**金額と条件にうるさい**。\n"
+   + "- **この分野は" + g.ymyl + "**: Googleはお金と健康の情報を厳しく評価する。**一次情報**（" + g.sources + "）と**基準日の明記**が生命線。\n"
+   + "- **最大の武器は運営者の一次情報**: " + g.weapon + "。**他サイトが書けないのはここだけ**。\n"
+   + "- **鮮度が命**: 料金・条件は数か月で変わる。**「YYYY年M月時点」を必ず書く**。後から更新できる前提で書く。\n"
+   + "- **法令**: 景品表示法（優良誤認・有利誤認／ステマ規制）、" + g.law + "、note総則規約。**断定・誇大表現・根拠のない比較優良表示は書かない**。\n"
+   + "- 全役割は**人間が最後に加筆する前提**で出力し、必ず「人間に足してほしい情報」で終わること。\n";
+}
+function mlRolesText(){
+  const g = mlG();
+  let t = ROLES_MD;
+  t = t.replace(/## この仕組みの前提[\s\S]*?\n---\n/, mlPremise(g) + "\n---\n");
+  return mlTerm(t);
+}
+function mlRebuild(){
+  try{
+    ROLES = parseRoles(mlRolesText());
+    const g = mlG();
+    try{ document.title = g.media + "｜記事づくりの作業台"; }catch(_){}
+    const b = document.querySelector(".brand div");
+    if(b && b.firstChild && b.firstChild.nodeType === 3) b.firstChild.nodeValue = g.media;
+    const sm = document.querySelector(".brand small"); if(sm) sm.textContent = g.sub;
+  }catch(e){ try{ console.warn("ジャンル反映に失敗", e); }catch(_){} }
+}
+function mlGenreRules(){
+  const g = mlG();
+  const a = ["## このジャンル固有のルール（" + g.name + "）"];
+  (g.extra || []).forEach(function(x){ a.push("- " + x); });
+  a.push("- 運営者の一次情報（" + g.firsthand + "）を必ず1か所入れる。空欄のまま出すときは `" + ML_PH + "` の形で残す（**この文字列はシステムの目印。絶対に言い換えない**）。");
+  a.push("- 主な収益源: " + g.money + "。アフィリエイトの提携先の例: " + g.asp + "。");
+  a.push("- **収益の導線を必ず1つ設計する**: 比較表の直後に置く「広告枠」（どのリンクを・どのPR表記つきで・どんな一文で置くか）を、深掘り担当と執筆担当の出力に必ず含める。");
+  a.push("- 比較優良表示・断定（最安・No.1・絶対）は書かない。");
+  return "\n\n" + a.join("\n");
+}
+/* ---- 画面の言葉づかいを、選んだジャンルに合わせて言い換える（表示だけ） ---- */
+var LOCMAP = [];
+function mlLocalize(){
+  const skip = {SCRIPT:1, STYLE:1, TEXTAREA:1, INPUT:1, OPTION:1, NOSCRIPT:1};
+  const skipId = {trybar:1, onb:1, nowBar:1, genreBox:1, toast:1, deskPanel:1};
+  try{
+    if(!LOCMAP.length){
+      const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null);
+      let n;
+      while((n = w.nextNode())){
+        const p = n.parentNode; if(!p || skip[p.nodeName]) continue;
+        let bad = false, q = p;
+        while(q && q !== document.body){ if(q.id && skipId[q.id]){ bad = true; break; } q = q.parentNode; }
+        if(bad) continue;
+        LOCMAP.push([n, n.nodeValue]);
+      }
+    }
+    LOCMAP.forEach(function(pair){
+      const n = pair[0];
+      if(!n || !n.parentNode) return;
+      try{ n.nodeValue = mlTerm(pair[1]); }catch(_){}
+    });
+  }catch(e){ try{ console.warn("言い換えに失敗", e); }catch(_){} }
+}
+/* ---- 「いま、これをやる」 ---- */
+function mlNow(){
+  const el = document.getElementById("nowBar"); if(!el) return;
+  let keyOk = false, genre = null, aw = 0, runs = 0;
+  try{ keyOk = String((CONF && CONF.key) || "").length > 0; }catch(_){}
+  try{ genre = (CONF && CONF.genre) || null; }catch(_){}
+  try{ const r = Object.values(RUNS || {}); runs = r.length; aw = r.filter(function(x){ return x.status === "awaiting"; }).length; }catch(_){}
+  let n, t, sub, tab;
+  if(!keyOk){ n = "1"; t = "APIキーを入れてください"; sub = "これが無いと、AIは1文字も書けません。3分で終わります。"; tab = "設定"; }
+  else if(!genre){ n = "2"; t = "ジャンルを選んでください"; sub = "通信のままでよければ、そのまま次へ進めます。"; tab = "設定"; }
+  else if(aw){ n = "3"; t = "承認待ちが " + aw + " 本あります"; sub = "あなたの体験を足して「承認」を押すと、noteに出せる形になります。"; tab = "承認"; }
+  else if(runs){ n = "✓"; t = "下書きはここで止まっています"; sub = "「承認」タブで本文を確認してください。"; tab = "承認"; }
+  else { n = "3"; t = "ネタを選んで仕込みましょう"; sub = "「作業」タブ → ネタ帳 → 仕込む。あとはAI9人が書きます。"; tab = "作業"; }
+  el.hidden = false;
+  el.innerHTML = '<div class="nb-n">' + n + '</div><div class="nb-b"><b>' + mlEsc(t) + '</b><small>' + mlEsc(sub) + '</small></div>'
+    + '<button class="btn sm primary" id="nowGo" type="button">ひらく</button>';
+  const go = document.getElementById("nowGo");
+  if(go) go.onclick = function(){ try{ if(window.__showTab) window.__showTab(tab); }catch(_){} };
+}
+/* ---- はじめての3ステップ ---- */
+function mlCloseOnb(){ const el = document.getElementById("onb"); if(el) el.hidden = true; try{ LS.set("ml_onb", Date.now()); }catch(_){} }
+function mlOnb(force){
+  const el = document.getElementById("onb"); if(!el) return;
+  let seen = 0; try{ seen = LS.get("ml_onb", 0); }catch(_){}
+  if(force || !seen) el.hidden = false;
+  if(el.__wired) return;
+  el.__wired = true;
+  el.addEventListener("click", function(ev){
+    const b = ev.target && ev.target.closest ? ev.target.closest("[data-onb]") : null;
+    if(b){
+      const k = b.dataset.onb;
+      mlCloseOnb();
+      try{ if(window.__showTab) window.__showTab("設定"); }catch(_){}
+      if(k === "genre") setTimeout(function(){ const g = document.getElementById("genrePanel"); if(g && g.scrollIntoView) g.scrollIntoView({behavior:"smooth", block:"start"}); }, 80);
+      if(k === "work"){ try{ if(window.__showTab) window.__showTab("作業"); }catch(_){} }
+      return;
+    }
+    if(ev.target === el) mlCloseOnb();
+  });
+  const go = document.getElementById("onbGo"); if(go) go.onclick = mlCloseOnb;
+  const tr = document.getElementById("onbTrial");
+  if(tr) tr.onclick = function(){ location.href = location.pathname + "?trial=1"; };
+}
+/* ---- ジャンル選択の画面 ---- */
+function mlGenreBox(){
+  const box = document.getElementById("genreBox"); if(!box) return;
+  const cur = mlGenreId(), g = mlG();
+  const list = Object.keys(GENRES).map(function(id){
+    const o = GENRES[id];
+    return '<button class="gbtn' + (id === cur ? " on" : "") + '" data-g="' + id + '" type="button"><b>' + mlEsc(o.name) + '</b><small>' + mlEsc(o.media) + '</small></button>';
+  }).join("");
+  let custom = "";
+  if(cur === "custom"){
+    let c = {}; try{ c = CONF.gc || {}; }catch(_){}
+    custom = '<div class="gcust">'
+      + '<label class="f"><span>媒体の名前</span><input type="text" id="gcMedia" placeholder="例: 家電ラボ" value="' + mlEsc(c.media || "") + '"></label>'
+      + '<label class="f"><span>読者（誰に向けて書くか）</span><input type="text" id="gcReader" placeholder="例: 一人暮らしで家電をそろえたい人" value="' + mlEsc(c.reader || "") + '"></label>'
+      + '<label class="f"><span>あなたの一次情報の呼び名</span><input type="text" id="gcFirst" placeholder="例: 売り場で見たこと" value="' + mlEsc(c.firsthand || "") + '"></label>'
+      + '<button class="btn primary" id="gcSave" type="button">この内容で保存する</button></div>';
+  }
+  box.innerHTML = '<div class="gbtns">' + list + '</div>' + custom
+    + '<div class="gcur"><div class="gk">いまの設定</div>'
+    + '<table class="tbl">'
+    + '<tr><td>ジャンル</td><td>' + mlEsc(g.name) + '</td></tr>'
+    + '<tr><td>媒体名</td><td>' + mlEsc(g.media) + '</td></tr>'
+    + '<tr><td>読者</td><td>' + mlEsc(g.reader) + '</td></tr>'
+    + '<tr><td>あなたの武器</td><td>' + mlEsc(g.weapon) + '</td></tr>'
+    + '<tr><td>効いてくる法令</td><td>' + mlEsc(g.law) + '</td></tr>'
+    + '<tr><td>一次情報の出どころ</td><td>' + mlEsc(g.sources) + '</td></tr>'
+    + '<tr><td>収益の道筋</td><td>' + mlEsc(g.money) + '</td></tr>'
+    + '<tr><td>提携先の例</td><td>' + mlEsc(g.asp) + '</td></tr>'
+    + '</table>'
+    + '<p class="hint">この内容は、AI9人に毎回まとめて渡されます。ジャンルを変えると、<b>画面の言葉づかいも自動で言い換わります</b>（例:「店頭体験」→「' + mlEsc(g.firsthand) + '」）。<br>※記事の空欄マーカー <code>' + ML_PH + '</code> だけは全ジャンル共通の目印なので、そのまま残します。</p></div>';
+  box.querySelectorAll("[data-g]").forEach(function(b){ b.onclick = function(){ mlGenrePick(b.dataset.g); }; });
+  const gs = document.getElementById("gcSave");
+  if(gs) gs.onclick = function(){
+    const v = function(id){ const e = document.getElementById(id); return e ? String(e.value || "").trim() : ""; };
+    try{ CONF.gc = { media:v("gcMedia"), reader:v("gcReader"), firsthand:v("gcFirst") }; }catch(_){}
+    try{ saveConf(); }catch(_){}
+    mlRebuild(); mlLocalize(); mlGenreBox(); mlNow();
+    try{ toast("ジャンルを保存しました。"); }catch(_){}
+  };
+}
+function mlGenrePick(id){
+  if(!GENRES[id]) return;
+  try{ CONF.genre = id; saveConf(); }catch(_){}
+  mlRebuild(); mlLocalize(); mlGenreBox(); mlNow();
+  try{ toast("ジャンルを「" + mlG().name + "」に切り替えました。"); }catch(_){}
+}
+function mlInit(){
+  try{ if(!CONF.genre) CONF.genre = "mobile"; }catch(_){}
+  mlRebuild(); mlGenreBox(); mlLocalize(); mlNow(); mlOnb(false);
+  const b = document.getElementById("btnOnb");
+  if(b) b.onclick = function(){ mlOnb(true); };
+}
+window.mlNow = mlNow; window.mlLocalize = mlLocalize; window.mlGenreBox = mlGenreBox;
+window.mlInit = mlInit; window.mlGenreRules = mlGenreRules; window.mlOnb = mlOnb;
+setTimeout(function(){ try{ mlInit(); }catch(e){ try{ console.warn("mlInit", e); }catch(_){} } }, 80);
+
 
 /* ============================================================
    4. AIの呼び出し（ブラウザからGoogleへ直接）
@@ -1258,13 +1549,103 @@ function ledgerText(){
   return `## 過去に扱ったテーマ（重複を避ける）\n${t}\n## 過去に却下された理由（同じ失敗を繰り返さない）\n${r}`;
 }
 function setStation(i, s){
-  const n = document.querySelectorAll(".station")[i]; if(!n) return;
-  n.dataset.s = s;
-  n.querySelector(".st").textContent = ({idle:"待機",run:"実行中",done:"完了",rev:"差し戻し",skip:"再利用"})[s] || "待機";
+  const n = document.querySelectorAll(".station")[i];
+  if(n){
+    n.dataset.s = s;
+    n.querySelector(".st").textContent = ({idle:"待機",run:"実行中",done:"完了",rev:"差し戻し",skip:"再利用"})[s] || "待機";
+  }
+  if(i < 8){
+    ST_S[i] = s;
+    if(s === "run"){ ST_T[i].s = Date.now(); ST_T[i].e = 0; }
+    else if(s === "done" || s === "skip" || s === "rev"){
+      if(!ST_T[i].s) ST_T[i].s = Date.now();
+      ST_T[i].e = Date.now();
+    }
+    try{ progRender(); }catch(_){}
+  }
 }
 function clearStations(){
   document.querySelectorAll(".station").forEach(n => { n.dataset.s="idle"; n.querySelector(".st").textContent="待機"; });
+  for(var _ci=0;_ci<8;_ci++){ ST_S[_ci]="idle"; ST_T[_ci]={s:0,e:0}; }
 }
+/* ============================================================
+   生成中の「AIごとの進捗」を見えるようにする（v16.4）
+   ============================================================ */
+var ST_ROLE = ["editor","analyst","researcher","digger","writer","qa","designer","sns"];
+var ST_DESC = ["何を書くか決める","出す価値があるか判断","料金と条件を裏取りする","他にない切り口を設計する","記事の本文を書く","法令と鮮度をチェック","表と画像を設計する","投稿文を作る"];
+var ST_EST  = [20,18,35,25,75,30,25,20];
+var ST_S = [], ST_T = [], PROG_ON = false, PROG_T0 = 0, PROG_IV = null;
+for(var _si=0;_si<8;_si++){ ST_S.push("idle"); ST_T.push({s:0,e:0}); }
+function fmtMS(ms){ ms = Math.max(0, ms|0); var s=Math.floor(ms/1000), m=Math.floor(s/60); s=s%60; return (m<10?"0":"")+m+":"+(s<10?"0":"")+s; }
+function progTotal(){ var n=document.querySelectorAll(".station").length; return n || 8; }
+function progDone(){ var n=0,t=progTotal(); for(var i=0;i<t;i++){ if(ST_S[i]==="done"||ST_S[i]==="skip") n++; } return n; }
+function progLeftSec(){ var t=0,T=progTotal(); for(var i=0;i<T;i++){ if(ST_S[i]==="done"||ST_S[i]==="skip") continue; t += (ST_EST[i]||20); } return t; }
+function progLabel(i,s){
+  if(s==="run")  return "作業中 " + fmtMS(Date.now() - (ST_T[i].s||Date.now()));
+  if(s==="done") return "完了 " + fmtMS((ST_T[i].e||0) - (ST_T[i].s||0));
+  if(s==="skip") return "前回の結果を再利用";
+  if(s==="rev")  return "書き直し中";
+  return "待機";
+}
+function progRender(){
+  var box = document.getElementById("progStations"); if(!box) return;
+  var total = progTotal(), done = progDone(), grid = "", i;
+  for(i=0;i<total;i++){
+    var rn = (typeof roleName === "function") ? roleName(ST_ROLE[i]) : ST_ROLE[i];
+    grid += '<div class="pst" data-s="'+ST_S[i]+'"><span class="pn">'+esc(rn)+'</span>'
+          + '<span class="ps" id="pgT'+i+'">'+esc(progLabel(i,ST_S[i]))+'</span>'
+          + '<span class="pd">'+esc(ST_DESC[i]||"")+'</span></div>';
+  }
+  box.innerHTML = grid;
+  var bar = document.getElementById("progBar"); if(bar) bar.style.width = Math.round(done/Math.max(1,total)*100) + "%";
+  var cnt = document.getElementById("progCount"); if(cnt) cnt.textContent = done + " / " + total + " 人 完了";
+  var nowEl = document.getElementById("progNow");
+  if(nowEl){
+    var runI = -1;
+    for(i=0;i<total;i++){ if(ST_S[i]==="run"){ runI=i; break; } }
+    if(runI<0) for(i=0;i<total;i++){ if(ST_S[i]==="rev"){ runI=i; break; } }
+    if(runI>=0){
+      var rn2 = (typeof roleName === "function") ? roleName(ST_ROLE[runI]) : ST_ROLE[runI];
+      nowEl.innerHTML = "いま <b>" + esc(rn2) + "</b> が「" + esc(ST_DESC[runI]) + "」をしています（" + (runI+1) + "人目 / " + total + "人）";
+    } else if(done >= total){
+      nowEl.innerHTML = "8人ぜんぶ終わりました。内容を確かめて、承認してください。";
+    } else {
+      nowEl.innerHTML = "次の役割を始めます…";
+    }
+  }
+  progTick();
+}
+function progTick(){
+  var el = document.getElementById("progElapsed");
+  if(el) el.textContent = "経過 " + fmtMS(PROG_ON ? (Date.now()-PROG_T0) : 0);
+  var lf = document.getElementById("progLeft");
+  if(lf){ var s = progLeftSec(); lf.textContent = s>0 ? ("残り 約" + Math.max(1, Math.round(s/60)) + "分") : "まもなく終わります"; }
+  for(var i=0;i<progTotal();i++){
+    var t = document.getElementById("pgT"+i);
+    if(t && ST_S[i]==="run") t.textContent = progLabel(i,"run");
+  }
+}
+function progShow(on){
+  var el = document.getElementById("progPanel"); if(!el) return;
+  PROG_ON = !!on;
+  if(on){
+    el.hidden = false;
+    if(!PROG_T0) PROG_T0 = Date.now();
+    progRender();
+    if(!PROG_IV) PROG_IV = setInterval(function(){ try{ progTick(); }catch(_){} }, 1000);
+  } else {
+    el.hidden = true;
+    if(PROG_IV){ clearInterval(PROG_IV); PROG_IV = null; }
+    PROG_T0 = 0;
+  }
+}
+function progStart(){
+  for(var i=0;i<8;i++){ ST_S[i]="idle"; ST_T[i]={s:0,e:0}; }
+  PROG_T0 = Date.now();
+  try{ clearStations(); }catch(_){}
+  progShow(true);
+}
+
 function logLine(t){
   const el = $("#log"); if(!el) return;
   el.style.display = "block";
@@ -1325,7 +1706,7 @@ async function step(roleId, user, temp){
     if(PACE_HOOK) PACE_HOOK(`  ※ 軽量モード: 「${r.label}」を省略しました（回数制限を避けるため。あとで単体でも実行できます）`);
     return "（軽量モードのため省略しました。必要なときは、この役割だけを単体で実行してください）";
   }
-  const sys = `あなたは「${r.label}」です。\n\n${r.body}\n\n${COMMON_RULES}${styleBlock()}`;
+  const sys = `あなたは「${r.label}」です。\n\n${r.body}\n\n${COMMON_RULES}${mlGenreRules()}${styleBlock()}`;
   return await gemini(sys, user, temp);
 }
 let STOP = false;
@@ -1367,13 +1748,18 @@ document.addEventListener("visibilitychange", () => {
 });
 function saveDraft(d){
   DRAFT = d; LS.set("ml_draft", d);
-  const el = $("#resume");
-  if(el && d) { el.style.display = "block";
-    el.innerHTML = `<b>前回の続きがあります</b><br><span style="font-size:12.5px;color:var(--dim)">「${esc(d.topic)}」の途中まで保存されています。作った役割は再利用するので、APIの回数を使いません。</span><div class="actions"><button class="btn sm primary" onclick="resumeDraft()">続きから再開</button><button class="btn sm" onclick="dropDraft()">破棄する</button></div>`;
-  }
+  paintResume();   /* 生成中は出しません（止まったときだけ出す） */
 }
-function dropDraft(){ DRAFT = null; LS.set("ml_draft", null); const el = $("#resume"); if(el) el.style.display = "none"; }
+function paintResume(){
+  const el = $("#resume"); if(!el) return;
+  const busy = (typeof BUSY !== "undefined" && BUSY);
+  if(!DRAFT || busy){ el.style.display = "none"; return; }
+  el.style.display = "block";
+  el.innerHTML = `<b>前回の続きがあります（作業は止まっています）</b><br><span style="font-size:12.5px;color:var(--dim)">「${esc(DRAFT.topic)}」の途中まで保存されています。下のボタンで続きから再開できます。済んだ役割は作り直さないので、AIの無料回数を使いません。<br>※ いま作っている最中は、このご案内は出ません（止まったときだけ出ます）。</span><div class="actions"><button class="btn sm primary" onclick="resumeDraft()">続きから再開</button><button class="btn sm" onclick="dropDraft()">破棄する</button></div>`;
+}
+function dropDraft(){ DRAFT = null; LS.set("ml_draft", null); const el = $("#resume"); if(el){ el.style.display = "none"; el.innerHTML = ""; } }
 async function resumeDraft(){
+  if(typeof BUSY !== "undefined" && BUSY){ toast("いま作っている最中です。終わるまでお待ちください（続きは自動で保存されています）。"); return; }
   if(!DRAFT) return;
   const d = DRAFT; dropDraft();
   $("#inTopic").value = d.topic; if(d.genre) $("#inGenre").value = d.genre;
@@ -1407,6 +1793,7 @@ async function runPipeline(topic, genre, reader, research, resume){
 
   PACE_HOOK = logLine;
   BUSY = true; await keepAwake(true);
+  try{ progStart(); }catch(_){}
   try{
     const plan = await doStep(0, "00_企画.md", "editor",
       () => base + "\nこのテーマで、他サイトと差がつく切り口を3案出し、連載の型を決めて、1案を選んだ企画書にまとめてください。");
@@ -1476,6 +1863,8 @@ async function runPipeline(topic, genre, reader, research, resume){
   } finally {
     PACE_HOOK = null;
     BUSY = false; keepAwake(false);
+    try{ progShow(false); }catch(_){}
+    try{ paintResume(); }catch(_){}
     const doneKeys = Object.keys(F || {});
     if(doneKeys.length) logLine(`  ※ いままでに保存できた役割: ${doneKeys.length}件（「続きから再開」で再利用します。APIの回数は使いません）`);
   }
@@ -1661,6 +2050,17 @@ function decide(st){
   toast(st === "approved"
     ? "承認しました。noteに貼って公開してください（本文のコピーが使えます）。"
     : "却下しました。理由は次回の企画に反映されます。");
+}
+/* 承認タブの一覧から、開かずに承認する（v16.1で追加。以前は未定義で動かなかった） */
+function approveRun(id){
+  const r = RUNS[id]; if(!r) return false;
+  r.status = "approved";
+  if(r.topic && !LEDGER.topics.includes(r.topic)) LEDGER.topics.push(r.topic);
+  saveRuns(); saveLedger();
+  try{ renderRuns(); }catch(_){}
+  try{ if(CUR === id) openRun(id); }catch(_){}
+  try{ if(window.mlNow) window.mlNow(); }catch(_){}
+  return true;
 }
 
 /* ============================================================
@@ -2420,7 +2820,7 @@ setTimeout(() => { try{ paintKey(); }catch(_){} }, 800);
    ぽけっと通信 運用ボード（追加レイヤー）
    ============================================================ */
 (function(){
-  const MAP0 = {"keyPanel": "設定"};
+  const MAP0 = {"keyPanel": "設定", "genrePanel": "設定", "snsAutoPanel": "発信", "earnPanel": "記録"};
   const NEWMAP = {boardPanel:"ホーム", homePanel:"ホーム",snsPanel:"発信",stylePanel:"あなた",namePanel:"あなた",mobilePanel:"あなた",apPanel:"承認",deskPanel:"承認",kpiPanel:"記録", workPanel1:"作業", workPanel2:"作業", workPanel3:"作業",costPanel:"記録",
                   affiPanel:"記録",personaPanel:"記録",acctPanel:"記録",
                   imgPanel:"記録",qaPanel2:"記録"};
@@ -2444,6 +2844,7 @@ setTimeout(() => { try{ paintKey(); }catch(_){} }, 800);
     return "オフィス";
   }
   function showTab(name){
+    try{ window.__showTab = showTab; }catch(_){}
     document.querySelectorAll(".bnav .nb").forEach(b => b.classList.toggle("on", b.dataset.t === name));
     panels().forEach(p => {
       if(p.id === undefined) return;
@@ -2461,16 +2862,21 @@ setTimeout(() => { try{ paintKey(); }catch(_){} }, 800);
     if(name === "発信"){ try{ paintSns(); }catch(_){} }
     if(name === "あなた"){ try{ paintNames(); }catch(_){} }
     if(name === "作業"){ try{ pullAuto(false); paintAuto(); }catch(_){} try{ workApply(); }catch(_){} }
+    try{ window.mlNow && window.mlNow(); }catch(_){}
   }
   function buildNav(){
     const n = E("bnav"); if(!n) return;
-    var MAIN = ["ホーム","作業","承認","発信"], SUB = ["記録","あなた","設定"];
-    var mk = t => '<button class="nb" data-t="' + t + '">' + t + '</button>';
-    n.innerHTML =
-        '<div class="nbrow nbrow-main">' + MAIN.map(mk).join("") + '</div>'
-      + '<div class="nbrow nbrow-sub"><span class="nblbl">まとめ</span>' + SUB.map(mk).join("")
-      + '<a class="nb" href="' + location.href.replace(/[^/]*$/,"") + 'guide.html" style="text-decoration:none;display:inline-flex;align-items:center">つかいかた</a></div>';
+    /* v16.5：迷いやすい「数字（記録）」「あなた設定」「設定」も、上の段にまとめて並べました */
+    var MAIN = ["ホーム","作業","承認","発信"];
+    var AUX  = [["記録","数字（記録）"],["あなた","あなた設定"],["設定","設定"]];
+    /* 押せる「見出し」だと分かるように、かぎ括弧で囲み、説明も付ける */
+    var nbl = {"記録":"どの記事が稼いだか見る","あなた":"文体・担当者の名前・読者像","設定":"APIキー・ジャンル・明暗"};
+    var mk  = t => '<button class="nb" data-t="' + t + '">' + t + '</button>';
+    var mkA = p => '<button class="nb nb-aux" data-t="' + p[0] + '" title="' + (nbl[p[0]]||"") + '">「' + p[1] + '」</button>';
+    var guide = '<a class="nb nb-aux" href="' + location.href.replace(/[^/]*$/,"") + 'guide.html" style="text-decoration:none;display:inline-flex;align-items:center">つかいかた</a>';
+    n.innerHTML = '<div class="nbrow nbrow-main">' + MAIN.map(mk).join("") + AUX.map(mkA).join("") + guide + '</div>';
     n.querySelectorAll(".nb[data-t]").forEach(b => b.onclick = () => showTab(b.dataset.t));
+    try{ window.mlNow && window.mlNow(); }catch(_){}
     const tb = E("bTheme"); if(tb) tb.onclick = function(){ try{ cycleTheme(); }catch(_){ } };
   }
   /* ---- ⋯ メニュー（上部バーの整理） ---- */
@@ -2542,7 +2948,7 @@ setTimeout(() => { try{ paintKey(); }catch(_){} }, 800);
             }).join("") + '</table>'
         : '<p class="hint" style="padding:0 13px">承認待ちはありません。</p>';
       al.querySelectorAll("[data-ap]").forEach(b => b.onclick = () => {
-        try{ approveRun(b.dataset.ap); toast("承認しました。"); paintWorkers(); }catch(e){ toast("承認できませんでした：" + (e.message||e)); }
+        try{ var okAp = approveRun(b.dataset.ap); toast(okAp ? "承認しました。noteに貼って公開してください（本文のコピーが使えます）。" : "その作品が見つかりませんでした。"); paintWorkers(); }catch(e){ toast("承認できませんでした：" + (e.message||e)); }
       });
     }
   }
@@ -2686,6 +3092,17 @@ setTimeout(() => { try{ paintKey(); }catch(_){} }, 800);
   const t0 = Object.keys(KEY).find(k => KEY[k] === h0);
   showTab(t0 || "ホーム");
 
+  /* 左上の看板「ぽけっと通信」を押すとホームに戻る（v16.2で追加） */
+  (function(){
+    var b = document.getElementById("brandHome"); if(!b) return;
+    function brandGo(){
+      try{ if(window.__showTab) window.__showTab("ホーム"); }catch(_){}
+      try{ window.scrollTo({top:0,behavior:"smooth"}); }catch(_){ try{ window.scrollTo(0,0); }catch(__){} }
+    }
+    b.onclick = brandGo;
+    b.onkeydown = function(e){ if(e.key === "Enter" || e.key === " "){ e.preventDefault(); brandGo(); } };
+  })();
+
   E("kAdd").onclick = () => {
     const parts = (E("kIn").value||"").split("|").map(s => Number(String(s).replace(/[^0-9.-]/g,"")) || 0);
     const g = KPIG();
@@ -2754,17 +3171,32 @@ setTimeout(() => { try{ paintKey(); }catch(_){} }, 800);
   function stExport(){
     var el = E("stIO"); if(!el) return;
     try{
-      el.value = "MLSTYLE1:" + btoa(unescape(encodeURIComponent(JSON.stringify(stGet()))));
-      toast("下の枠に出ました。コピーして次の端末に貼ってください。");
+      var nm = {};
+      try{ nm = JSON.parse(localStorage.getItem("ml_names") || "null") || {}; }catch(_){ nm = {}; }
+      el.value = "MLSTYLE2:" + btoa(unescape(encodeURIComponent(JSON.stringify({ s: stGet(), n: nm }))));
+      toast("下の枠に出ました（文体＋担当者の名前）。コピーして次の端末に貼ってください。");
     }catch(_){ toast("書き出せませんでした。"); }
   }
   function stImport(){
     var el = E("stIO"); if(!el) return;
-    var v = String(el.value || "").trim().replace(/^MLSTYLE1:/, "");
+    var v = String(el.value || "").trim();
     if(!v){ toast("枠が空です。先に「書き出す」を押すか、コードを貼ってください。"); return; }
+    v = v.replace(/^MLSTYLE[0-9]*:/, "");
     try{
       var o = JSON.parse(decodeURIComponent(escape(atob(v))));
-      LS.set("ml_style", o); stFill(); stPreview(); toast("読み込みました。");
+      var hadNames = false;
+      if(o && (o.s || o.n)){
+        LS.set("ml_style", o.s || {});
+        if(o.n){ LS.set("ml_names", o.n); hadNames = true; }
+      }else{
+        LS.set("ml_style", o || {});
+      }
+      stFill(); stPreview();
+      try{
+        if(typeof nmGet === "function") nmGet();
+        if(typeof paintNames === "function") paintNames();
+      }catch(_){}
+      toast(hadNames ? "読み込みました（文体＋担当者の名前）。" : "読み込みました（文体）。");
     }catch(_){ toast("コードを読み取れませんでした。コピーし直してください。"); }
   }
 
@@ -3095,11 +3527,10 @@ setTimeout(() => { try{ paintKey(); }catch(_){} }, 800);
     st.seen = seenArr.slice(-300);
     if(!fresh.length){ st.num = issue.number; saveAuto(st); paintAuto(); return 0; }
     st.items = (st.items || []).concat(fresh).slice(-80);
-    st.added = (st.added || []).concat(appendTopics(fresh)).slice(-300);
     st.num = issue.number;
     st.at = new Date().toISOString().slice(0,16).replace("T"," ");
     saveAuto(st); paintAuto();
-    toast("AIから" + fresh.length + "件のネタをネタ欄へ追加しました。");
+    toast("AIから" + fresh.length + "件のネタが届きました。「AIから届いたネタ」の一覧から選んでください。");
     return fresh.length;
   }
   function pullAuto(force){
@@ -3137,24 +3568,111 @@ setTimeout(() => { try{ paintKey(); }catch(_){} }, 800);
         card.style.display = ""; card.className = "sncard";
         card.innerHTML = '<h4>AIから届いたネタ：' + n + '件</h4>'
           + '<div class="cnt">' + (st.at ? esc(st.at) + " 取り込み" : "") + '（配信の受け取り #' + esc(String(st.num || "")) + '）</div>'
-          + '<div class="cnt">「作業」タブの<b>まとめて仕込む</b>のネタ欄に、1行1テーマで入っています。そのまま「まとめて作る」を押せます。</div>'
+          + '<div class="cnt">「作業」タブの<b>STEP 1</b>に『AIから届いたネタ』として並んでいます。選んで作りましょう。</div>'
           + '<div class="actions" style="margin:8px 0 0">'
           + '<button class="btn sm primary" type="button" id="autoGo">作業タブを開く</button>'
           + '<button class="btn sm" type="button" id="autoPull2">いま取り込む</button></div>';
         var g = document.getElementById("autoGo");
-        if(g) g.onclick = function(){ navTo("作業"); };
+        if(g) g.onclick = function(){
+          try{ if(window.__boardShow) window.__boardShow("作業"); }catch(_){}
+          try{ if(window.__foldWork) window.__foldWork("workPanel1"); }catch(_){}
+          setTimeout(function(){
+            var b = document.getElementById("autoList");
+            if(b && b.scrollIntoView){ try{ b.scrollIntoView({behavior:"smooth", block:"start"}); }catch(_){} }
+          }, 90);
+        };
         var p = document.getElementById("autoPull2");
         if(p) p.onclick = function(){ pullAuto(true); };
       }
     }
+    try{ renderAutoList(); }catch(_){ }
     try{ workApply(); }catch(_){ }
     var note = document.getElementById("autoNote");
     if(note){
       note.innerHTML = n
-        ? ('いま <b>' + n + '件</b>を取り込み済みです' + (st.at ? '（' + esc(st.at) + '）' : '') + '。新しい配信が届くと、このネタ欄に自動で増えます。')
-        : 'まだ取り込んでいません。毎日18時の自動実行が届くと、このネタ欄に自動で増えます。';
+        ? ('いま <b>' + n + '件</b>を取り込み済みです' + (st.at ? '（' + esc(st.at) + '）' : '') + '。新しい配信が届くと、この一覧に並びます。')
+        : 'まだ取り込んでいません。毎日18時の自動実行が届くと、この一覧に並びます。';
     }
   }
+  /* ── AIから届いたネタを「別の一覧」で見せる（v16.3で追加） ── */
+  function autoListItems(){ return (autoStore().items || []); }
+  function autoRowEl(it){
+    var t = autoTitle(it);
+    var why = String(it.why || "").trim();
+    var topic = String(it.topic || "").trim();
+    var score = (it.score === 0 || it.score) ? String(it.score) : "";
+    var shelf = String(it.shelf || "").trim();
+    var src = String(it.src || it.s || "").trim();
+    var note = String(it.note || "").trim();
+    var d = document.createElement("div"); d.className = "autoItem";
+    var meta = [];
+    if(score) meta.push("話題度 " + score);
+    if(shelf) meta.push(shelf);
+    if(topic) meta.push(topic);
+    d.innerHTML = '<div class="t">' + esc(t) + '</div>'
+      + (why ? '<div class="w">' + esc(why) + '</div>' : '')
+      + (meta.length ? '<div class="m">' + esc(meta.join(" ／ ")) + '</div>' : '')
+      + (src ? '<div class="s">出典のあたり: ' + esc(src) + '</div>' : '')
+      + (note ? '<div class="s">' + esc(note) + '</div>' : '')
+      + '<div class="actions" style="margin:8px 0 0">'
+      + '<button class="btn sm primary" type="button" data-a="pick">このネタで作る</button>'
+      + '<button class="btn sm" type="button" data-a="queue">ネタ帳に足す</button></div>';
+    d.querySelector('[data-a="pick"]').onclick = function(){ autoPick(t); };
+    d.querySelector('[data-a="queue"]').onclick = function(){ autoQueue([t]); };
+    return d;
+  }
+  function autoQueue(list){
+    var ta = document.getElementById("qTopics"); if(!ta) return 0;
+    var cur = String(ta.value || ""), add = [];
+    (list || []).forEach(function(x){
+      var t = autoTitle(x);
+      if(!t) return;
+      if(cur.indexOf(t) >= 0 || add.indexOf(t) >= 0) return;
+      add.push(t);
+    });
+    if(!add.length){ toast("すでにネタ帳に入っています。"); return 0; }
+    ta.value = (cur.trim() ? cur.replace(/\s*$/,"") + "\n" : "") + add.join("\n");
+    try{ ta.dispatchEvent(new Event("input", {bubbles:true})); }catch(_){}
+    toast(add.length + "件をネタ帳に足しました。");
+    return add.length;
+  }
+  function autoPick(t){
+    var inp = document.getElementById("inTopic");
+    if(inp) inp.value = t;
+    try{ if(window.__foldWork) window.__foldWork("workPanel2"); }catch(_){}
+    toast("テーマ欄に入れました。「このテーマで作る」を押してください。");
+    setTimeout(function(){
+      var i = document.getElementById("inTopic"); if(!i) return;
+      try{ i.focus(); }catch(_){}
+      try{ i.scrollIntoView({behavior:"smooth", block:"center"}); }catch(_){}
+    }, 80);
+  }
+  function renderAutoList(){
+    var box = document.getElementById("autoList"); if(!box) return;
+    var items = autoListItems();
+    box.innerHTML = "";
+    if(!items.length){ box.style.display = "none"; return; }
+    box.style.display = "";
+    var h = document.createElement("h4");
+    h.innerHTML = "AIから届いたネタ：<b>" + items.length + "件</b>（ここから選べます）";
+    box.appendChild(h);
+    var st = autoStore();
+    var c = document.createElement("div"); c.className = "cnt";
+    c.innerHTML = (st.at ? esc(st.at) + " 取り込み" : "") + (st.num ? "（配信の受け取り #" + esc(String(st.num)) + "）" : "");
+    box.appendChild(c);
+    var acts = document.createElement("div"); acts.className = "actions"; acts.style.margin = "8px 0 0";
+    acts.innerHTML = '<button class="btn sm" type="button" id="autoAllQueue">全部ネタ帳に足す</button>'
+      + '<button class="btn sm" type="button" id="autoAllMat">STEP 1 の材料欄へ送る</button>'
+      + '<button class="btn sm" type="button" id="autoPull3">いま取り込む</button>';
+    box.appendChild(acts);
+    acts.querySelector("#autoAllQueue").onclick = function(){ autoQueue(items); };
+    acts.querySelector("#autoAllMat").onclick = function(){ autoToMat(); };
+    acts.querySelector("#autoPull3").onclick = function(){ pullAuto(true); };
+    var list = document.createElement("div"); list.className = "autoListBody";
+    items.slice().reverse().forEach(function(it){ list.appendChild(autoRowEl(it)); });
+    box.appendChild(list);
+  }
+
   function autoReset(){
     var st = autoStore(), ta = document.getElementById("qTopics");
     if(ta && (st.added || []).length){
@@ -3169,13 +3687,17 @@ setTimeout(() => { try{ paintKey(); }catch(_){} }, 800);
   function autoToMat(){
     var n = toMaterial(autoStore().items || []);
     toast(n ? ("材料欄へ" + n + "件を送りました。「ネタを選ばせる」を押してください。") : "送れるネタがありません（すでに入っています）。");
-    if(n) navTo("作業");
+    if(n){
+      try{ if(window.__boardShow) window.__boardShow("作業"); }catch(_){}
+      try{ if(window.__foldWork) window.__foldWork("workPanel1"); }catch(_){}
+    }
   }
   (function(){
     var a = document.getElementById("autoPull"), b = document.getElementById("autoToMat"), c = document.getElementById("autoReset");
     if(a) a.onclick = function(){ pullAuto(true); };
     if(b) b.onclick = autoToMat;
     if(c) c.onclick = autoReset;
+    try{ window.__paintAuto = paintAuto; }catch(_){}
     paintAuto();
     /* 開いた直後に届いていない場合の保険として、数回試します */
     [1200, 5000, 12000].forEach(function(ms){
@@ -3187,6 +3709,18 @@ setTimeout(() => { try{ paintKey(); }catch(_){} }, 800);
   })();
 
   window.__boardShow = showTab;
+})();
+
+/* 進捗パネルのボタン配線と、起動時の「続きがあるか」判定（v16.4） */
+(function(){
+  function go(){
+    var g = document.getElementById("progGoWork");
+    if(g) g.onclick = function(){ try{ if(window.__showTab) window.__showTab("作業"); }catch(_){} };
+    var st = document.getElementById("progStop");
+    if(st) st.onclick = function(){ var b = document.getElementById("btnOneStop"); if(b) b.click(); };
+    try{ if(typeof paintResume === "function") paintResume(); }catch(_){}
+  }
+  if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", go); else go();
 })();
 </script>
 
@@ -3289,6 +3823,11 @@ input,select,textarea{font-size:16px}
 .bnav{flex-wrap:wrap;row-gap:6px;padding-bottom:8px}
 .nbrow{display:flex;flex-wrap:wrap;gap:6px;align-items:center;width:100%}
 .nbrow-sub .nb{font-size:12.5px;min-height:36px;padding:6px 11px}
+/* v16.5：ナビを1段にして上部に並べた（数字・あなた設定・設定・つかいかた） */
+.bnav{padding-bottom:9px}
+.bnav .nb-aux{background:var(--surface);border-color:var(--line)}
+.bnav .nb-aux.on{background:rgba(61,220,151,.10)}
+@media (max-width:560px){.bnav .nb{font-size:12.5px;padding:7px 11px;min-height:38px}}
 .nblbl{font-size:11px;color:var(--faint);letter-spacing:.06em;margin-right:1px}
 .top{position:relative;gap:7px}
 .top .status{padding:6px 10px;font-size:12px;border:1px solid var(--line);border-radius:999px;cursor:pointer}
@@ -3302,6 +3841,94 @@ input,select,textarea{font-size:16px}
 .foldTgl{display:inline-block;margin-top:7px;font-size:12.5px;font-weight:700;color:var(--signal)}
 .panel.folded .pb{display:none}
 .panel.folded .ph{padding-bottom:10px}
+
+/* ===== v15: いまやること／はじめての3ステップ／ジャンル ===== */
+#nowBar{display:flex;align-items:center;gap:11px;margin:9px 11px 0;padding:11px 12px;border:1px solid var(--line);border-radius:14px;background:var(--bg)}
+#nowBar .nb-n{flex:0 0 auto;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--signal);color:#fff;font-weight:800;font-size:15px}
+#nowBar .nb-b{flex:1;min-width:0}
+#nowBar .nb-b b{display:block;font-size:15px;line-height:1.45}
+#nowBar .nb-b small{display:block;font-size:12.5px;color:var(--dim);line-height:1.6;margin-top:2px}
+#onb{position:fixed;inset:0;z-index:9000;background:rgba(6,10,14,.72);overflow:auto;padding:16px 12px 26px}
+.onbCard{max-width:560px;margin:0 auto;background:var(--bg);border:1px solid var(--line);border-radius:18px;padding:18px 16px 16px;box-shadow:0 18px 50px rgba(0,0,0,.35)}
+.onbBadge{display:inline-block;font-size:11.5px;font-weight:800;letter-spacing:.06em;color:var(--signal);border:1px solid var(--signal);border-radius:999px;padding:3px 10px}
+.onbCard h3{margin:10px 0 6px;font-size:21px;line-height:1.45;color:var(--ink)}
+.onbLead{margin:0 0 14px;font-size:13.5px;color:var(--dim);line-height:1.8}
+.onbSteps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.onbSteps li{display:flex;align-items:center;gap:11px;border:1px solid var(--line);border-radius:13px;padding:11px 12px;background:var(--bg)}
+.onbSteps .onbn{flex:0 0 auto;width:28px;height:28px;border-radius:50%;background:var(--signal);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px}
+.onbSteps div{flex:1;min-width:0}
+.onbSteps b{display:block;font-size:15.5px;color:var(--ink)}
+.onbSteps small{display:block;font-size:12.5px;color:var(--dim);line-height:1.6;margin-top:2px}
+.onbFoot{display:flex;flex-wrap:wrap;gap:9px;margin-top:15px}
+.onbFoot .btn{flex:1 1 46%}
+.onbNote{margin:11px 0 0;font-size:12px;color:var(--faint);line-height:1.7}
+#genreBox .gbtns{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:13px}
+#genreBox .gbtn{flex:1 1 30%;min-width:132px;min-height:54px;text-align:left;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:12px;padding:9px 11px;cursor:pointer}
+#genreBox .gbtn b{display:block;font-size:14.5px}
+#genreBox .gbtn small{display:block;font-size:11.5px;color:var(--dim)}
+#genreBox .gbtn.on{border:2px solid var(--signal)}
+#genreBox .gbtn.on b{color:var(--signal)}
+#genreBox .gcust{border:1px dashed var(--line);border-radius:12px;padding:12px;margin-bottom:13px}
+#genreBox .gcur{border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--bg)}
+#genreBox .gk{font-size:12px;font-weight:800;letter-spacing:.06em;color:var(--dim);margin-bottom:7px}
+#genreBox .tbl td:first-child{white-space:nowrap;color:var(--dim);width:34%}
+/* ===== v16: 投稿セット／収益／やさしい表示 ===== */
+.pstep{display:flex;align-items:center;gap:10px;margin:15px 0 8px;font-size:15px}
+.pstep .pnum{flex:0 0 auto;width:26px;height:26px;border-radius:50%;background:var(--signal);color:#06120C;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px}
+.dbtns{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:6px}
+.dbtn{flex:1 1 44%;min-height:54px;border:1px solid var(--line);background:var(--surface2);color:var(--ink);border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;padding:10px 12px}
+.dbtn.on{border:2px solid var(--signal);color:var(--signal)}
+.pscard{border:1px solid var(--line);border-radius:13px;padding:11px 12px;margin-top:11px;background:var(--surface2)}
+.pscard .psh{display:flex;justify-content:space-between;gap:8px;font-size:14px;font-weight:700;margin-bottom:7px}
+.pscard .psh span{font-size:12px;color:var(--dim);font-weight:400;white-space:nowrap}
+.pscard textarea{width:100%;box-sizing:border-box;min-height:132px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);font-size:14px;line-height:1.8;padding:10px;font-family:inherit;resize:vertical}
+html.easy body{font-size:18.5px}
+html.easy .hint{font-size:15px;line-height:1.85}
+html.easy .btn{font-size:17px;min-height:64px;padding:15px 18px}
+html.easy .nb{font-size:14.5px;min-height:46px;padding:9px 13px}
+html.easy input,html.easy textarea,html.easy select{font-size:17.5px;min-height:52px}
+html.easy .ph h2{font-size:23px}
+html.easy .tbl td,html.easy .tbl th{font-size:15.5px;padding:10px 8px}
+html.easy #nowBar .nb-b b{font-size:18px}
+html.easy #nowBar .nb-b small{font-size:15px}
+html.easy .dbtn{font-size:17px;min-height:64px}
+html.easy .pscard textarea{font-size:16px;min-height:160px}
+/* ── AIから届いたネタの一覧（v16.3） ── */
+#autoList .autoItem{border:1px solid var(--line);background:var(--surface2);border-radius:12px;padding:12px 13px;margin-top:10px}
+#autoList .autoItem .t{font-weight:700;font-size:15.5px;line-height:1.7}
+#autoList .autoItem .w{font-size:13.5px;line-height:1.8;color:var(--dim);margin-top:4px}
+#autoList .autoItem .m{font-size:12.5px;color:var(--faint);margin-top:6px;letter-spacing:.02em}
+#autoList .autoItem .s{font-size:12.5px;color:var(--faint);margin-top:2px}
+html.easy #autoList .autoItem .t{font-size:17px}
+html.easy #autoList .autoItem .w{font-size:15px}
+/* ── 生成中の進捗パネル（v16.4） ── */
+#progPanel{margin:9px 11px 0;padding:13px 14px;border:1px solid var(--warn);border-radius:14px;background:var(--warn-soft)}
+#progPanel .pg-h{display:flex;align-items:center;gap:9px}
+#progPanel .pg-dot{width:10px;height:10px;border-radius:50%;background:var(--warn);animation:pgpulse 1.2s infinite}
+@keyframes pgpulse{0%,100%{opacity:1}50%{opacity:.25}}
+#progPanel .pg-h b{font-size:15.5px}
+#progPanel .pg-n{margin-left:auto;font-family:var(--mono);font-size:12.5px;color:var(--warn);font-weight:700}
+#progPanel .pg-bar{height:9px;border-radius:99px;background:var(--bg);border:1px solid var(--line);margin:10px 0 8px;overflow:hidden}
+#progPanel .pg-bar i{display:block;height:100%;background:var(--warn);width:0;transition:width .35s}
+#progPanel .pg-now{font-size:14.5px;line-height:1.7}
+#progPanel .pg-meta{display:flex;gap:12px;font-family:var(--mono);font-size:12px;color:var(--dim);margin-top:3px}
+#progPanel .pg-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:11px}
+#progPanel .pst{border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:8px 9px}
+#progPanel .pst .pn{font-size:12px;color:var(--dim);display:block;line-height:1.4}
+#progPanel .pst .ps{font-size:11px;font-family:var(--mono);color:var(--faint);display:block;margin-top:2px}
+#progPanel .pst .pd{font-size:10.5px;color:var(--faint);display:block;margin-top:3px;line-height:1.5}
+#progPanel .pst[data-s=run]{border-color:var(--warn);background:var(--warn-soft)}
+#progPanel .pst[data-s=run] .ps{color:var(--warn);font-weight:700}
+#progPanel .pst[data-s=done]{border-color:var(--signal);background:var(--signal-soft)}
+#progPanel .pst[data-s=done] .ps{color:var(--signal)}
+#progPanel .pst[data-s=rev]{border-color:var(--stop);background:var(--stop-soft)}
+#progPanel .pst[data-s=rev] .ps{color:var(--stop)}
+#progPanel .pst[data-s=skip]{opacity:.55}
+#progPanel .pg-foot{display:flex;gap:8px;margin-top:11px}
+html.easy #progPanel .pg-now{font-size:17px}
+html.easy #progPanel .pst .pn{font-size:14px}
+html.easy #progPanel .pst .pd{font-size:12.5px}
+@media (max-width:560px){#progPanel .pg-grid{grid-template-columns:repeat(2,1fr)}}
 </style>
 <script>
 /* ===== ホーム（案A）＋記録タブの切り替え＋既定の明るい配色 ===== */
@@ -3346,7 +3973,7 @@ input,select,textarea{font-size:16px}
       + '<div class="card"><div class="k">ネタ帳の記録</div><div class="v">' + topics + '<small>件</small></div></div>';
   }
   /* 記録タブ：中身を1つずつ表示 */
-  var REC = [["kpiPanel","KPI"],["costPanel","AIコスト"],["affiPanel","アフィ"],
+  var REC = [["kpiPanel","KPI"],["costPanel","AIコスト"],["affiPanel","アフィ"],["earnPanel","収益"],
              ["personaPanel","ペルソナ"],["acctPanel","アカウント"],["imgPanel","画像"],["qaPanel2","QA"]];
   var recSel = "kpiPanel", curTab = "";
   function paintRec(){
@@ -3399,5 +4026,279 @@ input,select,textarea{font-size:16px}
 })();
 </script>
 
+
+<!-- SNSの投稿セット -->
+<div class="panel" id="snsAutoPanel">
+  <div class="ph"><span class="n">POST SET</span><h2>投稿セットを組み立てる（SNS用）</h2>
+    <p>記事を選んで出す先を押すと、<b>X／Instagram／Threads／noteの告知</b>の文面を自動で組み立てます。<b>コピーして貼るだけ</b>です。</p></div>
+  <div class="pb"><div id="psBox"></div></div>
+</div>
+
+<!-- 収益の記録 -->
+<div class="panel" id="earnPanel">
+  <div class="ph"><span class="n">EARN</span><h2>収益の記録（どの記事が稼いだか）</h2>
+    <p>アフィリエイトやnoteの売上を、<b>記事ごとに手で入れる</b>だけ。次にどの記事を伸ばせばいいかが見えます。</p></div>
+  <div class="pb"><div id="earnBox"></div></div>
+</div>
+
+
+<script>
+/* ============================================================
+   v16: 投稿セット（SNS）／収益の記録／やさしい表示
+   ============================================================ */
+var PS = { art:"", dest:["x"], url:"" };
+var PS_BASE = {
+  mobile:["#スマホ","#携帯料金","#乗り換え"],
+  gadget:["#ガジェット","#家電","#買い替え"],
+  beauty:["#美容","#コスメ","#スキンケア"],
+  money:["#マネー","#保険","#節約"],
+  travel:["#旅行","#観光","#ホテル"],
+  custom:["#ブログ","#note"]
+};
+var PS_TIME = {
+  x:["7〜9時（通勤の時間）","12〜13時（昼休み）","20〜22時（寝る前）"],
+  instagram:["11〜13時","19〜22時"],
+  threads:["21〜23時"],
+  note:["20〜22時"]
+};
+function psEsc(v){
+  try{ if(typeof mlEsc === "function") return mlEsc(v); }catch(_){}
+  return String(v == null ? "" : v).replace(/[&<>"]/g, function(c){ return ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"})[c]; });
+}
+function psYmd(){ var d = new Date(); return d.getFullYear() + "年" + (d.getMonth()+1) + "月"; }
+function psList(){
+  var out = [];
+  try{
+    Object.keys(RUNS || {}).forEach(function(k){
+      var r = RUNS[k] || {}; var F = r.files || {};
+      var body = F["note_paste.md"] || F["04_記事本文.md"] || F["03_本文.md"] || F["本文.md"] || "";
+      out.push({ id:r.id || k, topic:r.topic || "（題名なし）", at:r.at || "", body:String(body || "") });
+    });
+  }catch(_){}
+  return out.reverse();
+}
+function psMeta(body){
+  var t = String(body || ""), o = { title:"", tags:[], date:"", num:"" };
+  var m = t.match(/##\s*note投稿メタ([\s\S]{0,900})/);
+  var seg = m ? m[1] : t;
+  var x = seg.match(/タイトル\s*[:：]\s*(.+)/); if(x) o.title = x[1].replace(/[（(].*$/, "").trim();
+  x = seg.match(/タグ\s*[:：]\s*(.+)/); if(x) o.tags = (x[1].match(/#[^\s#]+/g) || []);
+  x = seg.match(/情報の基準日\s*[:：]\s*(.+)/); if(x) o.date = x[1].trim();
+  if(!o.title){ x = t.match(/^#\s+(.+)$/m); if(x) o.title = x[1].trim(); }
+  x = (o.title || "").match(/[0-9０-９]+[^0-9０-９]{0,6}/); if(x) o.num = x[0].trim();
+  return o;
+}
+function psHook(body){
+  var t = String(body || "").replace(/```[\s\S]*?```/g, " ").replace(/##\s*note投稿メタ[\s\S]*$/, "");
+  var lines = t.split("\n").map(function(s){ return s.trim(); }).filter(Boolean);
+  for(var i=0;i<lines.length;i++){
+    var l = lines[i];
+    if(/^#/.test(l) || /^[-*|>]/.test(l) || /^【ここにあなたの/.test(l)) continue;
+    var s = l.replace(/[*`]/g, "").trim();
+    if(s.length >= 14) return s.length > 92 ? s.slice(0, 92) + "…" : s;
+  }
+  return "";
+}
+function psHeads(body){
+  var t = String(body || "");
+  var hs = (t.match(/^##\s+(.+)$/gm) || []).map(function(s){ return s.replace(/^##\s+/, "").trim(); })
+    .filter(function(s){ return !/note投稿メタ|人間に足してほしい情報|見出し|タイトル/.test(s); });
+  return hs.slice(0, 3);
+}
+function psTag(tags, dest, genre){
+  var base = PS_BASE[genre] || PS_BASE.custom;
+  var all = (tags || []).concat(base).filter(function(v, i, a){ return v && a.indexOf(v) === i; });
+  var n = dest === "instagram" ? 10 : (dest === "note" ? 5 : 3);
+  return all.slice(0, n).join(" ");
+}
+function psBuild(it, dest, genre){
+  var m = psMeta(it.body), url = PS.url || "（ここに記事のURL）";
+  var date = m.date || psYmd(), hook = psHook(it.body) || "（←ここに記事の要点を1行）";
+  var title = m.title || it.topic, hs = psHeads(it.body), tg = psTag(m.tags, dest, genre);
+  var out = [];
+  if(dest === "x"){
+    out.push({ k:"X ① 速報型（変化を伝える）", text:(m.num ? "【" + m.num + "】" : "") + title + "\n\n" + hook + "\n\n" + url + "\n" + tg });
+    out.push({ k:"X ② 比較型（数字を出す）", text:title + "\n\n" + (hs[0] ? "・" + hs[0] + "\n" : "") + "（" + date + "時点）\n\n" + url + "\n" + tg });
+    out.push({ k:"X ③ 体験型（あなたの実感）", text:title + "\n\n（←ここにあなたの店頭体験をひとつ）\n\n" + url + "\n" + tg });
+  } else if(dest === "instagram"){
+    out.push({ k:"Instagram（写真＋説明）", text:title + "\n\n" + hook + "\n\n" + hs.map(function(h){ return "・" + h; }).join("\n") + "\n\n（" + date + "時点）\n\n" + url + "\n\n" + tg });
+  } else if(dest === "threads"){
+    out.push({ k:"Threads（会話型）", text:hook + "\n\n" + title + "\n\nみなさんはどうしていますか？\n\n" + url + "\n" + tg });
+  } else {
+    out.push({ k:"noteの告知（短文）", text:title + "\n\n" + url + "\n\n" + tg });
+  }
+  return out;
+}
+function psPromptText(it, genre){
+  var m = psMeta(it.body);
+  return "次の記事から、SNSの投稿セットを作ってください。\n\n"
+    + "## 記事のタイトル\n" + (m.title || it.topic) + "\n\n"
+    + "## 出す先と型\n"
+    + "- X：①速報型（変化を伝える）②比較型（数字を出す）③体験型（店頭の実感）の3案。それぞれ文字数も書く\n"
+    + "- Instagram：写真に添える説明文（300字以内）＋ハッシュタグ\n"
+    + "- Threads：会話を始める問いかけ型\n"
+    + "- noteの告知：短い1本\n\n"
+    + "## 守るルール\n- 数字には必ず基準日を付ける\n- アフィリエイトを含む投稿には冒頭に「広告」または「PR」\n"
+    + "- 煽らない。事実と条件だけで書く\n- ハッシュタグは大タグ1〜2個＋固有タグ2〜3個\n\n"
+    + "## 記事の本文\n" + String(it.body || "").slice(0, 6000);
+}
+function psCopy(txt, btn){
+  function done(ok){
+    try{ btn.textContent = ok ? "コピーしました" : "長押しでコピー"; setTimeout(function(){ btn.textContent = "コピー"; }, 1600); }catch(_){}
+    try{ toast(ok ? "コピーしました。貼り付けてください。" : "コピーできませんでした。下の枠を長押し→全選択→コピーしてください。"); }catch(_){}
+  }
+  function fb(){
+    try{
+      var ta = document.createElement("textarea");
+      ta.value = txt; ta.setAttribute("readonly", ""); ta.style.position = "fixed"; ta.style.top = "-1000px";
+      document.body.appendChild(ta); ta.select(); ta.setSelectionRange(0, txt.length);
+      var ok = document.execCommand("copy"); document.body.removeChild(ta); done(ok);
+    }catch(_){ done(false); }
+  }
+  try{ if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(txt).then(function(){ done(true); }, fb); return; } }catch(_){}
+  fb();
+}
+function psRender(){
+  var box = document.getElementById("psBox"); if(!box) return;
+  var arts = psList();
+  if(!arts.length){
+    box.innerHTML = '<p class="hint" style="padding:0 2px">まだ記事がありません。「<b>作業</b>」タブでネタを仕込むと、ここに並びます。</p>';
+    return;
+  }
+  var found = false;
+  for(var i=0;i<arts.length;i++) if(arts[i].id === PS.art) found = true;
+  if(!found) PS.art = arts[0].id;
+  var sel = arts.map(function(a){ return '<option value="' + psEsc(a.id) + '"' + (a.id === PS.art ? " selected" : "") + '>' + psEsc(a.topic) + '</option>'; }).join("");
+  var DEST = [["x","X（旧Twitter）"],["instagram","Instagram"],["threads","Threads"],["note","noteの告知"]];
+  var dbtns = DEST.map(function(d){ return '<button class="dbtn' + (PS.dest.indexOf(d[0]) >= 0 ? " on" : "") + '" data-d="' + d[0] + '" type="button">' + d[1] + '</button>'; }).join("");
+  var tline = PS.dest.map(function(d){ return '<div style="font-size:12.5px;color:var(--dim);margin:3px 0">' + psEsc(d === "x" ? "X" : d) + "：" + psEsc((PS_TIME[d] || []).join(" / ")) + "</div>"; }).join("");
+  box.innerHTML =
+      '<div class="pstep"><span class="pnum">1</span><div><b>どの記事を出しますか</b></div></div>'
+    + '<label class="f"><span>記事（ストックから選ぶ）</span><select id="psArt">' + sel + '</select></label>'
+    + '<div class="pstep"><span class="pnum">2</span><div><b>どこに出しますか</b>（いくつでも押せます）</div></div>'
+    + '<div class="dbtns">' + dbtns + '</div>'
+    + '<label class="f"><span>記事のURL（noteのURLを貼る）</span><input type="text" id="psUrl" placeholder="https://note.com/..." value="' + psEsc(PS.url) + '"></label>'
+    + '<div class="pstep"><span class="pnum">3</span><div><b>「セットを作る」を押す</b></div></div>'
+    + '<div class="actions"><button class="btn primary" id="psGo" type="button">セットを作る</button>'
+    + '<button class="btn" id="psPrompt" type="button">AIに肉付けさせる指示文をコピー</button></div>'
+    + '<p class="hint">出しやすい時間帯の目安（あなたのフォロワーに合わせて調整してください）</p>' + tline
+    + '<p class="hint"><b>アフィリエイトのリンクを含む投稿には、冒頭に「広告」または「PR」を必ず入れてください</b>（ステマ規制）。</p>'
+    + '<div id="psOut"></div>';
+  var s = document.getElementById("psArt"); if(s) s.onchange = function(){ PS.art = s.value; psRender(); };
+  var u = document.getElementById("psUrl"); if(u) u.oninput = function(){ PS.url = String(u.value || "").trim(); };
+  var bs = box.querySelectorAll("[data-d]");
+  for(var j=0;j<bs.length;j++){ bs[j].onclick = (function(b){ return function(){
+    var k = b.getAttribute("data-d"); var i2 = PS.dest.indexOf(k);
+    if(i2 >= 0) PS.dest.splice(i2, 1); else PS.dest.push(k);
+    psRender();
+  }; })(bs[j]); }
+  var go = document.getElementById("psGo"); if(go) go.onclick = function(){ psMake(); };
+  var pr = document.getElementById("psPrompt"); if(pr) pr.onclick = function(){
+    var a = null, all = psList();
+    for(var i3=0;i3<all.length;i3++) if(all[i3].id === PS.art) a = all[i3];
+    if(!a){ toast("記事を選んでください。"); return; }
+    psCopy(psPromptText(a, (typeof mlGenreId === "function" ? mlGenreId() : "mobile")), pr);
+  };
+}
+function psMake(){
+  var out = document.getElementById("psOut"); if(!out) return;
+  if(!PS.dest.length){ out.innerHTML = '<p class="hint">出す先を1つ以上押してください。</p>'; return; }
+  var a = null, all = psList();
+  for(var i=0;i<all.length;i++) if(all[i].id === PS.art) a = all[i];
+  if(!a){ out.innerHTML = '<p class="hint">記事を選んでください。</p>'; return; }
+  var genre = (typeof mlGenreId === "function" ? mlGenreId() : "mobile");
+  var cards = "";
+  PS.dest.forEach(function(d){
+    psBuild(a, d, genre).forEach(function(p, n){
+      var id = "psc_" + d + "_" + n;
+      cards += '<div class="pscard"><div class="psh">' + psEsc(p.k) + '<span>' + p.text.length + '文字</span></div>'
+        + '<textarea id="' + id + '" readonly>' + psEsc(p.text) + '</textarea>'
+        + '<div class="actions"><button class="btn sm" data-copy="' + id + '" type="button">コピー</button></div></div>';
+    });
+  });
+  out.innerHTML = '<div class="pstep" style="margin-top:14px"><span class="pnum">✓</span><div><b>できました</b>。コピーして貼ってください。</div></div>' + cards;
+  var cs = out.querySelectorAll("[data-copy]");
+  for(var k=0;k<cs.length;k++){ cs[k].onclick = (function(b){ return function(){
+    var t = document.getElementById(b.getAttribute("data-copy"));
+    psCopy(t ? t.value : "", b);
+  }; })(cs[k]); }
+}
+/* ---- 収益の記録 ---- */
+function earnData(){ try{ return LS.get("ml_earn", {}) || {}; }catch(_){ return {}; } }
+function earnRender(){
+  var box = document.getElementById("earnBox"); if(!box) return;
+  var d = earnData(), arts = psList();
+  function row(id, label){
+    var e = d[id] || {};
+    return '<tr><td>' + psEsc(label) + '</td>'
+      + '<td><input type="number" min="0" inputmode="numeric" data-cl="' + psEsc(id) + '" value="' + (e.clicks || "") + '" style="width:88px"></td>'
+      + '<td><input type="number" min="0" inputmode="numeric" data-yen="' + psEsc(id) + '" value="' + (e.yen || "") + '" style="width:100px"></td>'
+      + '<td><input type="text" data-memo="' + psEsc(id) + '" value="' + psEsc(e.memo || "") + '" placeholder="例: 8月のAmazon" style="width:100%"></td></tr>';
+  }
+  var rows = arts.map(function(a){ return row(a.id, a.topic); }).join("");
+  rows += row("__other", "記事以外（メンバーシップ・単発の仕事など）");
+  var tc = 0, ty = 0, best = "", bv = -1;
+  Object.keys(d).forEach(function(k){
+    var e = d[k] || {}; tc += Number(e.clicks || 0); ty += Number(e.yen || 0);
+    if(Number(e.yen || 0) > bv){ bv = Number(e.yen || 0); best = k; }
+  });
+  var bestName = "まだ記録がありません";
+  if(best && bv > 0){
+    bestName = best === "__other" ? "記事以外" : best;
+    for(var i=0;i<arts.length;i++) if(arts[i].id === best) bestName = arts[i].topic;
+    bestName = psEsc(bestName) + "（" + bv.toLocaleString() + "円）";
+  }
+  box.innerHTML = '<div class="cards">'
+    + '<div class="card"><div class="k">合計の報酬</div><div class="v">' + ty.toLocaleString() + '<small>円</small></div></div>'
+    + '<div class="card"><div class="k">合計のクリック</div><div class="v">' + tc.toLocaleString() + '<small>回</small></div></div>'
+    + '<div class="card"><div class="k">1クリックあたり</div><div class="v">' + (tc ? (ty / tc).toFixed(1) : "0") + '<small>円</small></div></div>'
+    + '<div class="card"><div class="k">いちばん稼いだ記事</div><div class="v" style="font-size:15px;line-height:1.5">' + bestName + '</div></div>'
+    + '</div>'
+    + (arts.length ? '' : '<p class="hint">記事がまだありません。先に「作業」タブで仕込むと、ここに記事ごとの行が出ます。</p>')
+    + '<table class="tbl"><tr><th>記事</th><th>クリック</th><th>報酬(円)</th><th>メモ</th></tr>' + rows + '</table>'
+    + '<div class="actions" style="margin-top:10px"><button class="btn primary" id="earnSave" type="button">この内容で保存する</button></div>'
+    + '<p class="hint">アフィリエイトの管理画面やnoteの売上から、<b>月に1回うつすだけ</b>で十分です。どの記事を伸ばせばいいかが見えます。</p>';
+  var sv = document.getElementById("earnSave");
+  if(sv) sv.onclick = function(){
+    var nd = {};
+    var fields = box.querySelectorAll("[data-cl]");
+    for(var i=0;i<fields.length;i++){
+      var id = fields[i].getAttribute("data-cl");
+      var y = box.querySelector('[data-yen="' + id + '"]');
+      var m = box.querySelector('[data-memo="' + id + '"]');
+      var c = Number(fields[i].value || 0), yy = Number((y && y.value) || 0);
+      if(c || yy || (m && m.value)) nd[id] = { clicks:c, yen:yy, memo:(m ? String(m.value || "") : "") };
+    }
+    try{ LS.set("ml_earn", nd); }catch(_){}
+    earnRender();
+    try{ toast("収益を保存しました。"); }catch(_){}
+  };
+}
+/* ---- やさしい表示（文字を大きく） ---- */
+function easyApply(on){
+  try{ document.documentElement.classList.toggle("easy", !!on); }catch(_){}
+  var b = document.getElementById("btnEasy");
+  if(b) b.textContent = on ? "文字を元にもどす" : "文字を大きくする";
+  try{ LS.set("ml_easy", on ? 1 : 0); }catch(_){}
+}
+function easyToggle(){
+  var on = false;
+  try{ on = document.documentElement.classList.contains("easy"); }catch(_){}
+  easyApply(!on);
+  try{ toast(!on ? "文字とボタンを大きくしました。" : "文字を元にもどしました。"); }catch(_){}
+}
+(function(){
+  function boot(){
+    try{ psRender(); }catch(e){}
+    try{ earnRender(); }catch(e){}
+    try{ easyApply(!!LS.get("ml_easy", 0)); }catch(e){}
+    var b = document.getElementById("btnEasy"); if(b) b.onclick = easyToggle;
+  }
+  try{ if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot); else boot(); }catch(_){}
+  setTimeout(boot, 300);
+})();
+try{ window.__v16 = { psBuild:psBuild, psMeta:psMeta, psPromptText:psPromptText, earnRender:earnRender, psList:psList }; }catch(_){}
+
+</script>
 </body>
 </html>
