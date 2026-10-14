@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>デザイン10案 ── ぽけっと通信</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700&family=Shippori+Mincho+B1:wght@600;800&family=M+PLUS+1p:wght@400;700;800&family=DotGothic16&family=Kaisei+Tokumin:wght@700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   この画面自体のデザイン（校正台／コンタクトシート）
+   ねらい：10案が主役。土台は冷たい灰色の紙と細い罫線だけにして、
+   案そのものが目に入るようにする。
+   ============================================================ */
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:#E7E8EA;color:#191C20;
+  font-family:"M PLUS 1p","Hiragino Kaku Gothic ProN","Yu Gothic",system-ui,sans-serif;
+  font-size:15px;line-height:1.75;-webkit-text-size-adjust:100%;
+}
+.wrap{max-width:1180px;margin:0 auto;padding:0 16px 80px}
+
+/* 見出し部 */
+.head{padding:26px 0 14px;border-bottom:1px solid #C9CCD1}
+.eyebrow{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11.5px;letter-spacing:.14em;color:#6C7278;text-transform:uppercase}
+.head h1{margin:6px 0 4px;font-size:27px;line-height:1.3;font-weight:800;letter-spacing:-.01em}
+.head p{margin:0;color:#4B5157;font-size:14px;max-width:62ch}
+.head b{background:#191C20;color:#fff;padding:1px 6px;border-radius:3px;font-weight:700}
+
+/* 切り替えの帯 */
+.bar{position:sticky;top:0;z-index:20;background:rgba(231,232,234,.94);backdrop-filter:blur(8px);
+  border-bottom:1px solid #C9CCD1;padding:9px 0;margin-bottom:14px}
+.barIn{max-width:1180px;margin:0 auto;padding:0 16px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.chip{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;font-weight:700;
+  background:#fff;border:1px solid #C9CCD1;color:#191C20;border-radius:999px;padding:6px 10px;cursor:pointer;line-height:1.4}
+.chip:hover{border-color:#191C20}
+.chip.on{background:#191C20;color:#fff;border-color:#191C20}
+.chip small{font-weight:400;opacity:.66;margin-left:5px}
+.barLbl{font-family:ui-monospace,monospace;font-size:11.5px;color:#6C7278;letter-spacing:.1em;margin-right:2px}
+.bar .sp{flex:1}
+.tgl{font-size:12.5px;font-weight:700;background:#191C20;color:#fff;border:1px solid #191C20;border-radius:999px;padding:7px 13px;cursor:pointer}
+
+/* 案の説明 */
+.note{display:flex;gap:14px;align-items:flex-start;background:#fff;border:1px solid #D7DADE;border-left:4px solid #191C20;
+  border-radius:4px;padding:13px 15px;margin-bottom:12px}
+.note .no{font-family:ui-monospace,monospace;font-size:30px;font-weight:700;line-height:1;min-width:52px;letter-spacing:-.03em}
+.note .tt{font-size:19px;font-weight:800;margin:0 0 2px}
+.note .ds{margin:0;font-size:13.5px;color:#4B5157}
+.note .kw{margin-top:7px;display:flex;flex-wrap:wrap;gap:6px}
+.note .kw span{font-family:ui-monospace,monospace;font-size:11px;background:#F1F2F4;border:1px solid #D7DADE;border-radius:3px;padding:2px 7px;color:#4B5157}
+
+/* プレビューの枠 */
+.stageBox{background:#fff;border:1px solid #D7DADE;border-radius:4px;padding:0;overflow:hidden}
+.stageBoxTop{display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid #E4E6E9;background:#FAFAFB}
+.dots{display:flex;gap:5px}
+.dots i{width:9px;height:9px;border-radius:50%;background:#D7DADE;display:block}
+.stageBoxTop .nm{font-family:ui-monospace,monospace;font-size:11.5px;color:#6C7278;letter-spacing:.06em}
+.stageBoxTop .sp{flex:1}
+.stageBoxTop .px{font-family:ui-monospace,monospace;font-size:11px;color:#8A9096}
+.stage{padding:0}
+.sizer{width:100%;display:flex;justify-content:center;background:#DDE0E4;padding:0}
+.sizer .mockHost{width:100%;max-width:430px;background:#fff}
+
+/* まとめて見る（ギャラリー） */
+.galgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:16px}
+.gitem{background:#fff;border:1px solid #D7DADE;border-radius:4px;overflow:hidden}
+.gitem .gt{display:flex;align-items:center;gap:8px;padding:8px 11px;border-bottom:1px solid #E4E6E9;background:#FAFAFB}
+.gitem .gt b{font-size:13.5px}
+.gitem .gt span{font-family:ui-monospace,monospace;font-size:11px;color:#6C7278;margin-left:auto}
+.gitem .gv{height:520px;overflow:hidden;background:#fff}
+.gitem .gv .mockHost{max-width:none}
+
+/* ============================================================
+   アプリ画面のモック（10案ぶんの見た目はこの中の変数で変える）
+   ============================================================ */
+.mock{padding:14px 14px 20px}
+.mTop{display:flex;align-items:center;gap:8px;padding-bottom:11px}
+.mBrand{display:flex;align-items:center;gap:8px}
+.mBrand i{width:10px;height:10px;border-radius:3px;background:var(--acc);display:block;flex:0 0 auto}
+.mBrand b{font-size:15px;letter-spacing:.01em}
+.mBrand small{display:block;font-size:9.5px;letter-spacing:.14em;color:var(--dim);font-weight:400}
+.mSpacer{flex:1}
+.mStatus{font-size:11.5px;border:1px solid var(--line);border-radius:999px;padding:4px 9px;color:var(--dim);display:flex;align-items:center;gap:6px;white-space:nowrap}
+.mDot{width:7px;height:7px;border-radius:50%;background:var(--acc);display:block}
+.mMore{font-size:14px;border:1px solid var(--line);background:transparent;color:var(--dim);border-radius:999px;width:30px;height:30px;cursor:default}
+.mNav{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:11px}
+.mNav button,.mNav a{margin:0;cursor:default;text-decoration:none;display:inline-flex;align-items:center}
+.mNav .on{}
+.mNav .aux{}
+.mNow{display:flex;gap:10px;align-items:center;margin-bottom:11px}
+.mNum{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-weight:800;font-size:13px;background:var(--acc);color:var(--accInk);flex:0 0 auto}
+.mNow b{display:block;font-size:13.5px;line-height:1.4}
+.mNow small{display:block;font-size:11.5px;color:var(--dim);line-height:1.5}
+.mProg{border:1px solid var(--acc);border-radius:var(--r);padding:11px 12px;background:var(--accSoft);margin-bottom:11px}
+.mPH{display:flex;align-items:center;gap:8px}
+.mPd{width:9px;height:9px;border-radius:50%;background:var(--acc);display:block;flex:0 0 auto}
+.mPH b{font-size:13.5px}
+.mPn{margin-left:auto;font-family:var(--mono);font-size:11px;font-weight:700;color:var(--acc)}
+.mBar{height:8px;border-radius:99px;background:var(--sur2);border:1px solid var(--line);margin:9px 0 7px;overflow:hidden}
+.mBar i{display:block;height:100%;background:var(--acc)}
+.mPNow{font-size:12.5px;line-height:1.6}
+.mMeta{display:flex;gap:10px;font-family:var(--mono);font-size:10.5px;color:var(--dim);margin-top:2px}
+.mGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:9px}
+.mSt{border:1px solid var(--line);background:var(--sur);border-radius:var(--rSm);padding:6px 7px}
+.mSt .pn{font-size:11px;color:var(--dim);display:block}
+.mSt .ps{font-family:var(--mono);font-size:10px;color:var(--dim);display:block;margin-top:1px}
+.mSt.run{border-color:var(--warn);background:var(--warnSoft)}
+.mSt.run .ps{color:var(--warn);font-weight:700}
+.mSt.done{border-color:var(--acc);background:var(--accSoft)}
+.mSt.done .ps{color:var(--acc)}
+.mSteps{display:grid;gap:8px}
+.mStep{border:1px solid var(--line);background:var(--sur);border-radius:var(--r);padding:10px 11px;text-align:left;cursor:default;font:inherit;color:inherit;display:block}
+.mStep b{display:block;font-size:14px}
+.mStep small{display:block;font-size:11.5px;color:var(--dim);line-height:1.55;margin-top:2px}
+.mStep i{font-style:normal;font-size:11.5px;color:var(--acc);display:block;margin-top:5px}
+.mHint{margin:11px 0 0;font-size:11.5px;color:var(--dim);line-height:1.7}
+
+/* ============================================================
+   0. いまのデザイン（v16）── 比較用
+   ============================================================ */
+[data-d="0"]{--bg:#0B1017;--sur:#141B26;--sur2:#1B2431;--line:#243040;--ink:#E9EFF7;--dim:#9BABC2;
+  --acc:#3DDC97;--accSoft:rgba(61,220,151,.12);--accInk:#062015;--warn:#F5A623;--warnSoft:rgba(245,166,35,.12);
+  --r:12px;--rSm:9px;--mono:ui-monospace,Menlo,monospace;--font:"M PLUS 1p",sans-serif;--hd:"M PLUS 1p",sans-serif}
+[data-d="0"] .mock{background:var(--bg);color:var(--ink);font-family:var(--font)}
+[data-d="0"] .mBrand b{font-family:var(--hd);color:var(--ink)}
+[data-d="0"] .mNav button,[data-d="0"] .mNav a{background:var(--bg);border:1px solid var(--line);color:var(--dim);
+  border-radius:999px;font-size:12.5px;font-weight:700;padding:7px 12px;font-family:inherit}
+[data-d="0"] .mNav .on{border-color:var(--acc);color:var(--acc);background:var(--accSoft)}
+[data-d="0"] .mNav .aux{background:var(--sur)}
+
+/* ============================================================
+   1. 上質ダーク ── 金の細線・明朝・余白
+   ============================================================ */
+[data-d="1"]{--bg:#0E1014;--sur:#15181E;--sur2:#1B1F26;--line:#2A2F38;--ink:#F0EDE6;--dim:#9A958A;
+  --acc:#C9A24A;--accSoft:rgba(201,162,74,.10);--accInk:#17140C;--warn:#C9A24A;--warnSoft:rgba(201,162,74,.14);
+  --r:2px;--rSm:2px;--mono:"Shippori Mincho B1",serif;--font:"Shippori Mincho B1",serif;--hd:"Shippori Mincho B1",serif}
+[data-d="1"] .mock{background:var(--bg);color:var(--ink);font-family:var(--font);padding:20px 20px 26px}
+[data-d="1"] .mTop{border-bottom:1px solid var(--line);padding-bottom:14px;margin-bottom:4px}
+[data-d="1"] .mBrand i{width:14px;height:1.5px;border-radius:0}
+[data-d="1"] .mBrand b{font-size:17px;letter-spacing:.12em}
+[data-d="1"] .mBrand small{letter-spacing:.3em;color:#7C7668}
+[data-d="1"] .mStatus{border:1px solid var(--line);background:transparent}
+[data-d="1"] .mNav{gap:0;border-bottom:1px solid var(--line);padding:10px 0 11px;margin-bottom:14px}
+[data-d="1"] .mNav button,[data-d="1"] .mNav a{background:none;border:0;border-bottom:1px solid transparent;color:var(--dim);
+  font-size:13px;letter-spacing:.06em;padding:3px 11px 4px;font-family:inherit}
+[data-d="1"] .mNav .on{color:var(--acc);border-bottom-color:var(--acc)}
+[data-d="1"] .mNav .aux{color:#6E6A60;font-size:12px}
+[data-d="1"] .mNow{gap:12px;margin-bottom:15px}
+[data-d="1"] .mNum{width:auto;height:auto;border-radius:0;background:none;color:var(--acc);font-size:16px;font-family:var(--mono)}
+[data-d="1"] .mNum::after{content:"."}
+[data-d="1"] .mNow b{font-size:14.5px;letter-spacing:.03em}
+[data-d="1"] .mProg{background:none;border:1px solid var(--line);border-left:2px solid var(--acc);border-radius:0;padding:13px 14px}
+[data-d="1"] .mPd{border-radius:0;width:6px;height:6px;transform:rotate(45deg)}
+[data-d="1"] .mBar{background:#0A0C0F;border-radius:0;height:3px;border:0}
+[data-d="1"] .mPn{letter-spacing:.08em}
+[data-d="1"] .mSt{border-radius:0;background:none;border-color:var(--line)}
+[data-d="1"] .mStep{border-radius:0;background:none;border:0;border-top:1px solid var(--line);padding:12px 0}
+[data-d="1"] .mStep:first-child{border-top:0}
+[data-d="1"] .mStep b{font-size:15px;letter-spacing:.04em}
+[data-d="1"] .mStep i{color:var(--acc);letter-spacing:.06em}
+[data-d="1"] .mHint{color:#6E6A60;border-top:1px solid var(--line);padding-top:10px}
+
+/* ============================================================
+   2. 紙のノート ── 罫線・えんぴつ・付箋
+   ============================================================ */
+[data-d="2"]{--bg:#FBF6EA;--sur:#FFFDF6;--sur2:#F4EDDC;--line:#E0D5BE;--ink:#39322A;--dim:#8A7E6B;
+  --acc:#B4552E;--accSoft:rgba(180,85,46,.09);--accInk:#FFF8F2;--warn:#C98A1E;--warnSoft:rgba(201,138,30,.13);
+  --r:5px;--rSm:3px;--mono:ui-monospace,Menlo,monospace;--font:"Zen Maru Gothic",sans-serif;--hd:"Kaisei Tokumin",serif}
+[data-d="2"] .mock{background:
+    repeating-linear-gradient(to bottom,transparent 0 25px,rgba(120,105,80,.14) 25px 26px),var(--bg);
+  color:var(--ink);font-family:var(--font);padding:18px 16px 24px}
+[data-d="2"] .mTop{padding-bottom:9px;margin-bottom:8px;border-bottom:1.5px dashed var(--line)}
+[data-d="2"] .mBrand i{background:none;border:1.5px solid var(--acc);border-radius:1px}
+[data-d="2"] .mBrand b{font-family:var(--hd);font-size:17px}
+[data-d="2"] .mBrand small{color:#A2937C;letter-spacing:.18em}
+[data-d="2"] .mStatus{background:#FFF6D8;border:1px solid #E8D48F;color:#7A6420;border-radius:2px;transform:rotate(-1.2deg)}
+[data-d="2"] .mNav{margin-bottom:12px}
+[data-d="2"] .mNav button,[data-d="2"] .mNav a{background:var(--sur);border:1px solid var(--line);border-radius:3px;
+  color:var(--ink);font-size:12.5px;padding:6px 11px;font-family:inherit;box-shadow:1px 1px 0 #E4DAC6}
+[data-d="2"] .mNav .on{background:var(--acc);color:var(--accInk);border-color:var(--acc);box-shadow:1px 1px 0 #7E3A1E}
+[data-d="2"] .mNav .aux{background:#F3EAD6;color:#7A6C56}
+[data-d="2"] .mNum{background:none;border:1.5px solid var(--acc);color:var(--acc)}
+[data-d="2"] .mNow b{font-family:var(--hd)}
+[data-d="2"] .mProg{background:#FFF3E4;border:1px solid var(--line);border-left:4px solid var(--acc)}
+[data-d="2"] .mBar{border-radius:2px;background:#EFE2CB}
+[data-d="2"] .mBar i{border-radius:2px}
+[data-d="2"] .mSt{background:var(--sur);border-color:var(--line)}
+[data-d="2"] .mSteps{grid-template-columns:1fr 1fr;gap:9px}
+[data-d="2"] .mStep{background:var(--sur);border:1px solid var(--line);box-shadow:2px 2px 0 rgba(120,105,80,.16);position:relative}
+[data-d="2"] .mStep b{font-family:var(--hd);font-size:13.5px}
+[data-d="2"] .mStep i{color:var(--acc)}
+[data-d="2"] .mStep:nth-child(1){transform:rotate(-.5deg)}
+[data-d="2"] .mStep:nth-child(2){transform:rotate(.6deg)}
+[data-d="2"] .mStep:nth-child(3){transform:rotate(-.4deg)}
+[data-d="2"] .mStep:nth-child(4){transform:rotate(.5deg)}
+
+/* ============================================================
+   3. ポップ ── ビビッド・丸太字・バッジ
+   ============================================================ */
+[data-d="3"]{--bg:#FFF6FB;--sur:#FFFFFF;--sur2:#FFF0F7;--line:#FFD3E7;--ink:#211733;--dim:#8579A0;
+  --acc:#FF3D8B;--accSoft:rgba(255,61,139,.10);--accInk:#FFFFFF;--warn:#FFB100;--warnSoft:rgba(255,177,0,.16);
+  --r:20px;--rSm:12px;--mono:ui-monospace,monospace;--font:"Zen Maru Gothic",sans-serif;--hd:"Zen Maru Gothic",sans-serif}
+[data-d="3"] .mock{background:
+    radial-gradient(1200px 300px at 10% -10%,#FFE3F1 0,transparent 60%),
+    radial-gradient(900px 260px at 110% 6%,#E4E6FF 0,transparent 60%),var(--bg);
+  color:var(--ink);font-family:var(--font);padding:16px 15px 24px}
+[data-d="3"] .mBrand i{width:13px;height:13px;border-radius:50%;box-shadow:0 0 0 3px rgba(255,61,139,.18)}
+[data-d="3"] .mBrand b{font-size:17px;font-weight:700}
+[data-d="3"] .mTop{padding-bottom:10px}
+[data-d="3"] .mStatus{background:#fff;border:2px solid var(--line);color:var(--ink);font-weight:700}
+[data-d="3"] .mMore{border:2px solid var(--line);background:#fff;color:var(--ink)}
+[data-d="3"] .mNav button,[data-d="3"] .mNav a{background:#fff;border:2px solid var(--line);border-radius:999px;
+  color:var(--ink);font-size:12.5px;font-weight:700;padding:7px 12px;font-family:inherit}
+[data-d="3"] .mNav .on{background:var(--acc);border-color:var(--acc);color:#fff;box-shadow:0 3px 0 #C70063}
+[data-d="3"] .mNav .aux{background:#FFF0F7;color:#9A2E63}
+[data-d="3"] .mNow{background:#fff;border:2px solid var(--line);border-radius:var(--r);padding:10px 11px}
+[data-d="3"] .mNum{background:var(--warn);color:#3A2600;box-shadow:0 3px 0 #D18F00}
+[data-d="3"] .mProg{background:#fff;border:2px solid var(--acc);box-shadow:0 4px 0 rgba(255,61,139,.22)}
+[data-d="3"] .mBar{height:12px;border-radius:99px;border:2px solid var(--line);background:#FFF0F7}
+[data-d="3"] .mPn{background:var(--acc);color:#fff;border-radius:99px;padding:3px 9px}
+[data-d="3"] .mSt{background:#FFF0F7;border:2px solid var(--line);border-radius:var(--rSm)}
+[data-d="3"] .mSt.run{background:#FFF6DC}
+[data-d="3"] .mSteps{grid-template-columns:1fr 1fr;gap:9px}
+[data-d="3"] .mStep{background:#fff;border:2px solid var(--line);border-radius:var(--r);box-shadow:0 3px 0 rgba(33,23,51,.10)}
+[data-d="3"] .mStep b{font-size:14px}
+[data-d="3"] .mStep i{background:var(--acc);color:#fff;border-radius:99px;display:inline-block;padding:3px 10px;margin-top:7px}
+[data-d="3"] .mStep:nth-child(odd){transform:rotate(-1deg)}
+[data-d="3"] .mStep:nth-child(even){transform:rotate(1deg)}
+
+/* ============================================================
+   4. 新聞 ── 明朝・罫線・段組み
+   ============================================================ */
+[data-d="4"]{--bg:#F3F0E7;--sur:#FFFEF9;--sur2:#EDE9DE;--line:#BEB8A8;--ink:#14120D;--dim:#6B6558;
+  --acc:#8A1F1F;--accSoft:rgba(138,31,31,.07);--accInk:#FFF9F2;--warn:#8A1F1F;--warnSoft:rgba(138,31,31,.08);
+  --r:0px;--rSm:0px;--mono:ui-monospace,Menlo,monospace;--font:"Shippori Mincho B1",serif;--hd:"Shippori Mincho B1",serif}
+[data-d="4"] .mock{background:var(--bg);color:var(--ink);font-family:var(--font);padding:16px 15px 22px}
+[data-d="4"] .mTop{border-bottom:3px double var(--ink);padding-bottom:9px;margin-bottom:9px;align-items:flex-end}
+[data-d="4"] .mBrand i{border-radius:0;background:var(--acc);width:12px;height:12px}
+[data-d="4"] .mBrand b{font-size:23px;font-weight:800;letter-spacing:.06em}
+[data-d="4"] .mBrand small{color:var(--dim);letter-spacing:.24em;font-size:9px}
+[data-d="4"] .mStatus{border:1px solid var(--ink);border-radius:0;font-size:10.5px}
+[data-d="4"] .mMore{border-radius:0;border-color:var(--ink);color:var(--ink)}
+[data-d="4"] .mNav{border-top:1px solid var(--ink);border-bottom:1px solid var(--ink);padding:6px 0;gap:0;margin-bottom:12px}
+[data-d="4"] .mNav button,[data-d="4"] .mNav a{background:none;border:0;border-right:1px solid var(--line);border-radius:0;
+  color:var(--ink);font-size:12.5px;font-weight:600;padding:2px 10px;font-family:inherit;letter-spacing:.02em}
+[data-d="4"] .mNav button:last-child{border-right:0}
+[data-d="4"] .mNav .on{color:var(--acc);text-decoration:underline;text-underline-offset:3px}
+[data-d="4"] .mNav .aux{color:var(--dim);font-size:11.5px}
+[data-d="4"] .mNum{background:var(--acc);color:var(--accInk);border-radius:0;font-family:var(--hd)}
+[data-d="4"] .mNow{padding-bottom:9px;border-bottom:1px solid var(--line)}
+[data-d="4"] .mNow b{font-size:15px;font-weight:800}
+[data-d="4"] .mProg{background:var(--sur);border:1px solid var(--ink);border-top:3px solid var(--acc);border-radius:0}
+[data-d="4"] .mBar{height:6px;border-radius:0;background:var(--sur2);border:1px solid var(--line)}
+[data-d="4"] .mPn{color:var(--acc)}
+[data-d="4"] .mSt{background:var(--sur);border:1px solid var(--line);border-radius:0}
+[data-d="4"] .mSteps{grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--line);background:var(--sur)}
+[data-d="4"] .mStep{border:0;border-right:1px solid var(--line);border-bottom:1px solid var(--line);border-radius:0;background:none;padding:11px 11px}
+[data-d="4"] .mStep b{font-size:14.5px;font-weight:800}
+[data-d="4"] .mStep i{color:var(--acc);text-decoration:underline;text-underline-offset:3px}
+[data-d="4"] .mHint{border-top:1px solid var(--line);padding-top:9px;font-size:11px}
+
+/* ============================================================
+   5. サイバー ── 等幅・グリッド・発光
+   ============================================================ */
+[data-d="5"]{--bg:#05090F;--sur:#0A141F;--sur2:#0D1B28;--line:#14384E;--ink:#C7EEFF;--dim:#5E8CA6;
+  --acc:#22E5C8;--accSoft:rgba(34,229,200,.10);--accInk:#02201B;--warn:#FFC24B;--warnSoft:rgba(255,194,75,.12);
+  --r:2px;--rSm:2px;--mono:"DotGothic16",ui-monospace,monospace;--font:"DotGothic16",ui-monospace,monospace;--hd:"DotGothic16",monospace}
+[data-d="5"] .mock{background:
+    linear-gradient(rgba(20,56,78,.34) 1px,transparent 1px) 0 0/100% 22px,
+    linear-gradient(90deg,rgba(20,56,78,.34) 1px,transparent 1px) 0 0/22px 100%,
+    radial-gradient(700px 200px at 50% -10%,rgba(34,229,200,.10),transparent 70%),var(--bg);
+  color:var(--ink);font-family:var(--font);padding:16px 15px 22px;font-size:13px}
+[data-d="5"] .mBrand i{border-radius:0;box-shadow:0 0 8px var(--acc)}
+[data-d="5"] .mBrand b{font-size:15px;letter-spacing:.06em;text-shadow:0 0 8px rgba(34,229,200,.45)}
+[data-d="5"] .mBrand small{color:#3E7A93;letter-spacing:.2em}
+[data-d="5"] .mStatus{border:1px solid var(--line);border-radius:0;color:#6FB6CE;background:rgba(10,20,31,.8)}
+[data-d="5"] .mDot{box-shadow:0 0 7px var(--acc)}
+[data-d="5"] .mMore{border-radius:0;border-color:var(--line);color:var(--acc)}
+[data-d="5"] .mTop{border-bottom:1px dashed var(--line);padding-bottom:10px;margin-bottom:10px}
+[data-d="5"] .mNav button,[data-d="5"] .mNav a{background:rgba(10,20,31,.86);border:1px solid var(--line);border-radius:0;
+  color:#79B7CE;font-size:11.5px;padding:6px 10px;font-family:inherit;letter-spacing:.04em}
+[data-d="5"] .mNav .on{border-color:var(--acc);color:var(--acc);box-shadow:0 0 10px rgba(34,229,200,.32),inset 0 0 12px rgba(34,229,200,.10)}
+[data-d="5"] .mNav .aux{color:#4E86A0;border-style:dashed}
+[data-d="5"] .mNow{background:rgba(10,20,31,.72);border:1px solid var(--line);padding:9px 10px}
+[data-d="5"] .mNum{border-radius:0;background:none;border:1px solid var(--acc);color:var(--acc)}
+[data-d="5"] .mNum::after{content:"_" }
+[data-d="5"] .mProg{background:rgba(10,20,31,.72);border:1px solid var(--acc);border-radius:0;box-shadow:0 0 16px rgba(34,229,200,.14)}
+[data-d="5"] .mPd{animation:none;box-shadow:0 0 8px var(--acc)}
+[data-d="5"] .mBar{border-radius:0;background:#071019;border-color:var(--line)}
+[data-d="5"] .mBar i{box-shadow:0 0 10px var(--acc)}
+[data-d="5"] .mSt{border-radius:0;background:rgba(10,20,31,.72)}
+[data-d="5"] .mStep{border-radius:0;background:rgba(10,20,31,.72);border-color:var(--line)}
+[data-d="5"] .mStep i{color:var(--acc)}
+[data-d="5"] .mStep b{letter-spacing:.03em}
+[data-d="5"] .mHint{color:#4E86A0}
+
+/* ============================================================
+   6. やさしい白 ── 大きな文字・丸ボタン・ゆったり
+   ============================================================ */
+[data-d="6"]{--bg:#FFFFFF;--sur:#F5F8FC;--sur2:#EDF2F8;--line:#DCE5F0;--ink:#1D2A38;--dim:#5C6E82;
+  --acc:#2E6BFF;--accSoft:#EAF1FF;--accInk:#FFFFFF;--warn:#E8871E;--warnSoft:#FFF4E4;
+  --r:18px;--rSm:12px;--mono:ui-monospace,monospace;--font:"Zen Maru Gothic",sans-serif;--hd:"Zen Maru Gothic",sans-serif}
+[data-d="6"] .mock{background:var(--bg);color:var(--ink);font-family:var(--font);padding:20px 18px 26px;font-size:17px}
+[data-d="6"] .mTop{padding-bottom:12px}
+[data-d="6"] .mBrand b{font-size:20px}
+[data-d="6"] .mBrand small{font-size:10.5px;color:#8FA3B8}
+[data-d="6"] .mStatus{border:0;background:var(--accSoft);color:#1B47B8;font-weight:700;padding:7px 12px;font-size:13px}
+[data-d="6"] .mMore{width:36px;height:36px;font-size:17px;border-color:var(--line);color:var(--dim);background:var(--sur)}
+[data-d="6"] .mNav{gap:8px;margin-bottom:14px}
+[data-d="6"] .mNav button,[data-d="6"] .mNav a{background:var(--sur);border:0;border-radius:999px;color:#3A4C5E;
+  font-size:14px;font-weight:700;padding:10px 15px;font-family:inherit}
+[data-d="6"] .mNav .on{background:var(--acc);color:#fff}
+[data-d="6"] .mNav .aux{background:#fff;border:1.5px solid var(--line);color:#2E6BFF}
+[data-d="6"] .mNow{background:var(--accSoft);border-radius:var(--r);padding:13px 14px;align-items:center}
+[data-d="6"] .mNum{width:32px;height:32px;font-size:15px}
+[data-d="6"] .mNow b{font-size:16px}
+[data-d="6"] .mNow small{font-size:13px;color:#4A6076}
+[data-d="6"] .mProg{border:0;background:var(--sur);border-left:6px solid var(--acc);padding:14px 15px}
+[data-d="6"] .mPH b{font-size:15.5px}
+[data-d="6"] .mPn{font-size:13px;background:#fff;padding:3px 9px;border-radius:99px}
+[data-d="6"] .mBar{height:12px;background:#DCE5F0;border:0}
+[data-d="6"] .mPNow{font-size:14px}
+[data-d="6"] .mMeta{font-size:12px}
+[data-d="6"] .mGrid{grid-template-columns:1fr 1fr;gap:9px}
+[data-d="6"] .mSt{background:#fff;border:1.5px solid var(--line);padding:9px 10px}
+[data-d="6"] .mSt .pn{font-size:13.5px;color:var(--ink);font-weight:700}
+[data-d="6"] .mSt .ps{font-size:11.5px}
+[data-d="6"] .mStep{background:var(--sur);border:0;padding:14px 15px}
+[data-d="6"] .mStep b{font-size:16.5px}
+[data-d="6"] .mStep small{font-size:13px;color:#4A6076}
+[data-d="6"] .mStep i{font-size:13px;margin-top:7px}
+[data-d="6"] .mHint{font-size:12.5px;color:#5C6E82}
+
+/* ============================================================
+   7. レトロラジオ ── セピア・朱・丸い枠
+   ============================================================ */
+[data-d="7"]{--bg:#EFDCC0;--sur:#FBEEDA;--sur2:#E4CFAE;--line:#C0A87F;--ink:#3D2B1B;--dim:#8A6F4F;
+  --acc:#C0562B;--accSoft:rgba(192,86,43,.11);--accInk:#FFF6EC;--warn:#2E6B6B;--warnSoft:rgba(46,107,107,.13);
+  --r:14px;--rSm:10px;--mono:ui-monospace,Menlo,monospace;--font:"Kaisei Tokumin",serif;--hd:"Kaisei Tokumin",serif}
+[data-d="7"] .mock{background:
+    radial-gradient(600px 240px at 50% -20%,rgba(255,255,255,.5),transparent 70%),var(--bg);
+  color:var(--ink);font-family:var(--font);padding:17px 15px 23px}
+[data-d="7"] .mTop{border-bottom:2px solid var(--line);padding-bottom:10px;margin-bottom:10px}
+[data-d="7"] .mBrand i{width:13px;height:13px;border-radius:50%;box-shadow:inset 0 0 0 3px rgba(61,43,27,.55)}
+[data-d="7"] .mBrand b{font-size:18px;letter-spacing:.04em}
+[data-d="7"] .mBrand small{color:#9C8259;letter-spacing:.22em}
+[data-d="7"] .mStatus{background:var(--sur);border:1.5px solid var(--line);color:#6E573A}
+[data-d="7"] .mMore{border:1.5px solid var(--line);color:#6E573A;background:var(--sur)}
+[data-d="7"] .mNav button,[data-d="7"] .mNav a{background:var(--sur);border:1.5px solid var(--line);border-radius:999px;
+  color:#4E3A25;font-size:12.5px;padding:6px 12px;font-family:inherit;font-weight:600}
+[data-d="7"] .mNav .on{background:var(--acc);border-color:#8E3C1B;color:var(--accInk);box-shadow:0 2px 0 #8E3C1B}
+[data-d="7"] .mNav .aux{background:#E8D6B8;color:#7A6242;font-size:11.5px}
+[data-d="7"] .mNow{background:var(--sur);border:1.5px solid var(--line);border-radius:var(--r);padding:10px 11px}
+[data-d="7"] .mNum{background:var(--warn);color:#EFF7F5}
+[data-d="7"] .mProg{background:var(--sur);border:1.5px solid var(--line);border-top:4px solid var(--acc)}
+[data-d="7"] .mPd{background:var(--acc)}
+[data-d="7"] .mBar{background:#E1CBAB;border-color:var(--line)}
+[data-d="7"] .mPn{color:var(--acc)}
+[data-d="7"] .mSt{background:#F6E8D2;border:1px solid var(--line)}
+[data-d="7"] .mSteps{grid-template-columns:1fr 1fr;gap:9px}
+[data-d="7"] .mStep{background:var(--sur);border:1.5px solid var(--line);box-shadow:0 2px 0 rgba(61,43,27,.18)}
+[data-d="7"] .mStep b{font-size:14px}
+[data-d="7"] .mStep i{color:var(--acc);font-weight:700}
+[data-d="7"] .mHint{color:#8A6F4F}
+
+/* ============================================================
+   8. モノクロ ── 極細罫線・広い余白・角なし
+   ============================================================ */
+[data-d="8"]{--bg:#FFFFFF;--sur:#FFFFFF;--sur2:#F7F7F5;--line:#E2E2DE;--ink:#111111;--dim:#7A7A76;
+  --acc:#111111;--accSoft:#F2F2F0;--accInk:#FFFFFF;--warn:#111111;--warnSoft:#F2F2F0;
+  --r:0px;--rSm:0px;--mono:ui-monospace,SFMono-Regular,Menlo,monospace;--font:"M PLUS 1p",sans-serif;--hd:"M PLUS 1p",sans-serif}
+[data-d="8"] .mock{background:var(--bg);color:var(--ink);font-family:var(--font);padding:24px 20px 28px}
+[data-d="8"] .mTop{border-bottom:1px solid var(--line);padding-bottom:18px;margin-bottom:2px;align-items:baseline}
+[data-d="8"] .mBrand i{width:6px;height:6px;border-radius:0;background:var(--ink)}
+[data-d="8"] .mBrand b{font-size:13px;font-weight:700;letter-spacing:.16em;text-transform:uppercase}
+[data-d="8"] .mBrand small{font-size:8.5px;letter-spacing:.34em;color:#9A9A96}
+[data-d="8"] .mStatus{border:0;border-radius:0;padding:0;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#7A7A76}
+[data-d="8"] .mDot{background:var(--ink);width:5px;height:5px}
+[data-d="8"] .mMore{border:0;border-radius:0;width:auto;height:auto;color:#7A7A76;font-size:12px}
+[data-d="8"] .mNav{gap:0;border-bottom:1px solid var(--line);padding:14px 0;margin-bottom:22px}
+[data-d="8"] .mNav button,[data-d="8"] .mNav a{background:none;border:0;border-radius:0;color:#7A7A76;font-size:10.5px;
+  letter-spacing:.16em;text-transform:uppercase;padding:2px 9px;font-family:var(--font)}
+[data-d="8"] .mNav .on{color:var(--ink);border-bottom:1px solid var(--ink)}
+[data-d="8"] .mNav .aux{color:#ADADA8}
+[data-d="8"] .mNow{gap:14px;margin-bottom:24px}
+[data-d="8"] .mNum{width:auto;height:auto;background:none;color:var(--ink);font-family:var(--mono);font-size:10.5px;letter-spacing:.16em}
+[data-d="8"] .mNum::before{content:"STEP "}
+[data-d="8"] .mNum::after{content:" —"}
+[data-d="8"] .mNow b{font-size:16.5px;font-weight:400;letter-spacing:.01em}
+[data-d="8"] .mNow small{font-size:11.5px;color:#7A7A76;max-width:38ch}
+[data-d="8"] .mProg{background:none;border:0;border-top:1px solid var(--ink);border-radius:0;padding:14px 0 0}
+[data-d="8"] .mPd{background:var(--ink);border-radius:0;width:5px;height:5px}
+[data-d="8"] .mPH b{font-size:12px;letter-spacing:.1em;text-transform:uppercase;font-weight:700}
+[data-d="8"] .mPn{color:var(--ink);font-size:10.5px;letter-spacing:.1em}
+[data-d="8"] .mBar{height:2px;background:var(--line);border:0;border-radius:0;margin:12px 0 9px}
+[data-d="8"] .mBar i{background:var(--ink)}
+[data-d="8"] .mPNow{font-size:12.5px;color:#4A4A46}
+[data-d="8"] .mMeta{font-size:10px;color:#9A9A96;letter-spacing:.06em}
+[data-d="8"] .mSt{background:none;border:0;border-left:1px solid var(--line);border-radius:0;padding:2px 0 2px 10px}
+[data-d="8"] .mSt .pn{font-size:11.5px;color:var(--ink)}
+[data-d="8"] .mSt .ps{font-size:10px;color:#9A9A96}
+[data-d="8"] .mSt.run{border-left-color:var(--ink)}
+[data-d="8"] .mSteps{gap:0;margin-top:22px}
+[data-d="8"] .mStep{background:none;border:0;border-top:1px solid var(--line);border-radius:0;padding:15px 0}
+[data-d="8"] .mStep b{font-size:15px;font-weight:400}
+[data-d="8"] .mStep small{color:#7A7A76;font-size:11.5px}
+[data-d="8"] .mStep i{color:var(--ink);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase}
+[data-d="8"] .mHint{border-top:1px solid var(--line);padding-top:12px;font-size:10.5px;color:#9A9A96;letter-spacing:.04em}
+
+/* ============================================================
+   9. ガラス ── 半透明・光・奥行き
+   ============================================================ */
+[data-d="9"]{--bg:#120B2E;--sur:rgba(255,255,255,.09);--sur2:rgba(255,255,255,.05);--line:rgba(255,255,255,.20);
+  --ink:#F4F6FF;--dim:#A9B0D8;--acc:#7CE0FF;--accSoft:rgba(124,224,255,.14);--accInk:#062033;
+  --warn:#FFD48A;--warnSoft:rgba(255,212,138,.16);--r:20px;--rSm:14px;--mono:ui-monospace,Menlo,monospace;
+  --font:"M PLUS 1p",sans-serif;--hd:"Zen Maru Gothic",sans-serif}
+[data-d="9"] .mock{background:
+    radial-gradient(520px 260px at 8% -12%,rgba(124,224,255,.34),transparent 62%),
+    radial-gradient(520px 300px at 105% 12%,rgba(255,110,196,.30),transparent 62%),
+    radial-gradient(600px 400px at 50% 120%,rgba(122,92,255,.34),transparent 66%),var(--bg);
+  color:var(--ink);font-family:var(--font);padding:18px 16px 24px}
+[data-d="9"] .mTop{padding-bottom:12px}
+[data-d="9"] .mBrand i{border-radius:4px;background:linear-gradient(135deg,#7CE0FF,#B78CFF);box-shadow:0 0 14px rgba(124,224,255,.6)}
+[data-d="9"] .mBrand b{font-family:var(--hd);font-size:16px}
+[data-d="9"] .mStatus{background:rgba(255,255,255,.10);border-color:rgba(255,255,255,.22);backdrop-filter:blur(8px);color:#D6DCFA}
+[data-d="9"] .mMore{background:rgba(255,255,255,.10);border-color:rgba(255,255,255,.22);color:#D6DCFA}
+[data-d="9"] .mNav button,[data-d="9"] .mNav a{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);
+  backdrop-filter:blur(10px);border-radius:999px;color:#D6DCFA;font-size:12.5px;padding:7px 13px;font-family:inherit}
+[data-d="9"] .mNav .on{background:linear-gradient(135deg,rgba(124,224,255,.34),rgba(183,140,255,.30));
+  border-color:rgba(124,224,255,.6);color:#fff;box-shadow:0 4px 18px rgba(124,224,255,.28)}
+[data-d="9"] .mNav .aux{background:rgba(255,255,255,.05);color:#B9C0E4}
+[data-d="9"] .mNow{background:rgba(255,255,255,.09);border:1px solid var(--line);border-radius:var(--r);backdrop-filter:blur(12px);padding:11px 12px}
+[data-d="9"] .mNum{background:linear-gradient(135deg,#7CE0FF,#B78CFF);color:#07203A}
+[data-d="9"] .mProg{background:rgba(255,255,255,.09);border:1px solid rgba(124,224,255,.42);backdrop-filter:blur(12px);
+  box-shadow:0 10px 30px rgba(10,5,30,.4),inset 0 1px 0 rgba(255,255,255,.22)}
+[data-d="9"] .mBar{background:rgba(0,0,0,.28);border-color:rgba(255,255,255,.16)}
+[data-d="9"] .mBar i{background:linear-gradient(90deg,#7CE0FF,#B78CFF);box-shadow:0 0 12px rgba(124,224,255,.6)}
+[data-d="9"] .mSt{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.16);backdrop-filter:blur(8px)}
+[data-d="9"] .mSteps{grid-template-columns:1fr 1fr;gap:10px}
+[data-d="9"] .mStep{background:rgba(255,255,255,.09);border-color:rgba(255,255,255,.18);backdrop-filter:blur(12px);
+  box-shadow:0 6px 20px rgba(8,4,24,.34),inset 0 1px 0 rgba(255,255,255,.18)}
+[data-d="9"] .mStep i{color:#9BE9FF}
+[data-d="9"] .mHint{color:#A9B0D8}
+
+/* ============================================================
+   10. 現場メモ ── クラフト紙・マスキングテープ・赤ペン
+   ============================================================ */
+[data-d="10"]{--bg:#E5DAC6;--sur:#FEFBF2;--sur2:#EFE6D3;--line:#C9BC9F;--ink:#2B2A26;--dim:#7E7460;
+  --acc:#D9482F;--accSoft:rgba(217,72,47,.10);--accInk:#FFF7F3;--warn:#3B6E4F;--warnSoft:rgba(59,110,79,.13);
+  --r:3px;--rSm:2px;--mono:ui-monospace,Menlo,monospace;--font:"Zen Maru Gothic",sans-serif;--hd:"Zen Maru Gothic",sans-serif}
+[data-d="10"] .mock{background:
+    linear-gradient(rgba(201,188,159,.30) 1px,transparent 1px) 0 0/100% 24px,
+    repeating-linear-gradient(90deg,rgba(0,0,0,.018) 0 2px,transparent 2px 6px),var(--bg);
+  color:var(--ink);font-family:var(--font);padding:17px 15px 23px}
+[data-d="10"] .mTop{padding-bottom:10px;margin-bottom:10px;border-bottom:1px solid var(--line);position:relative}
+[data-d="10"] .mTop::before{content:"";position:absolute;top:-9px;left:2px;width:74px;height:17px;
+  background:rgba(255,244,190,.68);border-left:1px solid rgba(0,0,0,.05);border-right:1px solid rgba(0,0,0,.05);
+  transform:rotate(-2.4deg);box-shadow:0 2px 4px rgba(0,0,0,.07)}
+[data-d="10"] .mBrand i{border-radius:1px;background:var(--acc);transform:rotate(45deg)}
+[data-d="10"] .mBrand b{font-size:17px;letter-spacing:.02em}
+[data-d="10"] .mBrand small{color:#9A8E76;letter-spacing:.16em}
+[data-d="10"] .mStatus{background:#F6EFD9;border-color:var(--line);color:#6E6349;border-radius:2px}
+[data-d="10"] .mMore{border-radius:2px;border-color:var(--line);background:var(--sur);color:#6E6349}
+[data-d="10"] .mNav{gap:5px;margin-bottom:12px}
+[data-d="10"] .mNav button,[data-d="10"] .mNav a{background:var(--sur);border:1px solid var(--line);border-radius:2px;
+  color:#3B3830;font-size:12.5px;padding:6px 11px;font-family:inherit;font-weight:700;box-shadow:1.5px 1.5px 0 rgba(120,108,80,.22)}
+[data-d="10"] .mNav .on{background:var(--acc);border-color:#A63422;color:#fff;box-shadow:1.5px 1.5px 0 #8C2B1B}
+[data-d="10"] .mNav .aux{background:#F2EAD6;color:#6E6349;font-weight:400}
+[data-d="10"] .mNum{border-radius:2px;background:none;border:2px solid var(--acc);color:var(--acc);transform:rotate(-3deg)}
+[data-d="10"] .mNow b{font-size:14.5px}
+[data-d="10"] .mNow b::after{content:" ←";color:var(--acc);font-weight:800}
+[data-d="10"] .mProg{background:#FBF4E4;border:1px solid var(--line);border-left:4px solid var(--warn);border-radius:2px}
+[data-d="10"] .mPd{background:var(--warn)}
+[data-d="10"] .mPn{color:var(--warn)}
+[data-d="10"] .mBar{background:#E8DEC7;border-color:var(--line);height:9px;border-radius:2px}
+[data-d="10"] .mBar i{background:var(--warn);border-radius:2px}
+[data-d="10"] .mSt{background:#FFFDF6;border-color:var(--line);border-radius:2px}
+[data-d="10"] .mSt.run{background:#FFF6E8}
+[data-d="10"] .mSteps{grid-template-columns:1fr 1fr;gap:9px}
+[data-d="10"] .mStep{background:var(--sur);border:1px solid var(--line);border-radius:2px;box-shadow:2px 2px 0 rgba(120,108,80,.18)}
+[data-d="10"] .mStep b{font-size:13.5px}
+[data-d="10"] .mStep i{color:var(--acc);text-decoration:underline wavy rgba(217,72,47,.6);text-underline-offset:3px}
+[data-d="10"] .mHint{background:#FFF8E4;border:1px solid #E6D9B6;border-radius:2px;padding:8px 10px;color:#6E6349;
+  box-shadow:1.5px 1.5px 0 rgba(120,108,80,.14)}
+
+@media (max-width:640px){
+  .head h1{font-size:22px}
+  .note .no{font-size:24px;min-width:42px}
+  .galgrid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="bar">
+  <div class="barIn">
+    <span class="barLbl">デザイン案</span>
+    <button class="chip on" data-go="0">0<small>いま</small></button>
+    <button class="chip" data-go="1">1<small>上質</small></button>
+    <button class="chip" data-go="2">2<small>紙</small></button>
+    <button class="chip" data-go="3">3<small>ポップ</small></button>
+    <button class="chip" data-go="4">4<small>新聞</small></button>
+    <button class="chip" data-go="5">5<small>サイバー</small></button>
+    <button class="chip" data-go="6">6<small>やさしい</small></button>
+    <button class="chip" data-go="7">7<small>レトロ</small></button>
+    <button class="chip" data-go="8">8<small>モノクロ</small></button>
+    <button class="chip" data-go="9">9<small>ガラス</small></button>
+    <button class="chip" data-go="10">10<small>現場</small></button>
+    <span class="sp"></span>
+    <button class="tgl" id="gToggle">まとめて見る</button>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="head">
+    <div class="eyebrow">ぽけっと通信 / design directions</div>
+    <h1>デザイン10案</h1>
+    <p>いまは<b>1つ</b>の見た目しかありません。同じ画面を、<b>考え方の違う10の方向</b>で作りました。色だけでなく、<b>文字の種類・角の丸さ・線の太さ・余白・並べ方</b>まで変えています。気になる番号を押すと、その案に切り替わります。</p>
+  </div>
+
+  <div class="note" id="note"></div>
+
+  <div class="stageBox" id="stageBox">
+    <div class="stageBoxTop">
+      <span class="dots"><i></i><i></i><i></i></span>
+      <span class="nm" id="boxName">0 · いまのデザイン</span>
+      <span class="sp"></span>
+      <span class="px">ぼけっと通信 / board.html</span>
+    </div>
+    <div class="sizer" id="sizer"><div class="mockHost" id="host"></div></div>
+  </div>
+
+  <div class="galgrid" id="gallery" hidden></div>
+</div>
+
+<script>
+var D = [
+  {n:0,  name:"いまのデザイン（v16）", tags:["暗い背景","緑のアクセント","丸いカード"],
+   text:"比較用です。暗い背景に緑のアクセント。悪くはありませんが、いまはこれ1つしかないので、他の案と見比べてください。"},
+  {n:1,  name:"上質ダーク", tags:["明朝","金の細線","角を立てる","余白ひろめ"],
+   text:"黒に近い背景へ、金の細い線と明朝体。派手さはなく、落ち着いて「値段と条件をきちんと書く場所」に見せます。線と余白だけで格を作る方向です。向いているのは、信頼感を最優先したいとき。"},
+  {n:2,  name:"紙のノート", tags:["生成り","罫線","えんぴつ線","付箋"],
+   text:"ノートの罫線を背景に、角を立てた紙のカード。少し傾けて手で置いた感じを出しています。むずかしい印象が消えるので、機械が苦手な家族や友人に渡すのに向いています。"},
+  {n:3,  name:"ポップ", tags:["ビビッド","丸ゴシック太字","バッジ","影で浮かす"],
+   text:"ピンクと黄色で元気に。ボタンを丸く太く、カードを少し傾けて「押したくなる」見た目に。若い読者やSNSと相性が良い一方、料金の記事では軽く見える恐れがあります。"},
+  {n:4,  name:"新聞", tags:["明朝の大見出し","罫線","段組み","赤の差し色"],
+   text:"新聞の紙面の型を借ります。見出しは大きく明朝、罫線で区切り、項目を2段に。数字と条件を並べる記事と相性がよく、「きちんと調べた」印象が出ます。固さは残ります。"},
+  {n:5,  name:"サイバー", tags:["等幅フォント","方眼の背景","発光","直線"],
+   text:"方眼の背景に、等幅のドット文字と青緑の発光。機械を触っている感覚が強く出ます。ガジェットや回線の技術寄りの記事と合いますが、初心者には少し強すぎるかもしれません。"},
+  {n:6,  name:"やさしい白", tags:["白基調","大きい文字","丸いボタン","広い間隔"],
+   text:"白を基調に、文字を大きく・間隔を広く・丸く柔らかく。むずかしい言葉より「読みやすさ」を優先した方向です。スマホが苦手な人、文字を大きくしたい人にいちばん優しい案です。"},
+  {n:7,  name:"レトロラジオ", tags:["セピア","朱色","丸枠","古い紙の質感"],
+   text:"昭和のラジオや古い広告の雰囲気。セピアの紙に朱色のボタン。他と絶対に被らない個性が出せます。ただ「新しくなさ」が読者によっては古く見えるので、扱う題材を選びます。"},
+  {n:8,  name:"モノクロ", tags:["白黒","極細の罫線","角なし","余白で見せる"],
+   text:"色を捨て、細い線と余白だけ。装飾がないぶん、中身（数字と条件）が主役になります。雑誌や設計の資料のような静けさ。色が無いので、要注意の印も線と太さで表す工夫が要ります。"},
+  {n:9,  name:"ガラス", tags:["半透明","ぼかし","光のにじみ","角丸大きめ"],
+   text:"すりガラスの板を重ねた見た目。奥行きが出て、いまの時期らしい印象になります。見栄えは強いですが、明るい場所や古い端末では読みにくくなることがあります。"},
+  {n:10, name:"現場メモ", tags:["クラフト紙","マスキングテープ","赤ペン","手書き感"],
+   text:"茶色のクラフト紙に、貼ったテープと赤ペンの印。あなたの最大の武器である「店頭で見てきた生の話」と、いちばん相性が良い見た目です。作業台というより、現場のメモという感じになります。"}
+];
+
+function mockHTML(){
+  return ''
+  + '<div class="mock">'
+  +   '<div class="mTop">'
+  +     '<div class="mBrand"><i></i><div><b>ぽけっと通信</b><small>MOBILE / HIKARI / DEVICE</small></div></div>'
+  +     '<div class="mSpacer"></div>'
+  +     '<div class="mStatus"><span class="mDot"></span>設定ずみ</div>'
+  +     '<button class="mMore">⋯</button>'
+  +   '</div>'
+  +   '<div class="mNav">'
+  +     '<button class="on">ホーム</button><button>作業</button><button>承認</button><button>発信</button>'
+  +     '<button class="aux">「数字（記録）」</button><button class="aux">「あなた設定」</button><button class="aux">「設定」</button><a class="aux">つかいかた</a>'
+  +   '</div>'
+  +   '<div class="mNow"><span class="mNum">1</span><div><b>次は「① ネタを選ぶ」です</b>'
+  +     '<small>AIに候補を出させて、書く1本を決めます（約5秒）</small></div></div>'
+  +   '<div class="mProg">'
+  +     '<div class="mPH"><span class="mPd"></span><b>AIが記事を作っています</b><span class="mPn">4 / 8 人 完了</span></div>'
+  +     '<div class="mBar"><i style="width:50%"></i></div>'
+  +     '<div class="mPNow">いま <b>ライター</b> が「記事の本文を書く」をしています（5人目 / 8人）</div>'
+  +     '<div class="mMeta"><span>経過 01:24</span><span>残り 約2分</span></div>'
+  +     '<div class="mGrid">'
+  +       '<div class="mSt done"><span class="pn">編集長</span><span class="ps">完了 00:12</span></div>'
+  +       '<div class="mSt run"><span class="pn">ライター</span><span class="ps">作業中 00:32</span></div>'
+  +       '<div class="mSt idle"><span class="pn">校閲</span><span class="ps">待機</span></div>'
+  +     '</div>'
+  +   '</div>'
+  +   '<div class="mSteps">'
+  +     '<button class="mStep"><b>① ネタを選ぶ</b><small>AIに候補を出させて、書く1本を決めます（約5秒）</small><i>ひらく →</i></button>'
+  +     '<button class="mStep"><b>② 記事を作る</b><small>9人の担当が順番に働きます（3〜8分。画面は閉じないでください）</small><i>ひらく →</i></button>'
+  +     '<button class="mStep"><b>③ 承認する</b><small>店頭体験を足して、noteへ出す許可を出します</small><i>ひらく →</i></button>'
+  +     '<button class="mStep"><b>④ 発信する</b><small>X・Instagram・TikTokの文面を作ります</small><i>ひらく →</i></button>'
+  +   '</div>'
+  +   '<p class="mHint">金額には基準日を。アフィリエイトにはPR表記を。そして、あなたの店頭体験をひとつ。</p>'
+  + '</div>';
+}
+
+var host = document.getElementById('host');
+var note = document.getElementById('note');
+var boxName = document.getElementById('boxName');
+var gallery = document.getElementById('gallery');
+var sizer = document.getElementById('sizer');
+var stageBox = document.getElementById('stageBox');
+var cur = 0, gal = false;
+
+function render(){
+  var d = D[cur];
+  host.setAttribute('data-d', d.n);
+  host.innerHTML = mockHTML();
+  note.innerHTML = '<div class="no">' + d.n + '</div><div><p class="tt">' + d.name + '</p>'
+    + '<p class="ds">' + d.text + '</p>'
+    + '<div class="kw">' + d.tags.map(function(t){ return '<span>' + t + '</span>'; }).join('') + '</div></div>';
+  boxName.textContent = d.n + ' · ' + d.name;
+  document.querySelectorAll('.chip').forEach(function(c){ c.classList.toggle('on', +c.dataset.go === cur); });
+  window.scrollTo(0, 0);
+}
+
+function renderGallery(){
+  gallery.innerHTML = D.map(function(d){
+    return '<div class="gitem"><div class="gt"><b>' + d.n + '. ' + d.name + '</b><span>' + d.tags[0] + '</span></div>'
+      + '<div class="gv"><div class="mockHost" data-d="' + d.n + '">' + mockHTML() + '</div></div></div>';
+  }).join('');
+}
+
+document.querySelectorAll('.chip').forEach(function(c){
+  c.onclick = function(){ cur = +c.dataset.go; gal = false; gallery.hidden = true; stageBox.hidden = false; document.getElementById('gToggle').textContent = 'まとめて見る'; render(); };
+});
+document.getElementById('gToggle').onclick = function(){
+  gal = !gal;
+  gallery.hidden = !gal;
+  stageBox.hidden = gal;
+  this.textContent = gal ? '1つずつ見る' : 'まとめて見る';
+  if(gal){ renderGallery(); window.scrollTo(0, 0); } else { render(); }
+};
+render();
+if(location.search.indexOf('g=1') > -1){ document.getElementById('gToggle').click(); }
+</script>
+</body>
+</html>
